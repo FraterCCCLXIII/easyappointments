@@ -45,6 +45,156 @@ App.Pages.Booking = (function () {
     const moment = window.moment;
 
     /**
+     * Custom Date Picker logic.
+     */
+    const customDatePicker = {
+        $monthsContainer: $('#months-container'),
+        $datesContainer: $('#dates-container'),
+        currentMonth: moment().month(),
+        currentYear: moment().year(),
+        selectedDay: moment().date(),
+
+        monthNames: [
+            lang('january_short'), lang('february_short'), lang('march_short'),
+            lang('april_short'), lang('may_short'), lang('june_short'),
+            lang('july_short'), lang('august_short'), lang('september_short'),
+            lang('october_short'), lang('november_short'), lang('december_short')
+        ],
+
+        dayNames: [
+            lang('sunday_short'), lang('monday_short'), lang('tuesday_short'),
+            lang('wednesday_short'), lang('thursday_short'), lang('friday_short'),
+            lang('saturday_short')
+        ],
+
+        initialize: function () {
+            this.addEventListeners();
+            this.update();
+        },
+
+        update: function () {
+            this.$monthsContainer.empty();
+            this.$datesContainer.empty();
+
+            const $selectedDateParagraph = $('#selected-date');
+            const flatpickr = $selectDate[0]?._flatpickr;
+
+            if (!flatpickr) {
+                return;
+            }
+
+            const minDate = moment(flatpickr.config.minDate);
+            const maxDate = moment(flatpickr.config.maxDate);
+            const disabledDates = flatpickr.config.disable.map(d => moment(d).format('YYYY-MM-DD'));
+
+            // Update selected date paragraph
+            if (this.selectedDay) {
+                const selectedDate = moment([this.currentYear, this.currentMonth, this.selectedDay]);
+                $selectedDateParagraph.text(lang('date') + ': ' + selectedDate.format('LL'));
+            } else {
+                $selectedDateParagraph.text(lang('date') + ': -');
+            }
+
+            // Render Months
+            this.monthNames.forEach((month, index) => {
+                const monthDate = moment([this.currentYear, index, 1]);
+                const isPast = monthDate.isBefore(minDate, 'month');
+                const isFuture = monthDate.isAfter(maxDate, 'month');
+
+                const $monthDiv = $('<div/>', {
+                    'class': 'month' + (index === this.currentMonth ? ' selected' : '') + (isPast || isFuture ? ' disabled' : ''),
+                    'text': month,
+                    'data-index': index
+                });
+                this.$monthsContainer.append($monthDiv);
+            });
+
+            // Render Dates
+            const numDays = moment([this.currentYear, this.currentMonth]).daysInMonth();
+            for (let i = 1; i <= numDays; i++) {
+                const dateMoment = moment([this.currentYear, this.currentMonth, i]);
+                const dateString = dateMoment.format('YYYY-MM-DD');
+                const isPast = dateMoment.isBefore(minDate, 'day');
+                const isFuture = dateMoment.isAfter(maxDate, 'day');
+                const isDisabled = disabledDates.includes(dateString);
+                const dayName = this.dayNames[dateMoment.day()];
+
+                const $dateDiv = $('<div/>', {
+                    'class': 'date' + (i === this.selectedDay ? ' selected' : '') + (isPast || isFuture || isDisabled ? ' disabled' : ''),
+                    'data-day': i,
+                    'html': `<span class="day-name">${dayName}</span><span class="day-number">${i}</span>`
+                });
+                this.$datesContainer.append($dateDiv);
+            }
+
+            // Center selected month
+            const $selectedMonth = this.$monthsContainer.find('.month.selected');
+            if ($selectedMonth.length) {
+                const offset = $selectedMonth[0].offsetLeft - (this.$monthsContainer.width() / 2) + ($selectedMonth.width() / 2);
+                this.$monthsContainer.stop().animate({ scrollLeft: offset }, 400);
+            }
+
+            // Center selected date
+            const $selectedDate = this.$datesContainer.find('.date.selected');
+            if ($selectedDate.length) {
+                const offset = $selectedDate[0].offsetLeft - (this.$datesContainer.width() / 2) + ($selectedDate.width() / 2);
+                this.$datesContainer.stop().animate({ scrollLeft: offset }, 400);
+            }
+        },
+
+        addEventListeners: function () {
+            let isScrolling = false;
+            let startX, startY;
+
+            const handlePointerDown = (event) => {
+                isScrolling = false;
+                startX = event.clientX;
+                startY = event.clientY;
+            };
+
+            const handlePointerMove = (event) => {
+                if (Math.abs(event.clientX - startX) > 5 || Math.abs(event.clientY - startY) > 5) {
+                    isScrolling = true;
+                }
+            };
+
+            this.$monthsContainer.on('pointerdown', handlePointerDown);
+            this.$monthsContainer.on('pointermove', handlePointerMove);
+            this.$monthsContainer.on('click', '.month', (event) => {
+                const $target = $(event.currentTarget);
+                if (!isScrolling && !$target.hasClass('disabled')) {
+                    this.currentMonth = parseInt($target.data('index'), 10);
+                    this.selectedDay = null; // Reset day when month changes
+                    this.update();
+
+                    // Load unavailable dates for the new month
+                    const displayedMonthMoment = moment([this.currentYear, this.currentMonth, 1]);
+                    App.Http.Booking.getUnavailableDates(
+                        $selectProvider.val(),
+                        $selectService.val(),
+                        displayedMonthMoment.format('YYYY-MM-DD')
+                    );
+                }
+            });
+
+            this.$datesContainer.on('pointerdown', handlePointerDown);
+            this.$datesContainer.on('pointermove', handlePointerMove);
+            this.$datesContainer.on('click', '.date', (event) => {
+                const $target = $(event.currentTarget);
+                if (!isScrolling && !$target.hasClass('disabled')) {
+                    this.selectedDay = parseInt($target.data('day'), 10);
+                    this.update();
+
+                    const selectedDate = moment([this.currentYear, this.currentMonth, this.selectedDay]);
+                    App.Utils.UI.setDateTimePickerValue($selectDate, selectedDate.toDate());
+                    App.Http.Booking.getAvailableHours(selectedDate.format('YYYY-MM-DD'));
+                    App.Pages.Booking.updateConfirmFrame();
+                }
+            });
+        }
+    };
+
+    /**
      * Determines the functionality of the page.
      *
      * @type {Boolean}
@@ -112,6 +262,7 @@ App.Pages.Booking = (function () {
             onChange: (selectedDates) => {
                 App.Http.Booking.getAvailableHours(moment(selectedDates[0]).format('YYYY-MM-DD'));
                 App.Pages.Booking.updateConfirmFrame();
+                updateCustomDatePicker();
             },
 
             onMonthChange: (selectedDates, dateStr, instance) => {
@@ -166,6 +317,8 @@ App.Pages.Booking = (function () {
         });
 
         App.Utils.UI.setDateTimePickerValue($selectDate, new Date());
+
+        customDatePicker.initialize();
 
         const browserTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
         const isTimezoneSupported = $selectTimezone.find(`option[value="${browserTimezone}"]`).length > 0;
@@ -1096,6 +1249,17 @@ App.Pages.Booking = (function () {
         }
     }
 
+    function updateCustomDatePicker() {
+        const selectedDate = App.Utils.UI.getDateTimePickerValue($selectDate);
+        if (selectedDate) {
+            const m = moment(selectedDate);
+            customDatePicker.currentMonth = m.month();
+            customDatePicker.currentYear = m.year();
+            customDatePicker.selectedDay = m.date();
+        }
+        customDatePicker.update();
+    }
+
     document.addEventListener('DOMContentLoaded', initialize);
 
     return {
@@ -1103,5 +1267,6 @@ App.Pages.Booking = (function () {
         updateConfirmFrame,
         updateServiceDescription,
         validateCustomerForm,
+        updateCustomDatePicker,
     };
 })();

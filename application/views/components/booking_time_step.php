@@ -18,13 +18,22 @@
         <h2 class="frame-title"><?= lang('appointment_date_and_time') ?></h2>
 
         <div class="row frame-content">
-            <div class="col-12 col-md-6">
-                <div id="select-date"></div>
+            <div class="col-12 col-md-8 offset-md-2">
+                <div class="date-picker-container mb-3">
+                    <div class="date-picker">
+                        <div class="months-container" id="months-container"></div>
+                        <div class="dates-container" id="dates-container"></div>
+                    </div>
+                </div>
+
+                <p id="selected-date" class="text-center mt-3"></p>
+
+                <div class="d-none">
+                    <div id="select-date"></div>
+                </div>
 
                 <?php slot('after_select_date'); ?>
-            </div>
 
-            <div class="col-12 col-md-6">
                 <div id="select-time">
                     <div class="mb-3">
                         <label for="select-timezone" class="form-label">
@@ -48,10 +57,14 @@
     </div>
 
     <div class="command-buttons">
-        <button type="button" id="button-next-2" class="btn button-next btn-dark text-start w-100 py-3"
-                data-step_index="2">
-            <?= lang('next') ?>
-            <i class="fas fa-chevron-right ms-2"></i>
-        </button>
+        <div class="row">
+            <div class="col col-md-8 offset-md-2">
+                <button type="button" id="button-next-2" class="btn button-next btn-dark text-center w-100 py-3"
+                        data-step_index="2">
+                    <?= lang('next') ?>
+                    <i class="fas fa-chevron-right ms-2"></i>
+                </button>
+            </div>
+        </div>
     </div>
 </div>

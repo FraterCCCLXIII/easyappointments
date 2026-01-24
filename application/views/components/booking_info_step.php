@@ -33,7 +33,7 @@
         <h2 class="frame-title"><?= lang('customer_information') ?></h2>
 
         <div class="row frame-content">
-            <div class="col-12 col-md-6 field-col mx-auto">
+            <div class="col-12 col-md-8 offset-md-2">
                 <?php if ($display_first_name): ?>
                     <div class="mb-3">
                         <label for="first-name" class="form-label">
@@ -91,9 +91,7 @@
                 <?php component('custom_fields'); ?>
 
                 <?php slot('after_custom_fields'); ?>
-            </div>
 
-            <div class="col-12 col-md-6 field-col mx-auto">
                 <?php if ($display_address): ?>
                     <div class="mb-3">
                         <label for="address" class="form-label">
@@ -145,15 +143,18 @@
 
                 <?php slot('info_second_column'); ?>
             </div>
-
         </div>
     </div>
 
     <div class="command-buttons">
-        <button type="button" id="button-next-3" class="btn button-next btn-dark text-start w-100 py-3"
-                data-step_index="3">
-            <?= lang('next') ?>
-            <i class="fas fa-chevron-right ms-2"></i>
-        </button>
+        <div class="row">
+            <div class="col col-md-8 offset-md-2">
+                <button type="button" id="button-next-3" class="btn button-next btn-dark text-center w-100 py-3"
+                        data-step_index="3">
+                    <?= lang('next') ?>
+                    <i class="fas fa-chevron-right ms-2"></i>
+                </button>
+            </div>
+        </div>
     </div>
 </div>
