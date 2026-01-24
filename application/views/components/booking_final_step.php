@@ -10,6 +10,12 @@
 
 <div id="wizard-frame-4" class="wizard-frame" style="display:none;">
     <div class="frame-container">
+        <div class="wizard-back-button-wrapper">
+            <button type="button" id="button-back-4" class="btn btn-outline-secondary wizard-back-button button-back"
+                    data-step_index="4" aria-label="<?= lang('back') ?>">
+                <i class="fas fa-arrow-left"></i>
+            </button>
+        </div>
         <h2 class="frame-title"><?= lang('appointment_confirmation') ?></h2>
 
         <div class="row frame-content m-auto pt-md-4 mb-4">
@@ -73,11 +79,6 @@
     </div>
 
     <div class="command-buttons">
-        <button type="button" id="button-back-4" class="btn button-back btn-outline-secondary"
-                data-step_index="4">
-            <i class="fas fa-chevron-left me-2"></i>
-            <?= lang('back') ?>
-        </button>
         <form id="book-appointment-form" style="display:inline-block" method="post">
             <button id="book-appointment-submit" type="button" class="btn btn-primary">
                 <i class="fas fa-check-square me-2"></i>

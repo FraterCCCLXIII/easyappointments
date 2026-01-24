@@ -164,5 +164,15 @@ $route['api/v1/availabilities']['get'] = 'api/v1/availabilities_api_v1/get';
 |
 */
 
+$route['customer/login'] = 'customer_auth/login';
+$route['customer/authenticate'] = 'customer_auth/authenticate';
+$route['customer/register'] = 'customer_auth/register';
+$route['customer/logout'] = 'customer_auth/logout';
+$route['customer/account'] = 'customer_account/index';
+$route['customer/account/update'] = 'customer_account/update_profile';
+$route['customer/account/email'] = 'customer_account/update_email';
+$route['customer/account/password'] = 'customer_account/update_password';
+$route['customer/bookings'] = 'customer_bookings/index';
+
 /* End of file routes.php */
 /* Location: ./application/config/routes.php */

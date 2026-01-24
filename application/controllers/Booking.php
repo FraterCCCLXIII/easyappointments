@@ -134,6 +134,12 @@ class Booking extends EA_Controller
             return;
         }
 
+        if (!customer_logged_in()) {
+            session(['customer_return_url' => current_url()]);
+            redirect('customer/login');
+            return;
+        }
+
         $available_services = $this->services_model->get_available_services(true);
         $available_providers = $this->providers_model->get_available_providers(true);
 
@@ -182,6 +188,25 @@ class Booking extends EA_Controller
         $grouped_timezones = $this->timezones->to_grouped_array();
 
         $appointment_hash = html_vars('appointment_hash');
+
+        $customer = $this->customers_model->find(customer_id());
+
+        if (empty($customer)) {
+            $this->session->unset_userdata(['customer_id', 'customer_email']);
+            redirect('customer/login');
+            return;
+        }
+
+        if (!$this->is_customer_profile_complete($customer)) {
+            session([
+                'customer_flash' => [
+                    'type' => 'warning',
+                    'message' => 'Please complete your profile before booking.',
+                ],
+            ]);
+            redirect('customer/account?complete=1');
+            return;
+        }
 
         if (!empty($appointment_hash)) {
             // Load the appointments data and enable the manage mode of the booking page.
@@ -237,6 +262,10 @@ class Booking extends EA_Controller
             }
 
             $appointment = $results[0];
+
+            if ((int) $appointment['id_users_customer'] !== (int) $customer['id']) {
+                abort(403, 'Forbidden');
+            }
             $provider = $this->providers_model->find($appointment['id_users_provider']);
             $customer = $this->customers_model->find($appointment['id_users_customer']);
             $customer_token = md5(uniqid(mt_rand(), true));
@@ -248,8 +277,10 @@ class Booking extends EA_Controller
             $customer_token = false;
             $appointment = null;
             $provider = null;
-            $customer = null;
         }
+
+        $customer_data = $customer;
+        $this->customers_model->only($customer_data, $this->allowed_customer_fields);
 
         script_vars([
             'manage_mode' => $manage_mode,
@@ -263,10 +294,11 @@ class Booking extends EA_Controller
             'future_booking_limit' => setting('future_booking_limit'),
             'appointment_data' => $appointment,
             'provider_data' => $provider,
-            'customer_data' => $customer,
+            'customer_data' => $customer_data,
             'customer_token' => $customer_token,
             'default_language' => setting('default_language'),
             'default_timezone' => setting('default_timezone'),
+            'customer_logged_in' => true,
         ]);
 
         html_vars([
@@ -312,7 +344,7 @@ class Booking extends EA_Controller
             'manage_mode' => $manage_mode,
             'appointment_data' => $appointment,
             'provider_data' => $provider,
-            'customer_data' => $customer,
+            'customer_data' => $customer_data,
         ]);
 
         $this->load->view('pages/booking');
@@ -330,11 +362,28 @@ class Booking extends EA_Controller
                 abort(403);
             }
 
+            if (!customer_logged_in()) {
+                abort(403, 'Forbidden');
+            }
+
             $post_data = request('post_data');
             $captcha = request('captcha');
             $appointment = $post_data['appointment'];
-            $customer = $post_data['customer'];
+            $customer_input = $post_data['customer'];
             $manage_mode = filter_var($post_data['manage_mode'], FILTER_VALIDATE_BOOLEAN);
+
+            $customer_id = customer_id();
+            $customer = $this->customers_model->find($customer_id);
+
+            if (empty($customer)) {
+                abort(403, 'Forbidden');
+            }
+
+            $customer_input = is_array($customer_input) ? $customer_input : [];
+            $customer_email = $customer['email'];
+            $customer = array_merge($customer, $customer_input);
+            $customer['id'] = $customer_id;
+            $customer['email'] = $customer_email;
 
             if (!array_key_exists('address', $customer)) {
                 $customer['address'] = '';
@@ -381,19 +430,15 @@ class Booking extends EA_Controller
                 return;
             }
 
-            if ($this->customers_model->exists($customer)) {
-                $customer['id'] = $this->customers_model->find_record_id($customer);
+            $existing_appointments = $this->appointments_model->get([
+                'id !=' => $manage_mode ? $appointment['id'] : null,
+                'id_users_customer' => $customer_id,
+                'start_datetime <=' => $appointment['start_datetime'],
+                'end_datetime >=' => $appointment['end_datetime'],
+            ]);
 
-                $existing_appointments = $this->appointments_model->get([
-                    'id !=' => $manage_mode ? $appointment['id'] : null,
-                    'id_users_customer' => $customer['id'],
-                    'start_datetime <=' => $appointment['start_datetime'],
-                    'end_datetime >=' => $appointment['end_datetime'],
-                ]);
-
-                if (count($existing_appointments)) {
-                    throw new RuntimeException(lang('customer_is_already_booked'));
-                }
+            if (count($existing_appointments)) {
+                throw new RuntimeException(lang('customer_is_already_booked'));
             }
 
             if (empty($appointment['location']) && !empty($service['location'])) {
@@ -541,6 +586,30 @@ class Booking extends EA_Controller
         }
 
         return $is_still_available ? $appointment['id_users_provider'] : null;
+    }
+
+    /**
+     * Check whether the customer profile is complete for booking.
+     *
+     * @param array $customer
+     *
+     * @return bool
+     */
+    protected function is_customer_profile_complete(array $customer): bool
+    {
+        if (empty($customer['first_name'])) {
+            return false;
+        }
+
+        if (empty($customer['last_name'])) {
+            return false;
+        }
+
+        if (empty($customer['address'])) {
+            return false;
+        }
+
+        return true;
     }
 
     /**

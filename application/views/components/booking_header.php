@@ -7,20 +7,6 @@
 ?>
 
 <div id="header">
-    <div id="company-name">
-        <img src="<?= vars('company_logo') ?: base_url('assets/img/logo.png') ?>" alt="logo" id="company-logo">
-
-        <span>
-            <?= e($company_name) ?>
-        </span>
-
-        <div class="d-flex justify-content-center justify-content-md-start">
-            <span class="display-booking-selection">
-                <?= lang('service') ?> │ <?= lang('provider') ?>
-            </span>
-        </div>
-    </div>
-
     <div id="steps">
         <div id="step-1" class="book-step active-step"
              data-tippy-content="<?= lang('service_and_provider') ?>">
