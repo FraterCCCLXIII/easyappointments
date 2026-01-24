@@ -1,0 +1,33 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.prod
+    environment:
+      - BASE_URL=${BASE_URL:-http://localhost}
+      - DB_HOST=${DB_HOST:-db}
+      - DB_NAME=${DB_NAME:-easyappointments}
+      - DB_USERNAME=${DB_USERNAME:-user}
+      - DB_PASSWORD=${DB_PASSWORD:-password}
+      - DEBUG_MODE=${DEBUG_MODE:-false}
+      - LANGUAGE=${LANGUAGE:-english}
+    ports:
+      - "80:80"
+    depends_on:
+      - db
+    volumes:
+      - storage_data:/var/www/html/storage
+
+  db:
+    image: mysql:8.0
+    environment:
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD:-secret}
+      - MYSQL_DATABASE=${DB_NAME:-easyappointments}
+      - MYSQL_USER=${DB_USERNAME:-user}
+      - MYSQL_PASSWORD=${DB_PASSWORD:-password}
+    volumes:
+      - db_data:/var/lib/mysql
+
+volumes:
+  storage_data:
+  db_data:
