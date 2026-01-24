@@ -370,6 +370,10 @@ App.Http.Booking = (function () {
         searchedMonthStart = undefined;
         searchedMonthCounter = 0;
         processingUnavailableDates = false;
+
+        if (window.App.Pages.Booking.updateCustomDatePicker) {
+            window.App.Pages.Booking.updateCustomDatePicker();
+        }
     }
 
     /**

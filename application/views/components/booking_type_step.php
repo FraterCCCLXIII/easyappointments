@@ -11,7 +11,7 @@
         <h2 class="frame-title mt-md-5"><?= lang('service_and_provider') ?></h2>
 
         <div class="row frame-content">
-            <div class="col col-md-8 offset-md-2">
+            <div class="col-12 col-md-8 offset-md-2">
                 <div class="mb-3">
                     <?php
                     // Group services by category, only if there is at least one service with a parent category.
