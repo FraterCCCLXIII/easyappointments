@@ -221,7 +221,7 @@ $pagination-disabled-border-color: $pagination-border-color !default;
 
 body {
     //font-weight: 200;
-    letter-spacing: 0.05rem;
+    letter-spacing: normal;
 }
 
 h1,
@@ -231,7 +231,7 @@ h4,
 h5,
 h6 {
     text-transform: uppercase;
-    letter-spacing: 3px;
+    letter-spacing: normal;
 }
 
 .text-secondary {

@@ -38,6 +38,10 @@ if (!function_exists('rate_limit')) {
 
         $CI->load->driver('cache', ['adapter' => 'file']);
 
+        if (empty($CI->cache) || !method_exists($CI->cache, 'get')) {
+            return;
+        }
+
         $cache_key = str_replace(':', '', 'rate_limit_key_' . $ip);
 
         $cache_remain_time_key = str_replace(':', '', 'rate_limit_tmp_' . $ip);

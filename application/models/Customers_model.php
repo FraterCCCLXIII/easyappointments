@@ -223,6 +223,38 @@ class Customers_model extends EA_Model
     }
 
     /**
+     * Create a minimal customer record for account registration.
+     *
+     * @param array $customer
+     *
+     * @return int
+     */
+    public function create_shell(array $customer): int
+    {
+        if (empty($customer['email'])) {
+            throw new InvalidArgumentException('Email is required.');
+        }
+
+        if (!filter_var($customer['email'], FILTER_VALIDATE_EMAIL)) {
+            throw new InvalidArgumentException('Invalid email address provided: ' . $customer['email']);
+        }
+
+        if ($this->exists($customer)) {
+            throw new InvalidArgumentException('The provided email address is already in use.');
+        }
+
+        $customer['id_roles'] = $this->get_customer_role_id();
+        $customer['timezone'] = $customer['timezone'] ?? setting('default_timezone');
+        $customer['language'] = $customer['language'] ?? setting('default_language', config('language'));
+        $customer['create_datetime'] = date('Y-m-d H:i:s');
+        $customer['update_datetime'] = $customer['create_datetime'];
+
+        $this->db->insert('users', $customer);
+
+        return (int) $this->db->insert_id();
+    }
+
+    /**
      * Find the record ID of a customer.
      *
      * @param array $customer Associative array with the customer data.

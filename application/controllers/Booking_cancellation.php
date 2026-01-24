@@ -55,6 +55,12 @@ class Booking_cancellation extends EA_Controller
                 abort(403);
             }
 
+            if (!customer_logged_in()) {
+                session(['customer_return_url' => current_url()]);
+                redirect('customer/login');
+                return;
+            }
+
             $cancellation_reason = request('cancellation_reason');
 
             if ($this->input->method() !== 'post' || empty($cancellation_reason)) {
@@ -81,6 +87,10 @@ class Booking_cancellation extends EA_Controller
             }
 
             $appointment = $occurrences[0];
+
+            if ((int) $appointment['id_users_customer'] !== (int) customer_id()) {
+                abort(403, 'Forbidden');
+            }
 
             $provider = $this->providers_model->find($appointment['id_users_provider']);
 

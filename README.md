@@ -89,6 +89,16 @@ You will need to perform the following steps to install the application on your 
 
 That's it! You can now use Easy!Appointments at your will.
 
+## Customer Accounts (v1)
+
+Customer accounts use a separate authentication table and require a database migration.
+
+* Run migrations after pulling updates:
+  * Local: `php index.php console migrate`
+  * Docker: `docker compose exec -T php-fpm php index.php console migrate`
+* Customer login page: `/index.php/customer/login`
+* Logged-in customers can access **My Bookings** and **My Account** from the top nav.
+
 You will find the latest release at [easyappointments.org](https://easyappointments.org).
 If you have problems installing or configuring the application visit the
 [official support group](https://groups.google.com/forum/#!forum/easy-appointments).

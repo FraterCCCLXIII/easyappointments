@@ -20,6 +20,8 @@ App.Pages.Booking = (function () {
     const $selectDate = $('#select-date');
     const $selectService = $('#select-service');
     const $selectProvider = $('#select-provider');
+    const $serviceCardList = $('#service-card-list');
+    const $providerCardList = $('#provider-card-list');
     const $selectTimezone = $('#select-timezone');
     const $firstName = $('#first-name');
     const $lastName = $('#last-name');
@@ -266,7 +268,123 @@ App.Pages.Booking = (function () {
             prefillFromQueryParam('#address', 'address');
             prefillFromQueryParam('#city', 'city');
             prefillFromQueryParam('#zip-code', 'zip');
+            prefillFromCustomerAccount();
         }
+
+        updateNextButtons();
+    }
+
+    function prefillFromCustomerAccount() {
+        if (!vars('customer_logged_in')) {
+            return;
+        }
+
+        const customerData = vars('customer_data');
+
+        if (!customerData) {
+            return;
+        }
+
+        $firstName.val($firstName.val() || customerData.first_name || '');
+        $lastName.val($lastName.val() || customerData.last_name || '');
+        $email.val($email.val() || customerData.email || '');
+        $phoneNumber.val($phoneNumber.val() || customerData.phone_number || '');
+        $address.val($address.val() || customerData.address || '');
+        $city.val($city.val() || customerData.city || '');
+        $zipCode.val($zipCode.val() || customerData.zip_code || '');
+
+        $email.prop('readonly', true).attr('aria-readonly', 'true');
+    }
+
+    function syncServiceCardSelection(serviceId) {
+        const normalizedServiceId = String(serviceId || '');
+
+        $serviceCardList.find('.service-card').each((index, cardEl) => {
+            const $card = $(cardEl);
+            const cardServiceId = String($card.data('serviceId') || '');
+            const isSelected = normalizedServiceId !== '' && cardServiceId === normalizedServiceId;
+
+            $card.toggleClass('active', isSelected);
+            $card.attr('aria-checked', isSelected ? 'true' : 'false');
+        });
+    }
+
+    function syncProviderCardSelection(providerId) {
+        const normalizedProviderId = String(providerId || '');
+
+        $providerCardList.find('.provider-card').each((index, cardEl) => {
+            const $card = $(cardEl);
+            const cardProviderId = String($card.data('providerId') || '');
+            const isSelected = normalizedProviderId !== '' && cardProviderId === normalizedProviderId;
+
+            $card.toggleClass('active', isSelected);
+            $card.attr('aria-checked', isSelected ? 'true' : 'false');
+        });
+    }
+
+    function areRequiredFieldsFilled() {
+        let isValid = true;
+
+        $('#wizard-frame-3 .required:visible').each((index, requiredField) => {
+            if (!$(requiredField).val()) {
+                isValid = false;
+                return false;
+            }
+        });
+
+        return isValid;
+    }
+
+    function isNextEnabledForStep(stepIndex) {
+        if (stepIndex === 1) {
+            return Boolean($selectProvider.val());
+        }
+
+        if (stepIndex === 2) {
+            return Boolean($('.selected-hour').length);
+        }
+
+        if (stepIndex === 3) {
+            return areRequiredFieldsFilled();
+        }
+
+        return true;
+    }
+
+    function updateNextButtons() {
+        $('.button-next').each((index, buttonEl) => {
+            const $button = $(buttonEl);
+            const stepIndex = Number($button.data('step_index'));
+            const isEnabled = isNextEnabledForStep(stepIndex);
+
+            $button.prop('disabled', !isEnabled);
+            $button.toggleClass('disabled', !isEnabled);
+            $button.attr('aria-disabled', (!isEnabled).toString());
+        });
+    }
+
+    function renderProviderCards() {
+        $providerCardList.empty();
+
+        const providerOptions = $selectProvider.find('option').filter((index, option) => $(option).val() !== '');
+
+        providerOptions.each((index, option) => {
+            const $option = $(option);
+            const providerId = $option.val();
+            const providerName = $option.text();
+
+            $('<button/>', {
+                type: 'button',
+                class: 'btn btn-outline-dark text-start w-100 py-3 provider-card',
+                'data-provider-id': providerId,
+                role: 'radio',
+                'aria-checked': 'false',
+                text: providerName,
+            }).appendTo($providerCardList);
+        });
+
+        syncProviderCardSelection($selectProvider.val());
+        updateNextButtons();
     }
 
     function prefillFromQueryParam(field, param) {
@@ -354,6 +472,8 @@ App.Pages.Booking = (function () {
             );
 
             App.Pages.Booking.updateConfirmFrame();
+            syncProviderCardSelection($selectProvider.val());
+            updateNextButtons();
         });
 
         /**
@@ -396,6 +516,8 @@ App.Pages.Booking = (function () {
                 $(new Option(lang('any_provider'), 'any-provider')).insertAfter($selectProvider.find('option:first'));
             }
 
+            renderProviderCards();
+
             App.Http.Booking.getUnavailableDates(
                 $selectProvider.val(),
                 $target.val(),
@@ -405,6 +527,30 @@ App.Pages.Booking = (function () {
             App.Pages.Booking.updateConfirmFrame();
 
             App.Pages.Booking.updateServiceDescription(serviceId);
+            syncServiceCardSelection(serviceId);
+            updateNextButtons();
+        });
+
+        $serviceCardList.on('click', '.service-card', (event) => {
+            const $card = $(event.currentTarget);
+            const serviceId = $card.data('serviceId');
+
+            if (!serviceId) {
+                return;
+            }
+
+            $selectService.val(serviceId).trigger('change');
+        });
+
+        $providerCardList.on('click', '.provider-card', (event) => {
+            const $card = $(event.currentTarget);
+            const providerId = $card.data('providerId');
+
+            if (!providerId) {
+                return;
+            }
+
+            $selectProvider.val(providerId).trigger('change');
         });
 
         /**
@@ -448,14 +594,12 @@ App.Pages.Booking = (function () {
             // Display the next step tab (uses jquery animation effect).
             const nextTabIndex = parseInt($target.attr('data-step_index')) + 1;
 
-            $target
-                .parents()
-                .eq(1)
-                .fadeOut(() => {
-                    $('.active-step').removeClass('active-step');
-                    $('#step-' + nextTabIndex).addClass('active-step');
-                    $('#wizard-frame-' + nextTabIndex).fadeIn();
-                });
+            $target.closest('.wizard-frame').fadeOut(() => {
+                $('.active-step').removeClass('active-step');
+                $('#step-' + nextTabIndex).addClass('active-step');
+                $('#wizard-frame-' + nextTabIndex).fadeIn();
+                updateNextButtons();
+            });
 
             // Scroll to the top of the page. On a small screen, especially on a mobile device, this is very useful.
             const scrollingElement = document.scrollingElement || document.body;
@@ -473,14 +617,12 @@ App.Pages.Booking = (function () {
         $('.button-back').on('click', (event) => {
             const prevTabIndex = parseInt($(event.currentTarget).attr('data-step_index')) - 1;
 
-            $(event.currentTarget)
-                .parents()
-                .eq(1)
-                .fadeOut(() => {
-                    $('.active-step').removeClass('active-step');
-                    $('#step-' + prevTabIndex).addClass('active-step');
-                    $('#wizard-frame-' + prevTabIndex).fadeIn();
-                });
+            $(event.currentTarget).closest('.wizard-frame').fadeOut(() => {
+                $('.active-step').removeClass('active-step');
+                $('#step-' + prevTabIndex).addClass('active-step');
+                $('#wizard-frame-' + prevTabIndex).fadeIn();
+                updateNextButtons();
+            });
         });
 
         /**
@@ -492,6 +634,11 @@ App.Pages.Booking = (function () {
             $availableHours.find('.selected-hour').removeClass('selected-hour');
             $(event.target).addClass('selected-hour');
             App.Pages.Booking.updateConfirmFrame();
+            updateNextButtons();
+        });
+
+        $('#wizard-frame-3').on('input change', '.required', () => {
+            updateNextButtons();
         });
 
         if (manageMode) {
@@ -933,28 +1080,6 @@ App.Pages.Booking = (function () {
         }
 
         // Render the additional service information
-
-        const additionalInfoParts = [];
-
-        if (service.duration) {
-            additionalInfoParts.push(`${lang('duration')}: ${service.duration} ${lang('minutes')}`);
-        }
-
-        if (Number(service.price) > 0) {
-            additionalInfoParts.push(`${lang('price')}: ${Number(service.price).toFixed(2)} ${service.currency}`);
-        }
-
-        if (service.location) {
-            additionalInfoParts.push(`${lang('location')}: ${service.location}`);
-        }
-
-        if (additionalInfoParts.length) {
-            $(`
-                <div class="mb-2 fst-italic">
-                    ${additionalInfoParts.join(', ')}
-                </div>
-            `).appendTo($serviceDescription);
-        }
 
         // Render the service description
 

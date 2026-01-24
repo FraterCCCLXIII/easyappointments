@@ -81,6 +81,7 @@ $autoload['helper'] = [
     'rate_limit',
     'routes',
     'session',
+    'customer_session',
     'setting',
     'string',
     'url',
