@@ -32,6 +32,16 @@ App.Pages.Services = (function () {
     let filterResults = {};
     let filterLimit = 20;
 
+    function setRecordDetailsVisible(visible) {
+        const $recordDetails = $services.find('.record-details');
+
+        if (visible) {
+            $recordDetails.show();
+        } else {
+            $recordDetails.hide();
+        }
+    }
+
     /**
      * Add page event listeners.
      */
@@ -87,6 +97,7 @@ App.Pages.Services = (function () {
             $filterServices.find('.selected').removeClass('selected');
             $(event.currentTarget).addClass('selected');
             $('#edit-service, #delete-service').prop('disabled', false);
+            setRecordDetailsVisible(true);
         });
 
         /**
@@ -94,6 +105,7 @@ App.Pages.Services = (function () {
          */
         $services.on('click', '#add-service', () => {
             App.Pages.Services.resetForm();
+            setRecordDetailsVisible(true);
             $services.find('.add-edit-delete-group').hide();
             $services.find('.save-cancel-group').show();
             $services.find('.record-details').find('input, select, textarea').prop('disabled', false);
@@ -280,6 +292,7 @@ App.Pages.Services = (function () {
         $services.find('.record-details .form-message').hide();
 
         App.Components.ColorSelection.disable($color);
+        setRecordDetailsVisible(false);
     }
 
     /**
@@ -340,8 +353,12 @@ App.Pages.Services = (function () {
                 }).appendTo('#filter-services .results');
             }
 
-            if (selectId) {
-                App.Pages.Services.select(selectId, show);
+            if (response.length) {
+                const defaultId = selectId ?? response[0].id;
+                const shouldShow = show || !selectId;
+                App.Pages.Services.select(defaultId, shouldShow);
+            } else {
+                setRecordDetailsVisible(false);
             }
         });
     }
@@ -395,6 +412,7 @@ App.Pages.Services = (function () {
             App.Pages.Services.display(service);
 
             $('#edit-service, #delete-service').prop('disabled', false);
+            setRecordDetailsVisible(true);
         }
     }
 

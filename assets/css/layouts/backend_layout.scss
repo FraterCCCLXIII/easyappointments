@@ -21,7 +21,8 @@ root {
    -------------------------------------------------------------------- */
 
 #header {
-    background-color: #429a82;
+    background-color: #fff !important;
+    border-bottom: 1px solid #e2e8f0;
     box-shadow: none;
     border-radius: 0;
     padding: 0;
@@ -74,9 +75,25 @@ root {
     background: #2e6a5b;
 }
 
+#header .backend-header-grid {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+#header .header-menu {
+    justify-self: center;
+    min-width: 0;
+}
+
+#header .header-account {
+    justify-self: end;
+}
+
 #footer {
-    background-color: var(--bs-body-bg);
-    border-top: 1px solid #ddd;
+    background-color: #f8fafc;
+    border-top: 1px solid #e2e8f0;
     font-size: 11px;
 }
 
@@ -131,22 +148,22 @@ root {
 }
 
 body .modal .modal-title {
-    color: white;
+    color: #0f172a;
 }
 
 body .modal-header {
     padding: 20px 15px;
-    background: #429a82;
+    background: #f8fafc;
 }
 
 body .modal-header h3 {
-    color: #fff;
+    color: #0f172a;
     font-size: 20px;
-    font-weight: lighter;
+    font-weight: 600;
 }
 
 body .modal-header .close {
-    color: #12482a;
+    color: #64748b;
 }
 
 body .modal-content {
@@ -211,13 +228,112 @@ body legend {
    -------------------------------------------------------------------- */
 
 .backend-page {
-    padding-top: 15px;
-    padding-bottom: 15px;
+    padding: 0;
 }
 
 .backend-page .filter-records {
     max-width: 350px;
     margin-bottom: 20px;
+}
+
+.backend-page .settings-nav-panel {
+    align-self: flex-start;
+}
+
+.backend-page .settings-layout {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    column-gap: 1.5rem;
+    row-gap: 1.5rem;
+}
+
+.backend-page .settings-layout .settings-nav-panel {
+    flex: 0 0 240px;
+    max-width: 240px;
+    padding-right: 0;
+}
+
+.backend-page .settings-layout .settings-content {
+    flex: 1 1 0;
+    min-width: 0;
+}
+
+.backend-page .settings-layout .settings-content > :first-child {
+    margin-top: 0;
+}
+
+.backend-page .settings-nav-title {
+    padding: 0.5rem 0.75rem;
+}
+
+.backend-page .settings-nav {
+    margin: 0;
+    padding: 0 0.5rem 0.5rem;
+}
+
+.backend-page .settings-nav .settings-nav-link {
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.5rem;
+    color: inherit;
+}
+
+.backend-page .settings-nav .settings-nav-link:hover,
+.backend-page .settings-nav .settings-nav-link:focus-visible {
+    background-color: var(--bs-secondary-bg);
+    text-decoration: none;
+}
+
+.backend-page .settings-nav .settings-nav-link.active {
+    background-color: var(--bs-secondary-bg);
+    color: var(--bs-body-color);
+    font-weight: 600;
+}
+
+.backend-page .form-switch {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.backend-page .form-switch .form-check-input {
+    width: 2.5rem;
+    height: 1.5rem;
+    margin: 0;
+    background-color: var(--bs-secondary-bg);
+    border: 1px solid var(--bs-border-color);
+    border-radius: 999px;
+    position: relative;
+    appearance: none;
+    cursor: pointer;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.backend-page .form-switch .form-check-input::after {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 1.1rem;
+    height: 1.1rem;
+    border-radius: 999px;
+    background-color: #fff;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.25);
+    transition: transform 0.2s ease;
+}
+
+.backend-page .form-switch .form-check-input:checked {
+    background-color: var(--bs-primary);
+    border-color: var(--bs-primary);
+}
+
+.backend-page .form-switch .form-check-input:checked::after {
+    transform: translateX(1rem);
+}
+
+.backend-page .form-switch .form-check-input:focus-visible {
+    outline: 2px solid color-mix(in srgb, var(--bs-primary) 60%, #fff);
+    outline-offset: 2px;
 }
 
 @media (min-width: 768px) {
@@ -226,14 +342,42 @@ body legend {
         overflow-y: auto;
     }
 
-    .backend-page .filter-records.backend-scroll-panel {
+    .backend-page .settings-layout .settings-nav-panel {
+        position: sticky;
+        top: 96px;
+        max-height: calc(100vh - 140px);
+        overflow-y: auto;
+    }
+
+    .backend-page .filter-records.backend-sticky-panel {
+        position: sticky;
+        top: 96px;
+        align-self: flex-start;
         border-right: 1px solid var(--bs-border-color);
         padding-right: 1rem;
     }
 
-    .backend-page .filter-records.backend-scroll-panel .results {
-        max-height: none;
-        overflow: visible;
+    .backend-page .filter-records.backend-sticky-panel .results {
+        max-height: calc(100vh - 260px);
+        overflow-y: auto;
+    }
+
+    .backend-page .record-details {
+        flex: 1 1 0;
+        width: auto;
+        max-width: none;
+    }
+}
+
+@media (max-width: 767.98px) {
+    .backend-page .settings-layout {
+        flex-direction: column;
+    }
+
+    .backend-page .settings-layout .settings-nav-panel,
+    .backend-page .settings-layout .settings-content {
+        max-width: 100%;
+        width: 100%;
     }
 }
 
@@ -241,6 +385,54 @@ body legend {
     padding-top: 0;
     padding-right: 0;
     border-top: none;
+}
+
+.backend-page .filter-records form .input-group {
+    position: relative;
+}
+
+.backend-page .filter-records form .input-group .form-control {
+    padding-right: 2.75rem;
+    border-radius: 8px;
+}
+
+.backend-page .filter-records form .input-group .filter.btn {
+    position: absolute;
+    right: 0.5rem;
+    top: 50%;
+    z-index: 2;
+    width: 2rem;
+    height: 2rem;
+    padding: 0;
+    border-radius: 999px;
+    border: none;
+    background-color: var(--bs-secondary-bg);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transform: translateY(-50%);
+}
+
+.backend-page .filter-records form .input-group .filter.btn {
+    border-radius: 999px;
+}
+
+.backend-page .filter-records form .input-group .filter.btn:hover,
+.backend-page .filter-records form .input-group .filter.btn:focus-visible {
+    background-color: var(--bs-tertiary-bg);
+    color: var(--bs-body-color);
+}
+
+.backend-page .filter-records form .input-group .filter.btn:focus-visible {
+    outline: 2px solid var(--bs-primary);
+    outline-offset: 1px;
+}
+
+.backend-page .filter-records form .input-group .filter.btn svg,
+.backend-page .filter-records form .input-group .filter.btn i {
+    width: 0.875rem;
+    height: 0.875rem;
+    font-size: 0.875rem;
 }
 
 .backend-page .filter-records .results {
@@ -372,6 +564,53 @@ body legend {
 #calendar .fc-header-toolbar .fc-toolbar-chunk {
     margin-bottom: 10px;
     text-align: center;
+}
+
+#calendar-page #calendar .fc-header-toolbar {
+    padding: 12px 16px;
+    border: 1px solid var(--bs-border-color);
+    border-radius: 16px;
+    background-color: #fff;
+    gap: 12px;
+}
+
+#calendar-page #calendar .fc-header-toolbar .fc-toolbar-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #0f172a;
+}
+
+#calendar-page #calendar .fc-header-toolbar .fc-button-group {
+    gap: 6px;
+}
+
+#calendar-page #calendar .fc-header-toolbar .fc-button {
+    border-radius: 10px;
+    border: 1px solid var(--bs-border-color);
+    background-color: #fff;
+    color: #475569;
+    font-weight: 600;
+    padding: 6px 12px;
+    box-shadow: none;
+    transition: all 0.2s ease;
+}
+
+#calendar-page #calendar .fc-header-toolbar .fc-button:hover:not(:disabled) {
+    border-color: #cbd5f5;
+    background-color: #f8fafc;
+    color: #0f172a;
+}
+
+#calendar-page #calendar .fc-header-toolbar .fc-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+#calendar-page #calendar .fc-header-toolbar .fc-button.fc-button-active,
+#calendar-page #calendar .fc-header-toolbar .fc-button:active {
+    background-color: #e2e8f0;
+    color: #0f172a;
+    border-color: #cbd5e1;
 }
 
 #calendar .fc-col-header-cell-cushion {
@@ -716,13 +955,17 @@ body .form-horizontal .controls {
 
 #customers-page #customer-appointments {
     min-height: 400px;
-    max-height: 800px;
-    max-width: 330px;
     width: 100%;
     margin-bottom: 20px;
-    overflow-y: auto;
     outline: none;
     padding: 15px;
+}
+
+#customers-page .tab-content,
+#customers-page .tab-pane,
+#customers-page #customer-billing,
+#customers-page #customer-account-panel {
+    width: 100%;
 }
 
 #customers-page #customer-appointments .appointment-row {

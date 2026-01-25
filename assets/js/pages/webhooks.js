@@ -28,6 +28,16 @@ App.Pages.Webhooks = (function () {
     let filterResults = {};
     let filterLimit = 20;
 
+    function setRecordDetailsVisible(visible) {
+        const $recordDetails = $webhooks.find('.record-details');
+
+        if (visible) {
+            $recordDetails.show();
+        } else {
+            $recordDetails.hide();
+        }
+    }
+
     /**
      * Add page event listeners.
      */
@@ -65,6 +75,7 @@ App.Pages.Webhooks = (function () {
             $filterWebhooks.find('.selected').removeClass('selected');
             $(event.currentTarget).addClass('selected');
             $('#edit-webhook, #delete-webhook').prop('disabled', false);
+            setRecordDetailsVisible(true);
         });
 
         /**
@@ -72,6 +83,7 @@ App.Pages.Webhooks = (function () {
          */
         $webhooks.on('click', '#add-webhook', () => {
             App.Pages.Webhooks.resetForm();
+            setRecordDetailsVisible(true);
             $webhooks.find('.add-edit-delete-group').hide();
             $webhooks.find('.save-cancel-group').show();
             $webhooks.find('.record-details').find('input, select, textarea').prop('disabled', false);
@@ -245,6 +257,7 @@ App.Pages.Webhooks = (function () {
         $webhooks.find('.record-details .form-message').hide();
 
         $actions.find('input:checkbox').prop('checked', false);
+        setRecordDetailsVisible(false);
     }
 
     /**
@@ -304,8 +317,12 @@ App.Pages.Webhooks = (function () {
                 }).appendTo('#filter-webhooks .results');
             }
 
-            if (selectId) {
-                App.Pages.Webhooks.select(selectId, show);
+            if (response.length) {
+                const defaultId = selectId ?? response[0].id;
+                const shouldShow = show || !selectId;
+                App.Pages.Webhooks.select(defaultId, shouldShow);
+            } else {
+                setRecordDetailsVisible(false);
             }
         });
     }
@@ -361,6 +378,7 @@ App.Pages.Webhooks = (function () {
             App.Pages.Webhooks.display(webhook);
 
             $('#edit-webhook, #delete-webhook').prop('disabled', false);
+            setRecordDetailsVisible(true);
         }
     }
 

@@ -36,8 +36,41 @@ App.Pages.Secretaries = (function () {
     const $notifications = $('#notifications');
     const $calendarView = $('#calendar-view');
     const $filterSecretaries = $('#filter-secretaries');
+    const $summaryName = $('#secretary-summary-name');
+    const $summaryEmail = $('#secretary-summary-email');
+    const $summaryPhone = $('#secretary-summary-phone');
+    const $summaryLocation = $('#secretary-summary-location');
     let filterResults = {};
     let filterLimit = 20;
+
+    function setRecordDetailsVisible(visible) {
+        const $recordDetails = $secretaries.find('.record-details');
+
+        if (visible) {
+            $recordDetails.show();
+        } else {
+            $recordDetails.hide();
+        }
+    }
+
+    function updateSecretarySummary(record = null) {
+        const firstName = record ? record.first_name : $firstName.val();
+        const lastName = record ? record.last_name : $lastName.val();
+        const email = record ? record.email : $email.val();
+        const phoneNumber = record ? record.phone_number : $phoneNumber.val();
+        const address = record ? record.address : $address.val();
+        const city = record ? record.city : $city.val();
+        const state = record ? record.state : $state.val();
+        const zipCode = record ? record.zip_code : $zipCode.val();
+
+        const nameParts = [firstName, lastName].filter(Boolean);
+        const locationParts = [address, city, state, zipCode].filter(Boolean);
+
+        $summaryName.text(nameParts.length ? nameParts.join(' ') : '—');
+        $summaryEmail.find('.summary-text').text(email || '—');
+        $summaryPhone.find('.summary-text').text(phoneNumber || '—');
+        $summaryLocation.find('.summary-text').text(locationParts.length ? locationParts.join(', ') : '—');
+    }
 
     /**
      * Add the page event listeners.
@@ -117,6 +150,7 @@ App.Pages.Secretaries = (function () {
             $('#filter-secretaries .selected').removeClass('selected');
             $(event.currentTarget).addClass('selected');
             $('#edit-secretary, #delete-secretary').prop('disabled', false);
+            setRecordDetailsVisible(true);
         });
 
         /**
@@ -124,6 +158,7 @@ App.Pages.Secretaries = (function () {
          */
         $secretaries.on('click', '#add-secretary', () => {
             App.Pages.Secretaries.resetForm();
+            setRecordDetailsVisible(true);
             $filterSecretaries.find('button').prop('disabled', true);
             $filterSecretaries.find('.results').css('color', '#AAA');
 
@@ -355,6 +390,8 @@ App.Pages.Secretaries = (function () {
         $secretaries.find('.is-invalid').removeClass('is-invalid');
         $('#edit-secretary, #delete-secretary').prop('disabled', true);
         $('#secretary-providers input:checkbox').prop('disabled', true).prop('checked', false);
+        updateSecretarySummary(secretary);
+        setRecordDetailsVisible(false);
     }
 
     /**
@@ -381,6 +418,8 @@ App.Pages.Secretaries = (function () {
         $username.val(secretary.settings.username);
         $calendarView.val(secretary.settings.calendar_view);
         $notifications.prop('checked', Boolean(Number(secretary.settings.notifications)));
+
+        updateSecretarySummary();
 
         $('#secretary-providers input:checkbox').prop('checked', false);
 
@@ -434,8 +473,12 @@ App.Pages.Secretaries = (function () {
                 }).appendTo('#filter-secretaries .results');
             }
 
-            if (selectId) {
-                select(selectId, show);
+            if (response.length) {
+                const defaultId = selectId ?? response[0].id;
+                const shouldShow = show || !selectId;
+                select(defaultId, shouldShow);
+            } else {
+                setRecordDetailsVisible(false);
             }
         });
     }
@@ -491,6 +534,7 @@ App.Pages.Secretaries = (function () {
             App.Pages.Secretaries.display(secretary);
 
             $('#edit-secretary, #delete-secretary').prop('disabled', false);
+            setRecordDetailsVisible(true);
         }
     }
 

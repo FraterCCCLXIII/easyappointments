@@ -4,7 +4,7 @@
 
 <div class="container-fluid backend-page" id="providers-page">
     <div class="row" id="providers">
-        <div id="filter-providers" class="filter-records column col-12 col-md-5 backend-scroll-panel">
+        <div id="filter-providers" class="filter-records column col-12 col-md-5 backend-sticky-panel">
             <form class="mb-4">
                 <div class="input-group">
                     <input type="text" class="key form-control" aria-label="keyword">
@@ -34,7 +34,7 @@
             </div>
         </div>
 
-        <div class="record-details column col-12 col-md-7 backend-scroll-panel">
+        <div class="record-details column col-12 col-md-7">
             <div class="mb-4 d-flex w-100 justify-content-end">
                 <div class="add-edit-delete-group btn-group">
                     <button id="edit-provider" class="btn btn-outline-secondary" disabled="disabled">
@@ -60,18 +60,46 @@
                 <?php slot('after_page_actions'); ?>
             </div>
 
-            <ul class="nav nav-pills switch-view">
-                <li class="nav-item">
-                    <a class="nav-link active" href="#details" data-bs-toggle="tab">
-                        <?= lang('details') ?>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="#working-plan" data-bs-toggle="tab">
-                        <?= lang('working_plan') ?>
-                    </a>
-                </li>
-            </ul>
+            <div class="mb-4 rounded-xl border border-slate-200 bg-white p-4">
+                <div class="text-lg font-semibold text-slate-900" id="provider-summary-name">
+                    —
+                </div>
+                <div class="mt-3 flex flex-wrap items-center gap-3 text-sm text-slate-700">
+                    <span class="inline-flex items-center gap-2" id="provider-summary-email">
+                        <i class="fas fa-envelope text-slate-400"
+                           style="width: 14px; height: 14px; font-size: 14px; display: inline-flex; align-items: center; justify-content: center;"></i>
+                        <span class="summary-text">—</span>
+                    </span>
+                    <span class="inline-flex items-center gap-2" id="provider-summary-phone">
+                        <i class="fas fa-phone text-slate-400"
+                           style="width: 14px; height: 14px; font-size: 14px; display: inline-flex; align-items: center; justify-content: center;"></i>
+                        <span class="summary-text">—</span>
+                    </span>
+                    <span class="inline-flex items-center gap-2" id="provider-summary-location">
+                        <i class="fas fa-location-dot text-slate-400"
+                           style="width: 14px; height: 14px; font-size: 14px; display: inline-flex; align-items: center; justify-content: center;"></i>
+                        <span class="summary-text">—</span>
+                    </span>
+                </div>
+            </div>
+
+            <div class="flex w-full">
+                <ul class="booking-tab-line-list" id="provider-tabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="booking-tab-line active" id="provider-details-tab" data-bs-toggle="pill"
+                                data-bs-target="#details" type="button" role="tab" aria-selected="true">
+                            <?= lang('details') ?>
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="booking-tab-line" id="provider-working-plan-tab" data-bs-toggle="pill"
+                                data-bs-target="#working-plan" type="button" role="tab" aria-selected="false"
+                                tabindex="-1">
+                            <?= lang('working_plan') ?>
+                        </button>
+                    </li>
+                </ul>
+            </div>
 
             <?php
 // This form message is outside the details view, so that it can be
@@ -80,12 +108,8 @@
 
             <div class="form-message alert" style="display:none;"></div>
 
-            <div class="tab-content">
+            <div class="tab-content mt-6 w-full">
                 <div class="details-view tab-pane fade show active clearfix" id="details">
-                    <h4 class="text-black-50 mb-3 fw-light">
-                        <?= lang('details') ?>
-                    </h4>
-
                     <input type="hidden" id="id" class="record-id">
 
                     <div class="row">

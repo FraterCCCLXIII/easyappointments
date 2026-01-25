@@ -18,8 +18,6 @@
     <link rel="stylesheet" type="text/css" href="<?= asset_url('assets/vendor/select2/select2.min.css') ?>">
     <link rel="stylesheet" type="text/css" href="<?= asset_url('assets/vendor/flatpickr/flatpickr.min.css') ?>">
     <link rel="stylesheet" type="text/css" href="<?= asset_url('assets/vendor/flatpickr/material_green.min.css') ?>">
-    <link rel="stylesheet" type="text/css"
-          href="<?= asset_url('assets/css/themes/' . setting('theme', 'default') . '.css') ?>">
     <link rel="stylesheet" type="text/css" href="<?= asset_url('assets/css/general.css') ?>">
     <link rel="stylesheet" type="text/css" href="<?= asset_url('assets/css/tailwind/booking.css') ?>">
     <link rel="stylesheet" type="text/css" href="<?= asset_url('assets/css/layouts/backend_layout.css') ?>">
@@ -28,23 +26,29 @@
 
     <?php slot('styles'); ?>
 </head>
-<body class="d-flex flex-column h-100">
+<body class="min-h-screen bg-slate-50 text-slate-900">
 
-<main class="flex-shrink-0">
+<main class="min-h-screen">
 
     <?php component('backend_header', ['active_menu' => vars('active_menu')]); ?>
 
-    <?php slot('content'); ?>
+    <div class="mx-auto w-full max-w-6xl px-4 py-6">
+        <?php if (vars('active_menu') !== PRIV_SYSTEM_SETTINGS): ?>
+            <h2 class="mb-6 text-left text-2xl font-semibold text-slate-900">
+                <?= e(vars('page_title') ?? lang('backend_section')) ?>
+            </h2>
+        <?php endif; ?>
+        <?php slot('content'); ?>
+    </div>
 
 </main>
 
 <script src="<?= asset_url('assets/vendor/jquery/jquery.min.js') ?>"></script>
-<script src="<?= asset_url('assets/vendor/@popperjs-core/popper.min.js') ?>"></script>
-<script src="<?= asset_url('assets/vendor/bootstrap/bootstrap.min.js') ?>"></script>
 <script src="<?= asset_url('assets/vendor/moment/moment.min.js') ?>"></script>
 <script src="<?= asset_url('assets/vendor/moment-timezone/moment-timezone-with-data.min.js') ?>"></script>
 <script src="<?= asset_url('assets/vendor/@fortawesome-fontawesome-free/fontawesome.min.js') ?>"></script>
 <script src="<?= asset_url('assets/vendor/@fortawesome-fontawesome-free/solid.min.js') ?>"></script>
+<script src="<?= asset_url('assets/vendor/@popperjs-core/popper.min.js') ?>"></script>
 <script src="<?= asset_url('assets/vendor/tippy.js/tippy-bundle.umd.min.js') ?>"></script>
 <script src="<?= asset_url('assets/vendor/trumbowyg/trumbowyg.min.js') ?>"></script>
 <script src="<?= asset_url('assets/vendor/select2/select2.min.js') ?>"></script>
@@ -55,6 +59,7 @@
 <script src="<?= asset_url('assets/js/utils/file.js') ?>"></script>
 <script src="<?= asset_url('assets/js/utils/http.js') ?>"></script>
 <script src="<?= asset_url('assets/js/utils/lang.js') ?>"></script>
+<script src="<?= asset_url('assets/js/utils/bootstrap_replacements.js') ?>"></script>
 <script src="<?= asset_url('assets/js/utils/message.js') ?>"></script>
 <script src="<?= asset_url('assets/js/utils/string.js') ?>"></script>
 <script src="<?= asset_url('assets/js/utils/url.js') ?>"></script>

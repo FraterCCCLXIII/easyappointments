@@ -36,8 +36,41 @@ App.Pages.Admins = (function () {
     const $notifications = $('#notifications');
     const $calendarView = $('#calendar-view');
     const $filterAdmins = $('#filter-admins');
+    const $summaryName = $('#admin-summary-name');
+    const $summaryEmail = $('#admin-summary-email');
+    const $summaryPhone = $('#admin-summary-phone');
+    const $summaryLocation = $('#admin-summary-location');
     let filterResults = {};
     let filterLimit = 20;
+
+    function setRecordDetailsVisible(visible) {
+        const $recordDetails = $admins.find('.record-details');
+
+        if (visible) {
+            $recordDetails.show();
+        } else {
+            $recordDetails.hide();
+        }
+    }
+
+    function updateAdminSummary(record = null) {
+        const firstName = record ? record.first_name : $firstName.val();
+        const lastName = record ? record.last_name : $lastName.val();
+        const email = record ? record.email : $email.val();
+        const phoneNumber = record ? record.phone_number : $phoneNumber.val();
+        const address = record ? record.address : $address.val();
+        const city = record ? record.city : $city.val();
+        const state = record ? record.state : $state.val();
+        const zipCode = record ? record.zip_code : $zipCode.val();
+
+        const nameParts = [firstName, lastName].filter(Boolean);
+        const locationParts = [address, city, state, zipCode].filter(Boolean);
+
+        $summaryName.text(nameParts.length ? nameParts.join(' ') : '—');
+        $summaryEmail.find('.summary-text').text(email || '—');
+        $summaryPhone.find('.summary-text').text(phoneNumber || '—');
+        $summaryLocation.find('.summary-text').text(locationParts.length ? locationParts.join(', ') : '—');
+    }
 
     /**
      * Add the page event listeners.
@@ -116,6 +149,7 @@ App.Pages.Admins = (function () {
             $('#filter-admins .selected').removeClass('selected');
             $(event.currentTarget).addClass('selected');
             $('#edit-admin, #delete-admin').prop('disabled', false);
+            setRecordDetailsVisible(true);
         });
 
         /**
@@ -123,6 +157,7 @@ App.Pages.Admins = (function () {
          */
         $admins.on('click', '#add-admin', () => {
             App.Pages.Admins.resetForm();
+            setRecordDetailsVisible(true);
             $admins.find('.add-edit-delete-group').hide();
             $admins.find('.save-cancel-group').show();
             $admins.find('.record-details').find('input, select, textarea').prop('disabled', false);
@@ -343,8 +378,11 @@ App.Pages.Admins = (function () {
         $admins.find('.record-details #notifications').prop('checked', true);
         $('#edit-admin, #delete-admin').prop('disabled', true);
 
+        updateAdminSummary(admin);
+
         $('#admins .is-invalid').removeClass('is-invalid');
         $('#admins .form-message').hide();
+        setRecordDetailsVisible(false);
     }
 
     /**
@@ -371,6 +409,8 @@ App.Pages.Admins = (function () {
         $username.val(admin.settings.username);
         $calendarView.val(admin.settings.calendar_view);
         $notifications.prop('checked', Boolean(Number(admin.settings.notifications)));
+
+        updateAdminSummary();
     }
 
     /**
@@ -410,8 +450,12 @@ App.Pages.Admins = (function () {
                 }).appendTo('#filter-admins .results');
             }
 
-            if (selectId) {
-                App.Pages.Admins.select(selectId, show);
+            if (response.length) {
+                const defaultId = selectId ?? response[0].id;
+                const shouldShow = show || !selectId;
+                App.Pages.Admins.select(defaultId, shouldShow);
+            } else {
+                setRecordDetailsVisible(false);
             }
         });
     }
@@ -468,6 +512,7 @@ App.Pages.Admins = (function () {
             App.Pages.Admins.display(admin);
 
             $('#edit-admin, #delete-admin').prop('disabled', false);
+            setRecordDetailsVisible(true);
         }
     }
 
