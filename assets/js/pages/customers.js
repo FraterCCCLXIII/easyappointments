@@ -37,6 +37,11 @@ App.Pages.Customers = (function () {
     const $formMessage = $('#form-message');
     const $customerAppointments = $('#customer-appointments');
     const $billingHistoryBody = $('#billing-history-body');
+    const $summaryFirstName = $('#customer-summary-first-name');
+    const $summaryLastName = $('#customer-summary-last-name');
+    const $summaryEmail = $('#customer-summary-email');
+    const $summaryPhone = $('#customer-summary-phone');
+    const $summaryLocation = $('#customer-summary-location');
 
     const moment = window.moment;
 
@@ -93,6 +98,7 @@ App.Pages.Customers = (function () {
             $customers.find('.record-details .form-label span').prop('hidden', false);
             $filterCustomers.find('button').prop('disabled', true);
             $filterCustomers.find('.results').css('color', '#AAA');
+            document.getElementById('customer-account-tab')?.click();
         });
 
         /**
@@ -105,6 +111,7 @@ App.Pages.Customers = (function () {
             $customers.find('#save-cancel-group').show();
             $filterCustomers.find('button').prop('disabled', true);
             $filterCustomers.find('.results').css('color', '#AAA');
+            document.getElementById('customer-account-tab')?.click();
         });
 
         /**
@@ -177,6 +184,12 @@ App.Pages.Customers = (function () {
 
             App.Utils.Message.show(lang('delete_customer'), lang('delete_record_prompt'), buttons);
         });
+
+        $customers.on(
+            'input',
+            '#first-name, #last-name, #email, #phone-number, #address, #city, #zip-code',
+            () => updateCustomerSummaryFromInputs(),
+        );
     }
 
     /**
@@ -204,6 +217,25 @@ App.Pages.Customers = (function () {
             App.Pages.Customers.resetForm();
             App.Pages.Customers.filter($('#filter-customers .key').val());
         });
+    }
+
+    function updateCustomerSummaryFromInputs() {
+        const firstName = $firstName.val();
+        const lastName = $lastName.val();
+        const email = $email.val();
+        const phoneNumber = $phoneNumber.val();
+        const address = $address.val();
+        const city = $city.val();
+        const zipCode = $zipCode.val();
+
+        const locationParts = [address, city, zipCode].filter(Boolean);
+        const locationText = locationParts.length ? locationParts.join(', ') : '—';
+
+        $summaryFirstName.text(`${lang('first_name')}: ${firstName || '—'}`);
+        $summaryLastName.text(`${lang('last_name')}: ${lastName || '—'}`);
+        $summaryEmail.text(`${lang('email')}: ${email || '—'}`);
+        $summaryPhone.text(`${lang('phone_number')}: ${phoneNumber || '—'}`);
+        $summaryLocation.text(`${lang('location')}: ${locationText}`);
     }
 
     /**
@@ -263,6 +295,8 @@ App.Pages.Customers = (function () {
         $customerAppointments.empty();
         $billingHistoryBody.empty();
 
+        updateCustomerSummaryFromInputs();
+
         $customers.find('#edit-customer, #delete-customer').prop('disabled', true);
         $customers.find('#add-edit-delete-group').show();
         $customers.find('#save-cancel-group').hide();
@@ -298,6 +332,8 @@ App.Pages.Customers = (function () {
         $customField3.val(customer.custom_field_3);
         $customField4.val(customer.custom_field_4);
         $customField5.val(customer.custom_field_5);
+
+        updateCustomerSummaryFromInputs();
 
         $customerAppointments.empty();
         $billingHistoryBody.empty();
