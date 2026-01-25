@@ -10,12 +10,6 @@
 
 <div id="wizard-frame-4" class="wizard-frame" style="display:none;">
     <div class="frame-container">
-        <div class="wizard-back-button-wrapper">
-            <button type="button" id="button-back-4" class="btn btn-outline-secondary wizard-back-button button-back"
-                    data-step_index="4" aria-label="<?= lang('back') ?>">
-                <i class="fas fa-arrow-left"></i>
-            </button>
-        </div>
         <h2 class="frame-title"><?= lang('appointment_confirmation') ?></h2>
 
         <div class="row frame-content">
