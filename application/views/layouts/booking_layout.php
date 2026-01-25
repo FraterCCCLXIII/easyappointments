@@ -38,7 +38,7 @@
 <?php component('booking_top_nav'); ?>
 <div id="main" class="mx-auto max-w-6xl px-4 py-6">
     <div class="flex justify-center">
-        <div id="book-appointment-wizard" class="mt-6 w-full max-w-4xl lg:w-fit">
+        <div id="book-appointment-wizard" class="w-full max-w-4xl mt-6">
 
             <?php if (vars('display_booking_header', true)): ?>
                 <?php component('booking_header', [

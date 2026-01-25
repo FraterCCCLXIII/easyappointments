@@ -10,7 +10,7 @@
      aria-label="Booking">
     <div class="flex w-full items-center px-4 py-3">
         <div class="flex w-1/3 items-center justify-start">
-            <?php if (vars('page_title') === 'Dashboard'): ?>
+            <?php if (vars('page_title') === 'Dashboard' || vars('page_title') === 'Customer Login'): ?>
                 <a href="https://usegoodness.com"
                    class="inline-flex items-center rounded-xl border border-slate-200 px-3 py-1 text-sm text-slate-600 hover:border-slate-300 hover:text-slate-800">
                     <i class="fas fa-arrow-left mr-2"
