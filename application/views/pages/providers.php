@@ -4,7 +4,7 @@
 
 <div class="container-fluid backend-page" id="providers-page">
     <div class="row" id="providers">
-        <div id="filter-providers" class="filter-records column col-12 col-md-5">
+        <div id="filter-providers" class="filter-records column col-12 col-md-5 backend-scroll-panel">
             <form class="mb-4">
                 <div class="input-group">
                     <input type="text" class="key form-control" aria-label="keyword">
@@ -15,6 +15,13 @@
                     </button>
                 </div>
             </form>
+
+            <div class="mb-4">
+                <button id="add-provider" class="btn btn-primary w-100">
+                    <i class="fas fa-plus-square me-2"></i>
+                    <?= lang('add') ?>
+                </button>
+            </div>
 
             <h4 class="text-black-50 mb-3 fw-light">
                 <?= lang('providers') ?>
@@ -27,13 +34,9 @@
             </div>
         </div>
 
-        <div class="record-details column col-12 col-md-7">
-            <div class="float-md-start mb-4 me-4">
+        <div class="record-details column col-12 col-md-7 backend-scroll-panel">
+            <div class="mb-4 d-flex w-100 justify-content-end">
                 <div class="add-edit-delete-group btn-group">
-                    <button id="add-provider" class="btn btn-primary">
-                        <i class="fas fa-plus-square me-2"></i>
-                        <?= lang('add') ?>
-                    </button>
                     <button id="edit-provider" class="btn btn-outline-secondary" disabled="disabled">
                         <i class="fas fa-edit me-2"></i>
                         <?= lang('edit') ?>

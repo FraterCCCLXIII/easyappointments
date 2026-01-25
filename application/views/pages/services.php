@@ -16,6 +16,13 @@
                 </div>
             </form>
 
+            <div class="mb-4">
+                <button id="add-service" class="btn btn-primary w-100">
+                    <i class="fas fa-plus-square me-2"></i>
+                    <?= lang('add') ?>
+                </button>
+            </div>
+
             <h4 class="text-black-50 mb-3 fw-light">
                 <?= lang('services') ?>
             </h4>
@@ -28,12 +35,8 @@
         </div>
 
         <div class="record-details column col-12 col-md-5">
-            <div class="btn-toolbar mb-4">
+            <div class="mb-4 d-flex w-100 justify-content-end">
                 <div class="add-edit-delete-group btn-group">
-                    <button id="add-service" class="btn btn-primary">
-                        <i class="fas fa-plus-square me-2"></i>
-                        <?= lang('add') ?>
-                    </button>
                     <button id="edit-service" class="btn btn-outline-secondary" disabled="disabled">
                         <i class="fas fa-edit me-2"></i>
                         <?= lang('edit') ?>

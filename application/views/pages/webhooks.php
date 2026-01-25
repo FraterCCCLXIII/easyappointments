@@ -16,6 +16,13 @@
                 </div>
             </form>
 
+            <div class="mb-4">
+                <button id="add-webhook" class="btn btn-primary w-100">
+                    <i class="fas fa-plus-square me-2"></i>
+                    <?= lang('add') ?>
+                </button>
+            </div>
+
             <h4 class="text-black-50 mb-3 fw-light">
                 <?= lang('webhooks') ?>
             </h4>
@@ -28,17 +35,13 @@
         </div>
 
         <div class="record-details column col-12 col-md-5">
-            <div class="btn-toolbar mb-4">
+            <div class="d-flex w-100 mb-4">
                 <a href="<?= site_url('integrations') ?>" class="btn btn-outline-primary me-2">
                     <i class="fas fa-chevron-left me-2"></i>
                     <?= lang('back') ?>
                 </a>
 
-                <div class="add-edit-delete-group btn-group">
-                    <button id="add-webhook" class="btn btn-primary">
-                        <i class="fas fa-plus-square me-2"></i>
-                        <?= lang('add') ?>
-                    </button>
+                <div class="add-edit-delete-group btn-group ms-auto">
                     <button id="edit-webhook" class="btn btn-outline-secondary" disabled="disabled">
                         <i class="fas fa-edit me-2"></i>
                         <?= lang('edit') ?>
@@ -49,7 +52,7 @@
                     </button>
                 </div>
 
-                <div class="save-cancel-group" style="display:none;">
+                <div class="save-cancel-group ms-auto" style="display:none;">
                     <button id="save-webhook" class="btn btn-primary">
                         <i class="fas fa-check-square me-2"></i>
                         <?= lang('save') ?>
