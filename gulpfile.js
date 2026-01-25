@@ -81,6 +81,8 @@ function archive(done) {
 function clean(done) {
     fs.removeSync('assets/js/**/*.min.js');
     fs.removeSync('assets/css/**/*.min.css');
+    fs.removeSync('assets/css/tailwind/booking.css');
+    fs.removeSync('assets/css/tailwind/booking.min.css');
     done();
 }
 
@@ -106,9 +108,27 @@ function styles() {
         .pipe(gulp.dest('assets/css'));
 }
 
+function tailwindStyles(done) {
+    childProcess.execSync(
+        'npx tailwindcss -c tailwind.config.js -i assets/css/tailwind/booking.tailwind.css -o assets/css/tailwind/booking.css',
+        {stdio: 'inherit'},
+    );
+    childProcess.execSync(
+        'npx tailwindcss -c tailwind.config.js -i assets/css/tailwind/booking.tailwind.css -o assets/css/tailwind/booking.min.css --minify',
+        {stdio: 'inherit'},
+    );
+    done();
+}
+
 function watch(done) {
     gulp.watch(['assets/js/**/*.js', '!assets/js/**/*.min.js'], gulp.parallel(scripts));
     gulp.watch(['assets/css/**/*.scss', '!assets/css/**/*.css'], gulp.parallel(styles));
+    gulp.watch([
+        'assets/css/tailwind/**/*.css',
+        'application/views/layouts/booking_layout.php',
+        'application/views/components/booking_*.php',
+        'assets/js/layouts/booking_layout.js',
+    ], gulp.parallel(tailwindStyles));
     done();
 }
 
@@ -192,7 +212,7 @@ exports.clean = gulp.series(clean);
 exports.vendor = gulp.series(vendor);
 exports.scripts = gulp.series(scripts);
 exports.styles = gulp.series(styles);
-exports.compile = gulp.series(clean, vendor, scripts, styles);
-exports.dev = gulp.series(clean, vendor, scripts, styles, watch);
-exports.build = gulp.series(clean, vendor, scripts, styles, archive);
+exports.compile = gulp.series(clean, vendor, scripts, styles, tailwindStyles);
+exports.dev = gulp.series(clean, vendor, scripts, styles, tailwindStyles, watch);
+exports.build = gulp.series(clean, vendor, scripts, styles, tailwindStyles, archive);
 exports.default = exports.dev;

@@ -22,6 +22,7 @@ App.Pages.Booking = (function () {
     const $selectProvider = $('#select-provider');
     const $serviceCardList = $('#service-card-list');
     const $providerCardList = $('#provider-card-list');
+    const $providerCardContainer = $('#provider-card-container');
     const $selectTimezone = $('#select-timezone');
     const $firstName = $('#first-name');
     const $lastName = $('#last-name');
@@ -88,12 +89,7 @@ App.Pages.Booking = (function () {
             const disabledDates = flatpickr.config.disable.map(d => moment(d).format('YYYY-MM-DD'));
 
             // Update selected date paragraph
-            if (this.selectedDay) {
-                const selectedDate = moment([this.currentYear, this.currentMonth, this.selectedDay]);
-                $selectedDateParagraph.text(selectedDate.format('LL'));
-            } else {
-                $selectedDateParagraph.text('-');
-            }
+            $selectedDateParagraph.text(lang('select_time'));
 
             // Render Months
             this.monthNames.forEach((month, index) => {
@@ -134,11 +130,16 @@ App.Pages.Booking = (function () {
                 this.$monthsContainer.stop().animate({ scrollLeft: offset }, 400);
             }
 
-            // Scroll to selected date (align to left)
+            // Scroll to selected date (keep it in view on load)
             const $selectedDate = this.$datesContainer.find('.date.selected');
             if ($selectedDate.length) {
-                const offset = $selectedDate[0].offsetLeft - 10; // 10px padding
-                this.$datesContainer.stop().animate({ scrollLeft: offset }, 400);
+                requestAnimationFrame(() => {
+                    $selectedDate[0].scrollIntoView({
+                        block: 'nearest',
+                        inline: 'center',
+                        behavior: 'smooth',
+                    });
+                });
             }
         },
 
@@ -267,8 +268,7 @@ App.Pages.Booking = (function () {
 
             $cookieNoticeLink.replaceWith(
                 $('<a/>', {
-                    'data-bs-toggle': 'modal',
-                    'data-bs-target': '#cookie-notice-modal',
+                    'data-modal-open': 'cookie-notice-modal',
                     'href': '#',
                     'class': 'cc-link',
                     'text': $cookieNoticeLink.text(),
@@ -661,7 +661,7 @@ App.Pages.Booking = (function () {
 
             $('<button/>', {
                 type: 'button',
-                class: 'btn btn-outline-dark text-start w-100 py-3 provider-card',
+                class: 'booking-card provider-card',
                 'data-provider-id': providerId,
                 role: 'radio',
                 'aria-checked': 'false',
@@ -771,7 +771,12 @@ App.Pages.Booking = (function () {
         $selectService.on('change', (event) => {
             const $target = $(event.target);
             const serviceId = $selectService.val();
-            $selectProvider.parent().prop('hidden', !Boolean(serviceId));
+            const shouldShowProviders = Boolean(serviceId);
+
+            if ($providerCardContainer.length) {
+                $providerCardContainer.toggleClass('hidden', !shouldShowProviders);
+                $providerCardContainer.attr('aria-hidden', (!shouldShowProviders).toString());
+            }
 
             $selectProvider.empty();
 
@@ -1157,31 +1162,34 @@ App.Pages.Booking = (function () {
 
         const timezoneOptionText = $selectTimezone.find('option:selected').text();
 
+        const serviceHeadline = providerOptionText
+            ? `${serviceOptionText} × ${providerOptionText}`
+            : serviceOptionText;
+
         $('#appointment-details').html(`
-            <div>
-                <div class="mb-2 fw-bold fs-3">
-                    ${serviceOptionText}
-                </div> 
-                <div class="mb-2 fw-bold text-muted">
-                    ${providerOptionText}
+            <div class="rounded-xl border border-slate-200 bg-slate-50 p-4 text-left">
+                <div class="space-y-2">
+                    <div class="text-xl font-semibold text-slate-900">
+                        ${serviceHeadline}
+                    </div>
+                    <div class="flex items-center gap-2 text-sm text-slate-700">
+                        <i class="fas fa-calendar-day text-slate-400"></i>
+                        ${formattedSelectedDate}
+                    </div>
+                    <div class="flex items-center gap-2 text-sm text-slate-700">
+                        <i class="fas fa-clock text-slate-400"></i>
+                        ${service.duration} ${lang('minutes')}
+                    </div>
+                    <div class="flex items-center gap-2 text-sm text-slate-700">
+                        <i class="fas fa-globe text-slate-400"></i>
+                        ${timezoneOptionText}
+                    </div>
+                    <div class="flex items-center gap-2 text-sm text-slate-700" ${!Number(service.price) ? 'hidden' : ''}>
+                        <i class="fas fa-cash-register text-slate-400"></i>
+                        ${Number(service.price).toFixed(2)} ${service.currency}
+                    </div>
                 </div>
-                <div class="mb-2">
-                    <i class="fas fa-calendar-day me-2"></i>
-                    ${formattedSelectedDate}
-                </div> 
-                <div class="mb-2">
-                    <i class="fas fa-clock me-2"></i>
-                    ${service.duration} ${lang('minutes')}
-                </div>
-                <div class="mb-2">
-                    <i class="fas fa-globe me-2"></i>
-                    ${timezoneOptionText}
-                </div> 
-                <div class="mb-2" ${!Number(service.price) ? 'hidden' : ''}>
-                    <i class="fas fa-cash-register me-2"></i>
-                    ${Number(service.price).toFixed(2)} ${service.currency}
-                </div>
-            </div>     
+            </div>
         `);
 
         // Render the customer information
@@ -1206,24 +1214,26 @@ App.Pages.Booking = (function () {
         }
 
         $('#customer-details').html(`
-            <div>
-                <div class="mb-2 fw-bold fs-3">
-                    ${lang('contact_info')}
-                </div>
-                <div class="mb-2 fw-bold text-muted" ${!fullName ? 'hidden' : ''}>
-                    ${fullName}
-                </div>
-                <div class="mb-2" ${!email ? 'hidden' : ''}>
-                    ${email}
-                </div>
-                <div class="mb-2" ${!phoneNumber ? 'hidden' : ''}>
-                    ${phoneNumber}
-                </div>
-                <div class="mb-2" ${!address ? 'hidden' : ''}>
-                    ${address}
-                </div>
-                <div class="mb-2" ${!addressParts.length ? 'hidden' : ''}>
-                    ${addressParts.join(', ')}
+            <div class="rounded-xl border border-slate-200 bg-slate-50 p-4 text-left">
+                <div class="space-y-2">
+                    <div class="text-xl font-semibold text-slate-900">
+                        ${lang('contact_info')}
+                    </div>
+                    <div class="text-sm font-semibold text-slate-500" ${!fullName ? 'hidden' : ''}>
+                        ${fullName}
+                    </div>
+                    <div class="text-sm text-slate-700" ${!email ? 'hidden' : ''}>
+                        ${email}
+                    </div>
+                    <div class="text-sm text-slate-700" ${!phoneNumber ? 'hidden' : ''}>
+                        ${phoneNumber}
+                    </div>
+                    <div class="text-sm text-slate-700" ${!address ? 'hidden' : ''}>
+                        ${address}
+                    </div>
+                    <div class="text-sm text-slate-700" ${!addressParts.length ? 'hidden' : ''}>
+                        ${addressParts.join(', ')}
+                    </div>
                 </div>
             </div>
         `);

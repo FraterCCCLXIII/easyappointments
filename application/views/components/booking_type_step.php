@@ -6,13 +6,13 @@
  */
 ?>
 
-<div id="wizard-frame-1" class="wizard-frame" style="visibility: hidden;">
-    <div class="frame-container">
-        <h2 class="frame-title mt-md-5"><?= lang('service_and_provider') ?></h2>
+<div id="wizard-frame-1" class="wizard-frame booking-section inline-block w-fit max-w-full px-4 py-4">
+    <div class="frame-container p-0">
+        <h2 class="frame-title booking-frame-title"><?= lang('service_and_provider') ?></h2>
 
-        <div class="row frame-content">
-            <div class="col-12 col-md-8 offset-md-2">
-                <div class="mb-3">
+        <div class="frame-content mt-4">
+            <div class="booking-frame-content w-fit max-w-md">
+                <div class="mb-6">
                     <?php
                     // Group services by category, only if there is at least one service with a parent category.
                     $has_category = false;
@@ -49,30 +49,30 @@
                     }
                     ?>
 
-                    <div id="service-card-list-label" class="form-label mb-2">
+                    <div id="service-card-list-label" class="mb-2 text-sm font-semibold text-slate-700">
                         <strong>Select a Service</strong>
                     </div>
                     <div id="service-card-list"
-                         class="d-grid gap-2"
+                         class="grid gap-2"
                          role="radiogroup"
                          aria-labelledby="service-card-list-label">
                         <?php foreach ($grouped_services as $key => $group) { ?>
                             <?php if ($has_category && $key !== 'uncategorized' && count($group) > 0) { ?>
-                                <div class="text-muted fw-semibold mt-2">
+                                <div class="mt-3 text-sm font-semibold text-slate-500">
                                     <?= e($group[0]['service_category_name']) ?>
                                 </div>
                             <?php } ?>
                             <?php foreach ($group as $service) { ?>
                                 <button type="button"
-                                        class="btn btn-outline-dark text-start w-100 py-3 service-card"
+                                        class="booking-card service-card"
                                         data-service-id="<?= e($service['id']) ?>"
                                         role="radio"
                                         aria-checked="false">
-                                    <div class="fw-semibold">
+                                    <div class="font-semibold">
                                         <?= e($service['name']) ?>
                                     </div>
                                     <?php if (!empty($service['duration'])) { ?>
-                                        <div class="text-muted small service-card-duration">
+                                        <div class="booking-card-subtitle service-card-duration">
                                             <?= e($service['duration']) ?> <?= lang('minutes') ?>
                                         </div>
                                     <?php } ?>
@@ -81,7 +81,7 @@
                         <?php } ?>
                     </div>
 
-                    <select id="select-service" class="form-select visually-hidden" aria-hidden="true" tabindex="-1">
+                    <select id="select-service" class="sr-only" aria-hidden="true" tabindex="-1">
                         <option value="">
                             <?= lang('please_select') ?>
                         </option>
@@ -109,23 +109,19 @@
 
                 <?php slot('after_select_service'); ?>
 
-                <div class="mb-3" hidden>
-                    <div id="provider-card-list-label" class="form-label mb-2">
-                        <strong><?= lang('provider') ?></strong>
+                <div id="provider-card-container" class="mb-6 hidden" aria-hidden="true">
+                    <div id="provider-card-list-label" class="mb-2 text-sm font-semibold text-slate-700">
+                        <strong><?= lang('select_provider') ?></strong>
                     </div>
-                    <div class="text-muted small mb-2" id="provider-card-list-help">
-                        <?= lang('please_select') ?>
-                    </div>
-
                     <div id="provider-card-list"
-                         class="d-grid gap-2"
+                         class="grid gap-2"
                          role="radiogroup"
                          aria-labelledby="provider-card-list-label"
-                         aria-describedby="provider-card-list-help">
+                         aria-describedby="provider-card-list-label">
                         <!-- JS -->
                     </div>
 
-                    <select id="select-provider" class="form-select visually-hidden" aria-hidden="true" tabindex="-1">
+                    <select id="select-provider" class="sr-only" aria-hidden="true" tabindex="-1">
                         <option value="">
                             <?= lang('please_select') ?>
                         </option>
@@ -144,15 +140,13 @@
         </div>
     </div>
 
-    <div class="command-buttons">
-        <div class="row">
-            <div class="col col-md-8 offset-md-2">
-                <button type="button" id="button-next-1" class="btn button-next btn-dark text-center w-100 py-3"
-                        data-step_index="1">
-                    <?= lang('next') ?>
-                    <i class="fas fa-chevron-right ms-2"></i>
-                </button>
-            </div>
+    <div class="command-buttons mt-6">
+        <div class="booking-frame-content">
+            <button type="button" id="button-next-1" class="button-next booking-button"
+                    data-step_index="1">
+                <?= lang('next') ?>
+                <i class="fas fa-chevron-right ml-2"></i>
+            </button>
         </div>
     </div>
 </div>

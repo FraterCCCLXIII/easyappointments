@@ -2,21 +2,23 @@
 
 <?php section('content'); ?>
 
-<div>
-    <img id="success-icon" class="mt-0 mb-5" src="<?= base_url('assets/img/success.png') ?>" alt="success"/>
+<div class="flex justify-center">
+    <img id="success-icon" class="mb-6 h-16 w-16" src="<?= base_url('assets/img/success.png') ?>" alt="success"/>
 </div>
 
-<div class="mb-5">
-    <h4 class="mb-5"><?= lang('appointment_cancelled_title') ?></h4>
+<div class="text-center">
+    <h4 class="frame-title booking-frame-title"><?= lang('appointment_cancelled_title') ?></h4>
 
-    <p class="mb-5">
+    <p class="text-slate-700">
         <?= lang('appointment_cancelled') ?>
     </p>
 
-    <a href="<?= site_url() ?>" class="btn btn-primary btn-large">
-        <i class="fas fa-calendar-alt me-2"></i>
-        <?= lang('go_to_booking_page') ?>
-    </a>
+    <div class="mt-6 flex justify-center">
+        <a href="<?= site_url() ?>" class="booking-button sm:w-auto sm:px-6">
+            <i class="fas fa-calendar-alt mr-2"></i>
+            <?= lang('go_to_booking_page') ?>
+        </a>
+    </div>
 </div>
 
 <?php end_section('content'); ?>

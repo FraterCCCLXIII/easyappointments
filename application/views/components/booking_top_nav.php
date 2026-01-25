@@ -6,24 +6,27 @@
  */
 ?>
 
-<nav id="booking-top-nav" class="py-3" aria-label="Booking">
-    <div class="container-fluid d-flex align-items-center px-3">
-        <div class="col-4 d-flex justify-content-start">
+<nav id="booking-top-nav" class="sticky top-0 z-50 border-b border-slate-200 bg-white/90 backdrop-blur"
+     aria-label="Booking">
+    <div class="flex w-full items-center px-4 py-3">
+        <div class="flex w-1/3 items-center justify-start">
             <?php if (vars('page_title') === 'Dashboard'): ?>
-                <a href="<?= base_url() ?>" class="btn btn-outline-secondary btn-sm d-flex align-items-center">
-                    <i class="fas fa-arrow-left me-2"
+                <a href="https://usegoodness.com"
+                   class="inline-flex items-center rounded-xl border border-slate-200 px-3 py-1 text-sm text-slate-600 hover:border-slate-300 hover:text-slate-800">
+                    <i class="fas fa-arrow-left mr-2"
                        style="width: 14px; height: 14px; font-size: 14px; display: inline-flex; align-items: center; justify-content: center;"></i>
                     Return to Site
                 </a>
             <?php else: ?>
                 <a href="<?= site_url('dashboard') ?>" id="top-nav-back-button"
-                   class="btn btn-link p-0 d-flex align-items-center">
-                    <i class="fas fa-circle-arrow-left"
-                       style="width: 32px; height: 32px; font-size: 32px; display: inline-flex; align-items: center; justify-content: center; color: #024225;"></i>
+                   class="inline-flex h-9 items-center rounded-xl border border-slate-200 px-4 py-1 text-base leading-none text-slate-600 hover:border-slate-300 hover:text-slate-800">
+                    <i class="fas fa-arrow-left mr-2"
+                       style="width: 16px; height: 16px; font-size: 16px; display: inline-flex; align-items: center; justify-content: center;"></i>
+                    Back
                 </a>
             <?php endif; ?>
         </div>
-        <div class="col-4 d-flex justify-content-center">
+        <div class="flex w-1/3 justify-center">
             <svg role="img" aria-label="<?= e(vars('company_name')) ?>" xmlns="http://www.w3.org/2000/svg"
                  viewBox="0 0 176.86 49.47" style="height: 32px;">
                 <defs>
@@ -49,37 +52,46 @@
                       d="M169.71,24.52l-.3-.11c-3.47-1.34-5.43-2.21-5.43-4.64,0-2.19,1.84-3.67,4.58-3.67,1.82,0,3.76.49,5.6,4.06l.2.39,1.27-.32-.57-5.07-.32-.12c-1.52-.56-3.52-.9-5.36-.9-4.09,0-8.45,1.72-8.45,6.53s4.16,6.21,7.2,7.36c3.33,1.26,5.68,2.36,5.68,5.09s-2.06,4.34-5.25,4.34-5.09-1.55-6.58-5.17l-.18-.44-1.3.33.56,5.66.28.13c1.29.62,3.37,1.44,6.56,1.44,5.62,0,8.98-2.66,8.98-7.11,0-5.03-4.13-6.63-7.15-7.79Z"/>
             </svg>
         </div>
-        <div class="col-4 d-flex justify-content-end">
+        <div class="flex w-1/3 justify-end">
             <?php if (customer_logged_in()): ?>
-                <div class="d-flex align-items-center gap-3">
-                    <div class="dropdown">
-                        <button class="btn btn-link dropdown-toggle text-decoration-none p-0" type="button"
-                                id="customer-account-dropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                <div class="flex items-center gap-3">
+                    <div class="relative">
+                        <button class="inline-flex items-center gap-2 rounded-full px-2 py-1 text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                                type="button"
+                                id="customer-account-dropdown"
+                                data-dropdown-toggle="customer-account-dropdown-menu"
+                                aria-expanded="false" aria-controls="customer-account-dropdown-menu">
                             <i class="fas fa-user-circle"
-                               style="width: 14px; height: 14px; font-size: 14px; display: inline-flex; align-items: center; justify-content: center;"></i>
+                               style="width: 18px; height: 18px; font-size: 18px; display: inline-flex; align-items: center; justify-content: center;"></i>
+                            <i class="fas fa-chevron-down"
+                               style="width: 8px; height: 8px; font-size: 8px; display: inline-flex; align-items: center; justify-content: center;"></i>
                         </button>
-                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="customer-account-dropdown">
+                        <ul id="customer-account-dropdown-menu" class="booking-dropdown booking-dropdown-animated hidden" role="menu"
+                            aria-labelledby="customer-account-dropdown">
                             <li>
-                                <a class="dropdown-item" href="<?= site_url('dashboard') ?>">
+                                <a class="block rounded-md px-3 py-2 text-sm text-slate-600 hover:bg-slate-100"
+                                   href="<?= site_url('dashboard') ?>">
                                     Dashboard
                                 </a>
                             </li>
                             <li>
-                                <a class="dropdown-item" href="<?= site_url('customer/bookings') ?>">
+                                <a class="block rounded-md px-3 py-2 text-sm text-slate-600 hover:bg-slate-100"
+                                   href="<?= site_url('customer/bookings') ?>">
                                     My Bookings
                                 </a>
                             </li>
                             <li>
-                                <a class="dropdown-item" href="<?= site_url('customer/account') ?>">
+                                <a class="block rounded-md px-3 py-2 text-sm text-slate-600 hover:bg-slate-100"
+                                   href="<?= site_url('customer/account') ?>">
                                     Account Settings
                                 </a>
                             </li>
                             <li>
-                                <hr class="dropdown-divider">
+                                <hr class="my-2 border-slate-200">
                             </li>
-                            <li class="px-3 py-1">
-                                <small class="text-muted d-block mb-1">Language</small>
-                                <select id="select-language" class="form-select form-select-sm">
+                            <li class="px-3 py-2">
+                                <small class="mb-1 block text-xs text-slate-500">Language</small>
+                                <select id="select-language" class="form-select">
                                     <?php foreach (vars('available_languages') as $available_language): ?>
                                         <option value="<?= $available_language ?>"
                                             <?= config('language') === $available_language ? 'selected' : '' ?>>
@@ -89,10 +101,11 @@
                                 </select>
                             </li>
                             <li>
-                                <hr class="dropdown-divider">
+                                <hr class="my-2 border-slate-200">
                             </li>
                             <li>
-                                <a class="dropdown-item" href="<?= site_url('customer/logout') ?>">
+                                <a class="block rounded-md px-3 py-2 text-sm text-slate-600 hover:bg-slate-100"
+                                   href="<?= site_url('customer/logout') ?>">
                                     Logout
                                 </a>
                             </li>
@@ -100,16 +113,18 @@
                     </div>
                 </div>
             <?php else: ?>
-                <div class="dropdown">
-                    <button class="btn btn-link dropdown-toggle text-decoration-none p-0" type="button"
-                            id="language-dropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                <div class="relative">
+                    <button class="inline-flex items-center text-slate-600 hover:text-slate-900" type="button"
+                            id="language-dropdown" data-dropdown-toggle="language-dropdown-menu"
+                            aria-expanded="false" aria-controls="language-dropdown-menu">
                         <i class="fas fa-language"
                            style="width: 14px; height: 14px; font-size: 14px; display: inline-flex; align-items: center; justify-content: center;"></i>
                     </button>
-                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="language-dropdown">
-                        <li class="px-3 py-1">
-                            <small class="text-muted d-block mb-1">Language</small>
-                            <select id="select-language" class="form-select form-select-sm">
+                    <ul id="language-dropdown-menu" class="booking-dropdown booking-dropdown-animated hidden" role="menu"
+                        aria-labelledby="language-dropdown">
+                        <li class="px-3 py-2">
+                            <small class="mb-1 block text-xs text-slate-500">Language</small>
+                            <select id="select-language" class="form-select">
                                 <?php foreach (vars('available_languages') as $available_language): ?>
                                     <option value="<?= $available_language ?>"
                                         <?= config('language') === $available_language ? 'selected' : '' ?>>
