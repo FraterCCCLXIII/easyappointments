@@ -4,7 +4,7 @@
 
 <div class="container-fluid backend-page" id="admins-page">
     <div class="row" id="admins">
-        <div id="filter-admins" class="filter-records column col-12 col-md-5">
+        <div id="filter-admins" class="filter-records column col-12 col-md-5 backend-sticky-panel">
             <form class="mb-4">
                 <div class="input-group">
                     <input type="text" class="key form-control" aria-label="keyword">
@@ -60,16 +60,56 @@
                 <?php slot('after_page_actions'); ?>
             </div>
 
-            <h4 class="text-black-50 mb-3 fw-light">
-                <?= lang('details') ?>
-            </h4>
+            <input type="hidden" id="id" class="record-id">
+
+            <div class="mb-4 rounded-xl border border-slate-200 bg-white p-4">
+                <div class="text-lg font-semibold text-slate-900" id="admin-summary-name">
+                    —
+                </div>
+                <div class="mt-3 flex flex-wrap items-center gap-3 text-sm text-slate-700">
+                    <span class="inline-flex items-center gap-2" id="admin-summary-email">
+                        <i class="fas fa-envelope text-slate-400"
+                           style="width: 14px; height: 14px; font-size: 14px; display: inline-flex; align-items: center; justify-content: center;"></i>
+                        <span class="summary-text">—</span>
+                    </span>
+                    <span class="inline-flex items-center gap-2" id="admin-summary-phone">
+                        <i class="fas fa-phone text-slate-400"
+                           style="width: 14px; height: 14px; font-size: 14px; display: inline-flex; align-items: center; justify-content: center;"></i>
+                        <span class="summary-text">—</span>
+                    </span>
+                    <span class="inline-flex items-center gap-2" id="admin-summary-location">
+                        <i class="fas fa-location-dot text-slate-400"
+                           style="width: 14px; height: 14px; font-size: 14px; display: inline-flex; align-items: center; justify-content: center;"></i>
+                        <span class="summary-text">—</span>
+                    </span>
+                </div>
+            </div>
 
             <div class="form-message alert" style="display:none;"></div>
 
-            <input type="hidden" id="id" class="record-id">
+            <div class="flex w-full">
+                <ul class="booking-tab-line-list" id="admin-tabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="booking-tab-line active" id="admin-details-tab" data-bs-toggle="pill"
+                                data-bs-target="#admin-details-panel" type="button" role="tab" aria-selected="true">
+                            <?= lang('details') ?>
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="booking-tab-line" id="admin-settings-tab" data-bs-toggle="pill"
+                                data-bs-target="#admin-settings-panel" type="button" role="tab" aria-selected="false"
+                                tabindex="-1">
+                            <?= lang('settings') ?>
+                        </button>
+                    </li>
+                </ul>
+            </div>
 
-            <div class="row">
-                <div class="details col-12 col-md-6">
+            <div class="tab-content mt-6 w-full" id="admin-tabs-content">
+                <div class="tab-pane fade show active" id="admin-details-panel" role="tabpanel"
+                     aria-labelledby="admin-details-tab">
+                    <div class="row">
+                        <div class="details col-12">
                     <div class="mb-3">
                         <label class="form-label" for="first-name">
                             <?= lang('first_name') ?>
@@ -146,9 +186,13 @@
                         <textarea id="notes" class="form-control" rows="3" disabled></textarea>
                     </div>
 
-                    <?php slot('after_primary_fields'); ?>
+                        <?php slot('after_primary_fields'); ?>
+                    </div>
                 </div>
-                <div class="settings col-12 col-md-6">
+                </div>
+                <div class="tab-pane fade" id="admin-settings-panel" role="tabpanel"
+                     aria-labelledby="admin-settings-tab">
+                    <div class="settings col-12">
                     <div class="mb-3">
                         <label class="form-label" for="username">
                             <?= lang('username') ?>
@@ -235,7 +279,8 @@
                         </div>
                     </div>
 
-                    <?php slot('after_secondary_fields'); ?>
+                        <?php slot('after_secondary_fields'); ?>
+                    </div>
                 </div>
             </div>
         </div>

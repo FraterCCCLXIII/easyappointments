@@ -28,6 +28,16 @@ App.Pages.BlockedPeriods = (function () {
     let filterLimit = 20;
     let backupStartDateTimeObject = undefined;
 
+    function setRecordDetailsVisible(visible) {
+        const $recordDetails = $blockedPeriods.find('.record-details');
+
+        if (visible) {
+            $recordDetails.show();
+        } else {
+            $recordDetails.hide();
+        }
+    }
+
     /**
      * Add the page event listeners.
      */
@@ -68,6 +78,7 @@ App.Pages.BlockedPeriods = (function () {
             $('#filter-blocked-periods .selected').removeClass('selected');
             $(event.currentTarget).addClass('selected');
             $('#edit-blocked-period, #delete-blocked-period').prop('disabled', false);
+            setRecordDetailsVisible(true);
         });
 
         /**
@@ -75,6 +86,7 @@ App.Pages.BlockedPeriods = (function () {
          */
         $blockedPeriods.on('click', '#add-blocked-period', () => {
             App.Pages.BlockedPeriods.resetForm();
+            setRecordDetailsVisible(true);
             $blockedPeriods.find('.add-edit-delete-group').hide();
             $blockedPeriods.find('.save-cancel-group').show();
             $blockedPeriods.find('.record-details').find('input, select, textarea').prop('disabled', false);
@@ -221,8 +233,12 @@ App.Pages.BlockedPeriods = (function () {
                 }).appendTo('#filter-blocked-periods .results');
             }
 
-            if (selectId) {
-                App.Pages.BlockedPeriods.select(selectId, show);
+            if (response.length) {
+                const defaultId = selectId ?? response[0].id;
+                const shouldShow = show || !selectId;
+                App.Pages.BlockedPeriods.select(defaultId, shouldShow);
+            } else {
+                setRecordDetailsVisible(false);
             }
         });
     }
@@ -324,6 +340,7 @@ App.Pages.BlockedPeriods = (function () {
         $blockedPeriods.find('.record-details .form-message').hide();
 
         backupStartDateTimeObject = undefined;
+        setRecordDetailsVisible(false);
     }
 
     /**
@@ -365,6 +382,7 @@ App.Pages.BlockedPeriods = (function () {
             App.Pages.BlockedPeriods.display(blockedPeriod);
 
             $('#edit-blocked-period, #delete-blocked-period').prop('disabled', false);
+            setRecordDetailsVisible(true);
         }
     }
 

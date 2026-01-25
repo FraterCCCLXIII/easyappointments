@@ -4,8 +4,6 @@
 <div id="billing-page" class="container backend-page">
     <div class="row">
         <div class="col-12">
-            <h2 class="text-black-50 mb-4 fw-light">Billing Transactions</h2>
-            
             <div class="card bg-white border">
                 <div class="card-body p-0">
                     <table class="table table-hover mb-0">

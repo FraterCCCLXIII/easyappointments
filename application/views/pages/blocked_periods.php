@@ -5,7 +5,7 @@
 <div class="container-fluid backend-page" id="blocked-periods-page">
 
     <div class="row" id="blocked-periods">
-        <div id="filter-blocked-periods" class="filter-records column col-12 col-md-5">
+        <div id="filter-blocked-periods" class="filter-records column col-12 col-md-5 backend-sticky-panel">
             <form class="input-append mb-4">
                 <div class="input-group">
                     <input type="text" class="key form-control" aria-label="keyword">

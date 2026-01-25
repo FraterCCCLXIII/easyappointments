@@ -23,6 +23,16 @@ App.Pages.ServiceCategories = (function () {
     let filterResults = {};
     let filterLimit = 20;
 
+    function setRecordDetailsVisible(visible) {
+        const $recordDetails = $serviceCategories.find('.record-details');
+
+        if (visible) {
+            $recordDetails.show();
+        } else {
+            $recordDetails.hide();
+        }
+    }
+
     /**
      * Add the page event listeners.
      */
@@ -63,6 +73,7 @@ App.Pages.ServiceCategories = (function () {
             $('#filter-service-categories .selected').removeClass('selected');
             $(event.currentTarget).addClass('selected');
             $('#edit-service-category, #delete-service-category').prop('disabled', false);
+            setRecordDetailsVisible(true);
         });
 
         /**
@@ -70,6 +81,7 @@ App.Pages.ServiceCategories = (function () {
          */
         $serviceCategories.on('click', '#add-service-category', () => {
             App.Pages.ServiceCategories.resetForm();
+            setRecordDetailsVisible(true);
             $serviceCategories.find('.add-edit-delete-group').hide();
             $serviceCategories.find('.save-cancel-group').show();
             $serviceCategories.find('.record-details').find('input, select, textarea').prop('disabled', false);
@@ -185,8 +197,12 @@ App.Pages.ServiceCategories = (function () {
                 }).appendTo('#filter-service-categories .results');
             }
 
-            if (selectId) {
-                select(selectId, show);
+            if (response.length) {
+                const defaultId = selectId ?? response[0].id;
+                const shouldShow = show || !selectId;
+                select(defaultId, shouldShow);
+            } else {
+                setRecordDetailsVisible(false);
             }
         });
     }
@@ -275,6 +291,7 @@ App.Pages.ServiceCategories = (function () {
 
         $serviceCategories.find('.record-details .is-invalid').removeClass('is-invalid');
         $serviceCategories.find('.record-details .form-message').hide();
+        setRecordDetailsVisible(false);
     }
 
     /**
@@ -316,6 +333,7 @@ App.Pages.ServiceCategories = (function () {
             App.Pages.ServiceCategories.display(serviceCategory);
 
             $('#edit-service-category, #delete-service-category').prop('disabled', false);
+            setRecordDetailsVisible(true);
         }
     }
 

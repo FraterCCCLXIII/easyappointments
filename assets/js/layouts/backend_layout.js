@@ -53,11 +53,11 @@ window.App.Layouts.Backend = (function () {
         }
 
         const $toast = $(`
-            <div class="toast bg-dark d-flex align-items-center mb-2 fade show position-fixed p-1 m-4 bottom-0 end-0 backend-notification" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast fixed bottom-0 end-0 m-4 flex w-full max-w-sm items-center gap-2 rounded-xl border border-slate-200 bg-slate-900/90 p-2 shadow-lg show backend-notification" role="alert" aria-live="assertive" aria-atomic="true">
                 <div class="toast-body w-100 text-white">
                     ${message}
                 </div>
-                <button type="button" class="btn-close btn-close-white me-2" data-bs-dismiss="toast" aria-label="Close"></button>
+                <button type="button" class="btn-close me-2 text-white/70 hover:text-white" data-bs-dismiss="toast" aria-label="Close"></button>
             </div>
         `).appendTo('body');
 
@@ -72,7 +72,6 @@ window.App.Layouts.Backend = (function () {
         });
 
         const toast = new bootstrap.Toast($toast[0]);
-
         toast.show();
 
         setTimeout(() => {

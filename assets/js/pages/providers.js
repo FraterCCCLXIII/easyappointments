@@ -37,9 +37,42 @@ App.Pages.Providers = (function () {
     const $notifications = $('#notifications');
     const $calendarView = $('#calendar-view');
     const $filterProviders = $('#filter-providers');
+    const $summaryName = $('#provider-summary-name');
+    const $summaryEmail = $('#provider-summary-email');
+    const $summaryPhone = $('#provider-summary-phone');
+    const $summaryLocation = $('#provider-summary-location');
     let filterResults = {};
     let filterLimit = 20;
     let workingPlanManager;
+
+    function setRecordDetailsVisible(visible) {
+        const $recordDetails = $providers.find('.record-details');
+
+        if (visible) {
+            $recordDetails.show();
+        } else {
+            $recordDetails.hide();
+        }
+    }
+
+    function updateProviderSummary(record = null) {
+        const firstName = record ? record.first_name : $firstName.val();
+        const lastName = record ? record.last_name : $lastName.val();
+        const email = record ? record.email : $email.val();
+        const phoneNumber = record ? record.phone_number : $phoneNumber.val();
+        const address = record ? record.address : $address.val();
+        const city = record ? record.city : $city.val();
+        const state = record ? record.state : $state.val();
+        const zipCode = record ? record.zip_code : $zipCode.val();
+
+        const nameParts = [firstName, lastName].filter(Boolean);
+        const locationParts = [address, city, state, zipCode].filter(Boolean);
+
+        $summaryName.text(nameParts.length ? nameParts.join(' ') : '—');
+        $summaryEmail.find('.summary-text').text(email || '—');
+        $summaryPhone.find('.summary-text').text(phoneNumber || '—');
+        $summaryLocation.find('.summary-text').text(locationParts.length ? locationParts.join(', ') : '—');
+    }
 
     /**
      * Add the page event listeners.
@@ -78,6 +111,7 @@ App.Pages.Providers = (function () {
             $filterProviders.find('.selected').removeClass('selected');
             $(event.currentTarget).addClass('selected');
             $('#edit-provider, #delete-provider').prop('disabled', false);
+            setRecordDetailsVisible(true);
         });
 
         /**
@@ -85,6 +119,7 @@ App.Pages.Providers = (function () {
          */
         $providers.on('click', '#add-provider', () => {
             App.Pages.Providers.resetForm();
+            setRecordDetailsVisible(true);
             $filterProviders.find('button').prop('disabled', true);
             $filterProviders.find('.results').css('color', '#AAA');
             $providers.find('.add-edit-delete-group').hide();
@@ -364,6 +399,8 @@ App.Pages.Providers = (function () {
         $('#providers .working-plan tbody').empty();
         $('#providers .breaks tbody').empty();
         $('#providers .working-plan-exceptions tbody').empty();
+        updateProviderSummary();
+        setRecordDetailsVisible(false);
     }
 
     /**
@@ -391,6 +428,7 @@ App.Pages.Providers = (function () {
         $username.val(provider.settings.username);
         $calendarView.val(provider.settings.calendar_view);
         $notifications.prop('checked', Boolean(Number(provider.settings.notifications)));
+        updateProviderSummary();
 
         // Add dedicated provider link.
         let dedicatedUrl = App.Utils.Url.siteUrl('?provider=' + encodeURIComponent(provider.id));
@@ -492,8 +530,12 @@ App.Pages.Providers = (function () {
                 }).appendTo('#filter-providers .results');
             }
 
-            if (selectId) {
-                App.Pages.Providers.select(selectId, show);
+            if (response.length) {
+                const defaultId = selectId ?? response[0].id;
+                const shouldShow = show || !selectId;
+                App.Pages.Providers.select(defaultId, shouldShow);
+            } else {
+                setRecordDetailsVisible(false);
             }
         });
     }
@@ -539,6 +581,7 @@ App.Pages.Providers = (function () {
      */
     function select(id, show = false) {
         // Select record in filter results.
+        $filterProviders.find('.selected').removeClass('selected');
         $filterProviders.find('.provider-row[data-id="' + id + '"]').addClass('selected');
 
         // Display record in form (if display = true).
@@ -548,6 +591,7 @@ App.Pages.Providers = (function () {
             App.Pages.Providers.display(provider);
 
             $('#edit-provider, #delete-provider').prop('disabled', false);
+            setRecordDetailsVisible(true);
         }
     }
 

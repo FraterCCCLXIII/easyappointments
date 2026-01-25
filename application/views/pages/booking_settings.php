@@ -4,11 +4,11 @@
 
 <div id="booking-settings-page" class="container backend-page">
     <div id="booking-settings">
-        <div class="row">
-            <div class="col-sm-3 offset-sm-1">
+        <div class="row settings-layout">
+            <div class="col-sm-3 settings-nav-panel ps-0">
                 <?php component('settings_nav'); ?>
             </div>
-            <div class="col-sm-6">
+            <div class="col-sm-9 settings-content">
                 <form>
                     <fieldset>
                         <div class="d-flex justify-content-between align-items-center border-bottom mb-4 py-2">

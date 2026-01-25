@@ -5,7 +5,7 @@
 <div class="container-fluid backend-page" id="service-categories-page">
 
     <div class="row" id="service-categories">
-        <div id="filter-service-categories" class="filter-records column col-12 col-md-5">
+        <div id="filter-service-categories" class="filter-records column col-12 col-md-5 backend-sticky-panel">
             <form class="input-append mb-4">
                 <div class="input-group">
                     <input type="text" class="key form-control" aria-label="keyword">

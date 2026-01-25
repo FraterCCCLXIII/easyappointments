@@ -37,8 +37,7 @@ App.Pages.Customers = (function () {
     const $formMessage = $('#form-message');
     const $customerAppointments = $('#customer-appointments');
     const $billingHistoryBody = $('#billing-history-body');
-    const $summaryFirstName = $('#customer-summary-first-name');
-    const $summaryLastName = $('#customer-summary-last-name');
+    const $summaryName = $('#customer-summary-name');
     const $summaryEmail = $('#customer-summary-email');
     const $summaryPhone = $('#customer-summary-phone');
     const $summaryLocation = $('#customer-summary-location');
@@ -47,6 +46,16 @@ App.Pages.Customers = (function () {
 
     let filterResults = {};
     let filterLimit = 20;
+
+    function setRecordDetailsVisible(visible) {
+        const $recordDetails = $customers.find('.record-details');
+
+        if (visible) {
+            $recordDetails.show();
+        } else {
+            $recordDetails.hide();
+        }
+    }
 
     /**
      * Add the page event listeners.
@@ -85,6 +94,7 @@ App.Pages.Customers = (function () {
             $('#filter-customers .selected').removeClass('selected');
             $(event.currentTarget).addClass('selected');
             $('#edit-customer, #delete-customer').prop('disabled', false);
+            setRecordDetailsVisible(true);
         });
 
         /**
@@ -92,6 +102,7 @@ App.Pages.Customers = (function () {
          */
         $customers.on('click', '#add-customer', () => {
             App.Pages.Customers.resetForm();
+            setRecordDetailsVisible(true);
             $customers.find('#add-edit-delete-group').hide();
             $customers.find('#save-cancel-group').show();
             $customers.find('.record-details').find('input, select, textarea').prop('disabled', false);
@@ -231,11 +242,12 @@ App.Pages.Customers = (function () {
         const locationParts = [address, city, zipCode].filter(Boolean);
         const locationText = locationParts.length ? locationParts.join(', ') : '—';
 
-        $summaryFirstName.text(`${lang('first_name')}: ${firstName || '—'}`);
-        $summaryLastName.text(`${lang('last_name')}: ${lastName || '—'}`);
-        $summaryEmail.text(`${lang('email')}: ${email || '—'}`);
-        $summaryPhone.text(`${lang('phone_number')}: ${phoneNumber || '—'}`);
-        $summaryLocation.text(`${lang('location')}: ${locationText}`);
+        const nameParts = [firstName, lastName].filter(Boolean);
+        $summaryName.text(nameParts.length ? nameParts.join(' ') : '—');
+
+        $summaryEmail.find('.summary-text').text(email || '—');
+        $summaryPhone.find('.summary-text').text(phoneNumber || '—');
+        $summaryLocation.find('.summary-text').text(locationText);
     }
 
     /**
@@ -307,6 +319,7 @@ App.Pages.Customers = (function () {
         $filterCustomers.find('button').prop('disabled', false);
         $filterCustomers.find('.selected').removeClass('selected');
         $filterCustomers.find('.results').css('color', '');
+        setRecordDetailsVisible(false);
     }
 
     /**
@@ -483,8 +496,12 @@ App.Pages.Customers = (function () {
                 }).appendTo('#filter-customers .results');
             }
 
-            if (selectId) {
-                App.Pages.Customers.select(selectId, show);
+            if (response.length) {
+                const defaultId = selectId ?? response[0].id;
+                const shouldShow = show || !selectId;
+                App.Pages.Customers.select(defaultId, shouldShow);
+            } else {
+                setRecordDetailsVisible(false);
             }
         });
     }
@@ -539,6 +556,7 @@ App.Pages.Customers = (function () {
             App.Pages.Customers.display(customer);
 
             $('#edit-customer, #delete-customer').prop('disabled', false);
+            setRecordDetailsVisible(true);
         }
     }
 

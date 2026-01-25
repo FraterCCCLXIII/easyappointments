@@ -4,7 +4,7 @@
 
 <div class="container-fluid backend-page" id="customers-page">
     <div class="row" id="customers">
-        <div id="filter-customers" class="filter-records col col-12 col-md-5">
+        <div id="filter-customers" class="filter-records backend-sticky-panel col col-12 col-md-5">
             <form class="mb-4">
                 <div class="input-group mb-3">
                     <input type="text" class="key form-control" aria-label="keyword">
@@ -73,46 +73,46 @@
             <input id="customer-id" type="hidden">
 
             <div class="mb-4 rounded-xl border border-slate-200 bg-white p-4">
-                <div class="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                    <?= lang('details') ?>
+                <div class="text-lg font-semibold text-slate-900" id="customer-summary-name">
+                    —
                 </div>
-                <div class="mt-3 flex flex-wrap items-center gap-2 text-sm text-slate-700">
-                    <span class="rounded-full bg-slate-100 px-3 py-1" id="customer-summary-first-name">
-                        <?= lang('first_name') ?>: —
+                <div class="mt-3 flex flex-wrap items-center gap-3 text-sm text-slate-700">
+                    <span class="inline-flex items-center gap-2" id="customer-summary-email">
+                        <i class="fas fa-envelope text-slate-400"
+                           style="width: 14px; height: 14px; font-size: 14px; display: inline-flex; align-items: center; justify-content: center;"></i>
+                        <span class="summary-text">—</span>
                     </span>
-                    <span class="rounded-full bg-slate-100 px-3 py-1" id="customer-summary-last-name">
-                        <?= lang('last_name') ?>: —
+                    <span class="inline-flex items-center gap-2" id="customer-summary-phone">
+                        <i class="fas fa-phone text-slate-400"
+                           style="width: 14px; height: 14px; font-size: 14px; display: inline-flex; align-items: center; justify-content: center;"></i>
+                        <span class="summary-text">—</span>
                     </span>
-                    <span class="rounded-full bg-slate-100 px-3 py-1" id="customer-summary-email">
-                        <?= lang('email') ?>: —
-                    </span>
-                    <span class="rounded-full bg-slate-100 px-3 py-1" id="customer-summary-phone">
-                        <?= lang('phone_number') ?>: —
-                    </span>
-                    <span class="rounded-full bg-slate-100 px-3 py-1" id="customer-summary-location">
-                        <?= lang('location') ?>: —
+                    <span class="inline-flex items-center gap-2" id="customer-summary-location">
+                        <i class="fas fa-location-dot text-slate-400"
+                           style="width: 14px; height: 14px; font-size: 14px; display: inline-flex; align-items: center; justify-content: center;"></i>
+                        <span class="summary-text">—</span>
                     </span>
                 </div>
             </div>
 
-            <div class="flex justify-center">
-                <ul class="booking-tab-list" id="customer-tabs" role="tablist">
+            <div class="flex w-full">
+                <ul class="booking-tab-line-list" id="customer-tabs" role="tablist">
                     <li class="nav-item" role="presentation">
-                        <button class="booking-tab active" id="customer-appointments-tab" data-bs-toggle="pill"
+                        <button class="booking-tab-line active" id="customer-appointments-tab" data-bs-toggle="pill"
                                 data-bs-target="#customer-appointments-panel" type="button" role="tab"
                                 aria-selected="true">
                             <?= lang('appointments') ?>
                         </button>
                     </li>
                     <li class="nav-item" role="presentation">
-                        <button class="booking-tab" id="customer-billing-tab" data-bs-toggle="pill"
+                        <button class="booking-tab-line" id="customer-billing-tab" data-bs-toggle="pill"
                                 data-bs-target="#customer-billing-panel" type="button" role="tab"
                                 aria-selected="false" tabindex="-1">
                             <?= lang('billing_history') ?>
                         </button>
                     </li>
                     <li class="nav-item" role="presentation">
-                        <button class="booking-tab" id="customer-account-tab" data-bs-toggle="pill"
+                        <button class="booking-tab-line" id="customer-account-tab" data-bs-toggle="pill"
                                 data-bs-target="#customer-account-panel" type="button" role="tab"
                                 aria-selected="false" tabindex="-1">
                             <?= lang('account') ?>
@@ -121,14 +121,14 @@
                 </ul>
             </div>
 
-            <div class="tab-content mt-6" id="customer-tabs-content">
+            <div class="tab-content mt-6 w-full" id="customer-tabs-content">
                 <div class="tab-pane fade show active" id="customer-appointments-panel" role="tabpanel"
                      aria-labelledby="customer-appointments-tab">
-                    <div id="customer-appointments" class="card bg-white border"></div>
+                    <div id="customer-appointments" class="card w-full bg-white border"></div>
                 </div>
                 <div class="tab-pane fade" id="customer-billing-panel" role="tabpanel"
                      aria-labelledby="customer-billing-tab">
-                    <div id="customer-billing" class="card bg-white border">
+                    <div id="customer-billing" class="card w-full bg-white border">
                         <div class="card-body p-0">
                             <table class="table table-sm mb-0">
                                 <thead>
