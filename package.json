@@ -43,6 +43,7 @@
     "@babel/core": "^7.20.12",
     "@babel/preset-env": "^7.20.2",
     "@prettier/plugin-php": "^0.21.0",
+    "autoprefixer": "^10.4.19",
     "babel-preset-minify": "^0.5.2",
     "del": "^6.0.0",
     "fs-extra": "^11.1.0",
@@ -55,8 +56,10 @@
     "gulp-plumber": "^1.2.1",
     "gulp-rename": "^2.0.0",
     "gulp-sass": "^5.1.0",
+    "postcss": "^8.4.38",
     "prettier": "^3.0.0",
     "sass": "^1.57.1",
+    "tailwindcss": "^3.4.10",
     "zip-dir": "^2.0.0"
   },
   "scripts": {

@@ -105,6 +105,10 @@ If you have problems installing or configuring the application visit the
 You can also report problems on the [issues page](https://github.com/alextselegidis/easyappointments/issues)
 and help the development progress.
 
+## TODO
+
+- Migrate remaining customer-facing pages from Bootstrap to Tailwind after booking flow rollout.
+
 ## License 
 
 Code Licensed Under [GPL v3.0](https://www.gnu.org/licenses/gpl-3.0.en.html) | Content Under [CC BY 3.0](https://creativecommons.org/licenses/by/3.0/)

@@ -2,32 +2,37 @@
 
 <?php section('content'); ?>
 
-<div>
-    <img id="success-icon" class="mt-0 mb-5" src="<?= base_url('assets/img/success.png') ?>" alt="success"/>
+<div class="flex justify-center mt-4">
+    <i id="success-icon" class="fas fa-circle-check mb-6" style="width: 96px; height: 96px; font-size: 96px; display: inline-flex; align-items: center; justify-content: center; color: #439a82;"></i>
 </div>
 
-<div class="mb-5">
-    <h4 class="mb-5"><?= lang('appointment_registered') ?></h4>
+<div class="text-center">
+    <h4 class="frame-title booking-frame-title"><?= lang('appointment_registered') ?></h4>
 
-    <p>
+    <p class="text-slate-700">
         <?= lang('appointment_details_was_sent_to_you') ?>
     </p>
 
-    <p class="mb-5 text-muted">
-        <small>
-            <?= lang('check_spam_folder') ?>
-        </small>
+    <p class="mt-4 text-sm text-slate-500">
+        <?= lang('check_spam_folder') ?>
     </p>
 
-    <a href="<?= site_url() ?>" class="btn btn-primary btn-large">
-        <i class="fas fa-calendar-alt me-2"></i>
-        <?= lang('go_to_booking_page') ?>
-    </a>
+    <div class="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center">
+        <a href="<?= site_url('dashboard') ?>" class="booking-button sm:w-auto sm:px-6">
+            <i class="fas fa-arrow-left mr-2"></i>
+            Return to Dashboard
+        </a>
+        <a href="<?= site_url() ?>" class="booking-button sm:w-auto sm:px-6">
+            <i class="fas fa-calendar-alt mr-2"></i>
+            <?= lang('go_to_booking_page') ?>
+        </a>
 
-    <a href="<?= vars('add_to_google_url') ?>" id="add-to-google-calendar" class="btn btn-primary" target="_blank">
-        <i class="fas fa-plus me-2"></i>
-        <?= lang('add_to_google_calendar') ?>
-    </a>
+        <a href="<?= vars('add_to_google_url') ?>" id="add-to-google-calendar" class="booking-button sm:w-auto sm:px-6"
+           target="_blank">
+            <i class="fas fa-plus mr-2"></i>
+            <?= lang('add_to_google_calendar') ?>
+        </a>
+    </div>
 </div>
 
 <?php end_section('content'); ?>

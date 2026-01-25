@@ -1,7 +1,7 @@
 <?php extend('layouts/booking_layout'); ?>
 
 <?php section('content'); ?>
-<div class="wizard-frame">
+<div class="wizard-frame booking-section px-4 sm:px-5">
     <div class="frame-container">
         <h2 class="frame-title">My Account</h2>
 
@@ -23,19 +23,30 @@
             </div>
         <?php endif; ?>
 
-        <ul class="nav nav-pills mb-5 justify-content-center" id="account-tabs" role="tablist">
-            <li class="nav-item" role="presentation">
-                <button class="nav-link active" id="profile-tab" data-bs-toggle="pill" data-bs-target="#profile" type="button" role="tab">Profile</button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="security-tab" data-bs-toggle="pill" data-bs-target="#security" type="button" role="tab">Security</button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="billing-tab" data-bs-toggle="pill" data-bs-target="#billing" type="button" role="tab">Billing</button>
-            </li>
-        </ul>
+        <div class="flex justify-center mt-6">
+            <ul class="booking-tab-list" id="account-tabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="booking-tab active" id="profile-tab" data-bs-toggle="pill"
+                            data-bs-target="#profile" type="button" role="tab">
+                        Profile
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="booking-tab" id="security-tab" data-bs-toggle="pill" data-bs-target="#security"
+                            type="button" role="tab">
+                        Security
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="booking-tab" id="billing-tab" data-bs-toggle="pill" data-bs-target="#billing"
+                            type="button" role="tab">
+                        Billing
+                    </button>
+                </li>
+            </ul>
+        </div>
 
-        <div class="tab-content" id="account-tabs-content">
+        <div class="tab-content mt-6" id="account-tabs-content">
             <div class="tab-pane fade show active" id="profile" role="tabpanel">
                 <div class="row frame-content">
                     <div class="col-12 col-lg-8 mx-auto">

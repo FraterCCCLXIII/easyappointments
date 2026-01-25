@@ -25,85 +25,20 @@
     <link rel="stylesheet" type="text/css" href="<?= asset_url('assets/vendor/flatpickr/material_green.min.css') ?>">
     <link rel="stylesheet" type="text/css" href="<?= asset_url('assets/css/themes/' . vars('theme') . '.css') ?>">
     <link rel="stylesheet" type="text/css" href="<?= asset_url('assets/css/general.css') ?>">
+    <link rel="stylesheet" type="text/css" href="<?= asset_url('assets/css/tailwind/booking.css') ?>">
     <link rel="stylesheet" type="text/css" href="<?= asset_url('assets/css/layouts/booking_layout.css') ?>">
     <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;700&display=swap" rel="stylesheet">
 
     <?php component('company_color_style', ['company_color' => vars('company_color')]); ?>
 
     <?php slot('styles'); ?>
-    <style>
-        #book-appointment-wizard,
-        .wizard-frame,
-        .frame-container {
-            box-shadow: none !important;
-            border: none !important;
-            background: transparent !important;
-        }
-
-        #book-appointment-wizard .frame-title,
-        #book-appointment-wizard h2.frame-title,
-        h2.frame-title,
-        .frame-title {
-            font-family: 'Libre Baskerville', 'Baskerville', serif !important;
-            font-weight: normal !important;
-            text-align: center;
-            margin-bottom: 30px;
-            color: rgb(29, 48, 38) !important;
-            text-transform: none !important;
-        }
-
-        #available-hours::-webkit-scrollbar {
-            width: 6px;
-        }
-
-        #available-hours::-webkit-scrollbar-track {
-            background: transparent;
-        }
-
-        #available-hours::-webkit-scrollbar-thumb {
-            background: #d1d5db;
-            border-radius: 10px;
-        }
-
-        #available-hours::-webkit-scrollbar-thumb:hover {
-            background: #9ca3af;
-        }
-
-        #frame-footer {
-            border-top: none !important;
-        }
-
-        #select-timezone {
-            cursor: pointer;
-            font-size: 0.875rem;
-            color: var(--bs-secondary-color);
-        }
-
-        #select-timezone:focus {
-            box-shadow: none !important;
-        }
-
-        .btn-dark,
-        .btn-primary,
-        .button-next {
-            background-color: rgb(29, 48, 38) !important;
-            border-color: rgb(29, 48, 38) !important;
-            color: #fff !important;
-        }
-
-        .btn-dark:hover,
-        .btn-primary:hover,
-        .button-next:hover {
-            filter: brightness(120%);
-        }
-    </style>
 </head>
 
-<body>
+<body class="bg-slate-50 text-slate-900">
 <?php component('booking_top_nav'); ?>
-<div id="main" class="container py-4">
-    <div class="row justify-content-center">
-        <div id="book-appointment-wizard" class="col-12 col-lg-10 col-xl-8 col-xxl-7 mx-auto">
+<div id="main" class="mx-auto max-w-6xl px-4 py-6">
+    <div class="flex justify-center">
+        <div id="book-appointment-wizard" class="mt-6 w-full max-w-4xl lg:w-fit">
 
             <?php if (vars('display_booking_header', true)): ?>
                 <?php component('booking_header', [

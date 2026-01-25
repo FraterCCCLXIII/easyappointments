@@ -21,29 +21,30 @@
  */
 ?>
 
-<div id="wizard-frame-3" class="wizard-frame" style="display:none;">
+<div id="wizard-frame-3" class="wizard-frame booking-section" style="display:none;">
     <div class="frame-container">
 
-        <h2 class="frame-title"><?= lang('customer_information') ?></h2>
+        <h2 class="frame-title booking-frame-title"><?= lang('customer_information') ?></h2>
 
-        <div class="row frame-content">
-            <div class="col-12 col-md-8 offset-md-2">
+        <div class="frame-content mt-6">
+            <div class="booking-frame-content">
                 <?php if ($display_first_name): ?>
-                    <div class="mb-3">
-                        <label for="first-name" class="form-label">
+                    <div class="mb-4">
+                        <label for="first-name" class="mb-2 block text-sm font-semibold text-slate-700">
                             <?= lang('first_name') ?>
                             <?php if ($require_first_name): ?>
                                 <span class="text-danger">*</span>
                             <?php endif; ?>
                         </label>
                         <input type="text" id="first-name"
-                               class="<?= $require_first_name ? 'required' : '' ?> form-control" maxlength="100"/>
+                               class="<?= $require_first_name ? 'required' : '' ?> form-control"
+                               maxlength="100"/>
                     </div>
                 <?php endif; ?>
 
                 <?php if ($display_last_name): ?>
-                    <div class="mb-3">
-                        <label for="last-name" class="form-label">
+                    <div class="mb-4">
+                        <label for="last-name" class="mb-2 block text-sm font-semibold text-slate-700">
                             <?= lang('last_name') ?>
                             <?php if ($require_last_name): ?>
                                 <span class="text-danger">*</span>
@@ -55,8 +56,8 @@
                 <?php endif; ?>
 
                 <?php if ($display_email): ?>
-                    <div class="mb-3">
-                        <label for="email" class="form-label">
+                    <div class="mb-4">
+                        <label for="email" class="mb-2 block text-sm font-semibold text-slate-700">
                             <?= lang('email') ?>
                             <?php if ($require_email): ?>
                                 <span class="text-danger">*</span>
@@ -68,8 +69,8 @@
                 <?php endif; ?>
 
                 <?php if ($display_phone_number): ?>
-                    <div class="mb-3">
-                        <label for="phone-number" class="form-label">
+                    <div class="mb-4">
+                        <label for="phone-number" class="mb-2 block text-sm font-semibold text-slate-700">
                             <?= lang('phone_number') ?>
                             <?php if ($require_phone_number): ?>
                                 <span class="text-danger">*</span>
@@ -87,8 +88,8 @@
                 <?php slot('after_custom_fields'); ?>
 
                 <?php if ($display_address): ?>
-                    <div class="mb-3">
-                        <label for="address" class="form-label">
+                    <div class="mb-4">
+                        <label for="address" class="mb-2 block text-sm font-semibold text-slate-700">
                             <?= lang('address') ?>
                             <?php if ($require_address): ?>
                                 <span class="text-danger">*</span>
@@ -99,8 +100,8 @@
                     </div>
                 <?php endif; ?>
                 <?php if ($display_city): ?>
-                    <div class="mb-3">
-                        <label for="city" class="form-label">
+                    <div class="mb-4">
+                        <label for="city" class="mb-2 block text-sm font-semibold text-slate-700">
                             <?= lang('city') ?>
                             <?php if ($require_city): ?>
                                 <span class="text-danger">*</span>
@@ -111,8 +112,8 @@
                     </div>
                 <?php endif; ?>
                 <?php if ($display_zip_code): ?>
-                    <div class="mb-3">
-                        <label for="zip-code" class="form-label">
+                    <div class="mb-4">
+                        <label for="zip-code" class="mb-2 block text-sm font-semibold text-slate-700">
                             <?= lang('zip_code') ?>
                             <?php if ($require_zip_code): ?>
                                 <span class="text-danger">*</span>
@@ -123,8 +124,8 @@
                     </div>
                 <?php endif; ?>
                 <?php if ($display_notes): ?>
-                    <div class="mb-3">
-                        <label for="notes" class="form-label">
+                    <div class="mb-4">
+                        <label for="notes" class="mb-2 block text-sm font-semibold text-slate-700">
                             <?= lang('notes') ?>
                             <?php if ($require_notes): ?>
                                 <span class="text-danger">*</span>
@@ -140,15 +141,12 @@
         </div>
     </div>
 
-    <div class="command-buttons">
-        <div class="row">
-            <div class="col col-md-8 offset-md-2">
-                <button type="button" id="button-next-3" class="btn button-next btn-dark text-center w-100 py-3"
-                        data-step_index="3">
-                    <?= lang('next') ?>
-                    <i class="fas fa-chevron-right ms-2"></i>
-                </button>
-            </div>
+    <div class="command-buttons mt-6">
+        <div class="booking-frame-content">
+            <button type="button" id="button-next-3" class="button-next booking-button" data-step_index="3">
+                <?= lang('next') ?>
+                <i class="fas fa-chevron-right ml-2"></i>
+            </button>
         </div>
     </div>
 </div>

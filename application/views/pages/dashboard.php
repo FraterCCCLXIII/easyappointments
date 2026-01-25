@@ -1,13 +1,14 @@
 <?php extend('layouts/booking_layout'); ?>
 
 <?php section('content'); ?>
-<div class="wizard-frame">
+<div>
     <div class="frame-container">
         <h2 class="frame-title">Welcome <?= e(vars('customer')['first_name'] ?? '') ?>!</h2>
 
         <div class="row g-4 mt-2 flex-column align-items-center">
             <div class="col-12 col-md-8 col-lg-6">
-                <a href="<?= site_url('booking') ?>" class="dashboard-card card text-center text-decoration-none p-5 shadow-sm border-0 transition-all">
+                <a href="<?= site_url('booking') ?>"
+                   class="dashboard-card card text-center text-decoration-none p-5 shadow-sm border border-slate-200 bg-white transition-all hover:border-slate-300">
                     <div class="card-body d-flex flex-column align-items-center justify-content-center">
                         <div class="icon-wrapper mb-4 rounded-circle bg-light d-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
                             <i class="fas fa-calendar-plus fa-2x text-primary"></i>
@@ -18,7 +19,8 @@
             </div>
 
             <div class="col-12 col-md-8 col-lg-6">
-                <a href="<?= site_url('customer/bookings') ?>" class="dashboard-card card text-center text-decoration-none p-5 shadow-sm border-0 transition-all">
+                <a href="<?= site_url('customer/bookings') ?>"
+                   class="dashboard-card card text-center text-decoration-none p-5 shadow-sm border border-slate-200 bg-white transition-all hover:border-slate-300">
                     <div class="card-body d-flex flex-column align-items-center justify-content-center">
                         <div class="icon-wrapper mb-4 rounded-circle bg-light d-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
                             <i class="fas fa-list-ul fa-2x text-primary"></i>
