@@ -6,12 +6,12 @@
  */
 ?>
 
-<div id="wizard-frame-1" class="wizard-frame booking-section inline-block w-fit max-w-full px-4 py-4">
-    <div class="frame-container p-0">
+<div id="wizard-frame-1" class="wizard-frame booking-section">
+    <div class="frame-container">
         <h2 class="frame-title booking-frame-title"><?= lang('service_and_provider') ?></h2>
 
-        <div class="frame-content mt-4">
-            <div class="booking-frame-content w-fit max-w-md">
+        <div class="frame-content mt-6">
+            <div class="booking-frame-content">
                 <div class="mb-6">
                     <?php
                     // Group services by category, only if there is at least one service with a parent category.
