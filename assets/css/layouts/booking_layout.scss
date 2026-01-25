@@ -26,9 +26,9 @@ body {
  ------------------------------------------------------------------------------ */
 
 #book-appointment-wizard {
-    min-height: 480px;
     padding: 0;
-    margin: auto;
+    margin: 0 auto;
+    float: none;
 }
 
 #book-appointment-wizard #header {
@@ -69,6 +69,18 @@ body {
     margin-right: 0;
 }
 
+.btn-dark,
+.btn-primary,
+.button-next {
+    background-color: rgb(29, 48, 38) !important;
+    border-color: rgb(29, 48, 38) !important;
+    color: #fff !important;
+
+    &:hover {
+        filter: brightness(120%);
+    }
+}
+
 #book-appointment-wizard #form-message {
     text-align: center;
     margin-bottom: 30px;
@@ -77,6 +89,7 @@ body {
 #book-appointment-wizard .wizard-frame {
     height: auto;
     padding: 15px;
+    box-shadow: none !important;
 }
 
 #book-appointment-wizard .wizard-frame .frame-container {
@@ -85,11 +98,16 @@ body {
     padding: 15px 0 0;
 }
 
-#book-appointment-wizard .frame-container .frame-title {
-    font-weight: lighter;
+#book-appointment-wizard .frame-title,
+#book-appointment-wizard h2.frame-title,
+h2.frame-title,
+.frame-title {
+    font-family: 'Libre Baskerville', 'Baskerville', serif !important;
+    font-weight: normal !important;
     text-align: center;
     margin-bottom: 30px;
-    color: #666;
+    color: rgb(29, 48, 38) !important;
+    text-transform: none !important;
 }
 
 #book-appointment-wizard .frame-container .frame-content {
@@ -100,26 +118,6 @@ body {
     float: none;
     margin: 16px 0 0;
     text-align: left;
-}
-
-#book-appointment-wizard .wizard-back-button-wrapper {
-    display: flex;
-    justify-content: flex-start;
-    margin-bottom: 12px;
-}
-
-#book-appointment-wizard .wizard-back-button {
-    width: 44px;
-    height: 44px;
-    padding: 0;
-    border-radius: 999px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-}
-
-#book-appointment-wizard .wizard-back-button i {
-    margin: 0;
 }
 
 #book-appointment-wizard .wizard-frame .command-buttons .button-next {
@@ -143,9 +141,39 @@ body {
 }
 
 #book-appointment-wizard .wizard-frame #select-time {
-    width: 100%;
+    width: auto;
     margin: 0;
-    padding: 15px 0;
+    padding: 0;
+}
+
+#book-appointment-wizard .date-time-summary {
+    flex-wrap: nowrap;
+    gap: 12px;
+}
+
+#book-appointment-wizard .date-time-summary #selected-date {
+    flex: 1 1 auto;
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+#book-appointment-wizard .date-time-summary #select-time {
+    flex: 0 0 auto;
+    margin-left: auto;
+    align-items: center;
+}
+
+#book-appointment-wizard .date-time-summary #select-timezone {
+    align-self: center;
+    margin: 0;
+    white-space: nowrap;
+    max-width: 160px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding-right: 1.1rem;
+    background-position: right 0.15rem center;
 }
 
 #book-appointment-wizard .book-step {
@@ -178,15 +206,42 @@ body {
 #book-appointment-wizard #frame-footer {
     padding: 15px;
     text-align: center;
-    border-top: 1px solid #ebeef1;
+    border-top: none;
 }
 
 #book-appointment-wizard #available-hours {
-    overflow: auto;
+    overflow-y: auto;
     margin: 15px 0;
     padding-right: 10px;
     width: auto;
     max-height: 250px;
+
+    &::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    &::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    &::-webkit-scrollbar-thumb {
+        background: #d1d5db;
+        border-radius: 10px;
+    }
+
+    &::-webkit-scrollbar-thumb:hover {
+        background: #9ca3af;
+    }
+}
+
+#select-timezone {
+    cursor: pointer;
+    font-size: 0.875rem;
+    color: var(--bs-secondary-color);
+    
+    &:focus {
+        box-shadow: none;
+    }
 }
 
 #book-appointment-wizard #available-hours div {
@@ -291,13 +346,13 @@ body {
 
 @media (min-width: 768px) {
     .wrapper {
-        min-height: 100vh;
+        min-height: auto;
     }
 
     #book-appointment-wizard {
-        border-radius: 0.25rem;
-        overflow: hidden;
-        box-shadow: rgba(138, 195, 255, 0.12) 0 1px 5px 0;
+        box-shadow: none !important;
+        border: none !important;
+        background: transparent !important;
     }
 
     #book-appointment-wizard #steps {

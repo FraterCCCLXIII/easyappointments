@@ -78,6 +78,83 @@ class Booking extends EA_Controller
         $this->load->library('notifications');
         $this->load->library('availability');
         $this->load->library('webhooks_client');
+        $this->load->library('stripe_gateway');
+    }
+
+    /**
+     * Handle Stripe Webhook.
+     */
+    public function stripe_webhook(): void
+    {
+        try {
+            $payload = @file_get_contents('php://input');
+            $sig_header = $_SERVER['HTTP_STRIPE_SIGNATURE'] ?? '';
+            $event = $this->stripe_gateway->construct_webhook_event($payload, $sig_header);
+
+            if ($event->type === 'checkout.session.completed') {
+                $session = $event->data->object;
+                $appointment_id = $session->client_reference_id;
+                $appointment = $this->appointments_model->find($appointment_id);
+
+                if ($appointment) {
+                    $appointment['payment_status'] = 'paid';
+                    $appointment['stripe_payment_intent_id'] = $session->payment_intent;
+                    $this->appointments_model->save($appointment);
+                    
+                    // Trigger notifications and webhooks now that it's paid
+                    $service = $this->services_model->find($appointment['id_services']);
+                    $provider = $this->providers_model->find($appointment['id_users_provider']);
+                    $customer = $this->customers_model->find($appointment['id_users_customer']);
+                    
+                    $settings = [
+                        'company_name' => setting('company_name'),
+                        'company_link' => setting('company_link'),
+                        'company_email' => setting('company_email'),
+                        'company_color' => setting('company_color'),
+                        'date_format' => setting('date_format'),
+                        'time_format' => setting('time_format'),
+                    ];
+
+                    $this->synchronization->sync_appointment_saved($appointment, $service, $provider, $customer, $settings);
+                    $this->notifications->notify_appointment_saved($appointment, $service, $provider, $customer, $settings, false);
+                    $this->webhooks_client->trigger(WEBHOOK_APPOINTMENT_SAVE, $appointment);
+                }
+            }
+
+            json_response(['success' => true]);
+        } catch (Throwable $e) {
+            log_message('error', 'Stripe Webhook Error: ' . $e->getMessage());
+            http_response_code(400);
+            exit();
+        }
+    }
+
+    /**
+     * Handle payment success return.
+     */
+    public function payment_success(string $appointment_hash): void
+    {
+        $results = $this->appointments_model->get(['hash' => $appointment_hash]);
+        if (empty($results)) {
+            redirect('dashboard');
+            return;
+        }
+
+        html_vars([
+            'appointment' => $results[0],
+            'page_title' => lang('booking_complete'),
+        ]);
+
+        $this->load->view('pages/booking_success');
+    }
+
+    /**
+     * Handle payment cancel return.
+     */
+    public function payment_cancel(string $appointment_hash): void
+    {
+        // Optionally delete the pending appointment or just redirect back
+        redirect('booking/reschedule/' . $appointment_hash);
     }
 
     /**

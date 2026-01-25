@@ -36,6 +36,7 @@ App.Pages.Customers = (function () {
     const $notes = $('#notes');
     const $formMessage = $('#form-message');
     const $customerAppointments = $('#customer-appointments');
+    const $billingHistoryBody = $('#billing-history-body');
 
     const moment = window.moment;
 
@@ -260,6 +261,7 @@ App.Pages.Customers = (function () {
         $customers.find('.record-details #language').val(vars('default_language'));
 
         $customerAppointments.empty();
+        $billingHistoryBody.empty();
 
         $customers.find('#edit-customer, #delete-customer').prop('disabled', true);
         $customers.find('#add-edit-delete-group').show();
@@ -298,6 +300,7 @@ App.Pages.Customers = (function () {
         $customField5.val(customer.custom_field_5);
 
         $customerAppointments.empty();
+        $billingHistoryBody.empty();
 
         if (!customer.appointments.length) {
             $('<p/>', {
@@ -379,7 +382,33 @@ App.Pages.Customers = (function () {
                     }),
                 ],
             }).appendTo('#customer-appointments');
+
+            // Add to billing history if payment info exists
+            if (appointment.payment_status && appointment.payment_status !== 'not-paid') {
+                $('<tr/>', {
+                    'html': [
+                        $('<td/>', {
+                            'class': 'ps-3',
+                            'text': moment(appointment.book_datetime).format('YYYY-MM-DD HH:mm'),
+                        }),
+                        $('<td/>', {
+                            'text': Number(appointment.payment_amount).toFixed(2),
+                        }),
+                        $('<td/>', {
+                            'class': 'pe-3',
+                            'html': $('<span/>', {
+                                'class': 'badge bg-' + (appointment.payment_status === 'paid' ? 'success' : 'warning'),
+                                'text': appointment.payment_status.charAt(0).toUpperCase() + appointment.payment_status.slice(1),
+                            }),
+                        }),
+                    ],
+                }).appendTo($billingHistoryBody);
+            }
         });
+
+        if ($billingHistoryBody.is(':empty')) {
+            $billingHistoryBody.append('<tr><td colspan="3" class="text-center py-3 text-muted">No billing history found.</td></tr>');
+        }
     }
 
     /**

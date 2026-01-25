@@ -36,7 +36,7 @@ class Customer_auth extends EA_Controller
     public function login(): void
     {
         if (customer_logged_in()) {
-            redirect('booking');
+            redirect('dashboard');
             return;
         }
 
@@ -117,7 +117,7 @@ class Customer_auth extends EA_Controller
                 'customer_email' => $auth['email'],
             ]);
 
-            $return_url = session('customer_return_url') ?: site_url('booking');
+            $return_url = session('customer_return_url') ?: site_url('dashboard');
             session(['customer_return_url' => null]);
 
             redirect($return_url);

@@ -24,6 +24,7 @@
     <?php slot('styles'); ?>
 </head>
 <body>
+<?php component('booking_top_nav'); ?>
 <div id="main" class="container">
     <div class="row wrapper">
         <div id="message-frame" class="col-12 border my-auto frame-container">

@@ -216,6 +216,26 @@
                     <div id="customer-appointments" class="card bg-white border"></div>
 
                     <?php slot('after_secondary_fields'); ?>
+
+                    <h4 class="text-black-50 mt-5 mb-3 fw-light">
+                        Billing History
+                    </h4>
+                    <div id="customer-billing" class="card bg-white border">
+                        <div class="card-body p-0">
+                            <table class="table table-sm mb-0">
+                                <thead>
+                                    <tr>
+                                        <th class="ps-3">Date</th>
+                                        <th>Amount</th>
+                                        <th class="pe-3">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="billing-history-body">
+                                    <!-- JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

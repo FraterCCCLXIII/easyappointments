@@ -8,12 +8,6 @@
 
 <div id="wizard-frame-2" class="wizard-frame" style="display:none;">
     <div class="frame-container">
-        <div class="wizard-back-button-wrapper">
-            <button type="button" id="button-back-2" class="btn btn-outline-secondary wizard-back-button button-back"
-                    data-step_index="2" aria-label="<?= lang('back') ?>">
-                <i class="fas fa-arrow-left"></i>
-            </button>
-        </div>
 
         <h2 class="frame-title"><?= lang('appointment_date_and_time') ?></h2>
 
@@ -26,7 +20,15 @@
                     </div>
                 </div>
 
-                <p id="selected-date" class="text-center mt-3"></p>
+                <div class="d-flex align-items-center justify-content-between mb-3 bg-body rounded-3 px-4 py-2 border date-time-summary">
+                    <p id="selected-date" class="mb-0 fw-semibold text-dark"></p>
+                    <div id="select-time" class="d-flex align-items-center">
+                        <?php component('timezone_dropdown', [
+                            'attributes' => 'id="select-timezone" class="form-select form-select-sm border-0 bg-transparent shadow-none" style="width: auto;" value="UTC"',
+                            'grouped_timezones' => $grouped_timezones,
+                        ]); ?>
+                    </div>
+                </div>
 
                 <div class="d-none">
                     <div id="select-date"></div>
@@ -34,19 +36,8 @@
 
                 <?php slot('after_select_date'); ?>
 
-                <div id="select-time">
-                    <div class="mb-3">
-                        <label for="select-timezone" class="form-label">
-                            <?= lang('timezone') ?>
-                        </label>
-                        <?php component('timezone_dropdown', [
-                            'attributes' => 'id="select-timezone" class="form-select" value="UTC"',
-                            'grouped_timezones' => $grouped_timezones,
-                        ]); ?>
-                    </div>
-
+                <div id="available-hours-container">
                     <?php slot('after_select_timezone'); ?>
-
 
                     <div id="available-hours"></div>
 

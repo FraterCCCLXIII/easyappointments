@@ -90,9 +90,9 @@ App.Pages.Booking = (function () {
             // Update selected date paragraph
             if (this.selectedDay) {
                 const selectedDate = moment([this.currentYear, this.currentMonth, this.selectedDay]);
-                $selectedDateParagraph.text(lang('date') + ': ' + selectedDate.format('LL'));
+                $selectedDateParagraph.text(selectedDate.format('LL'));
             } else {
-                $selectedDateParagraph.text(lang('date') + ': -');
+                $selectedDateParagraph.text('-');
             }
 
             // Render Months
@@ -134,10 +134,10 @@ App.Pages.Booking = (function () {
                 this.$monthsContainer.stop().animate({ scrollLeft: offset }, 400);
             }
 
-            // Center selected date
+            // Scroll to selected date (align to left)
             const $selectedDate = this.$datesContainer.find('.date.selected');
             if ($selectedDate.length) {
-                const offset = $selectedDate[0].offsetLeft - (this.$datesContainer.width() / 2) + ($selectedDate.width() / 2);
+                const offset = $selectedDate[0].offsetLeft - 10; // 10px padding
                 this.$datesContainer.stop().animate({ scrollLeft: offset }, 400);
             }
         },
@@ -200,6 +200,34 @@ App.Pages.Booking = (function () {
      * @type {Boolean}
      */
     let manageMode = vars('manage_mode') || false;
+
+    const wizardState = {
+        storageKey: `EasyAppointments.BookingWizardStep.${window.location.pathname}`,
+        minStep: 1,
+        maxStep: 4,
+        get: function () {
+            try {
+                const stored = window.sessionStorage.getItem(this.storageKey);
+                const step = Number.parseInt(stored, 10);
+                if (Number.isInteger(step) && step >= this.minStep && step <= this.maxStep) {
+                    return step;
+                }
+            } catch (error) {
+                return null;
+            }
+            return null;
+        },
+        set: function (step) {
+            if (!Number.isInteger(step)) {
+                return;
+            }
+            try {
+                window.sessionStorage.setItem(this.storageKey, String(step));
+            } catch (error) {
+                // Ignore storage failures (private mode, etc.)
+            }
+        },
+    };
 
     /**
      * Detect the month step.
@@ -424,6 +452,7 @@ App.Pages.Booking = (function () {
             prefillFromCustomerAccount();
         }
 
+        restoreWizardStep();
         updateNextButtons();
     }
 
@@ -514,6 +543,110 @@ App.Pages.Booking = (function () {
             $button.toggleClass('disabled', !isEnabled);
             $button.attr('aria-disabled', (!isEnabled).toString());
         });
+    }
+
+    function getHighestRestorableStep() {
+        let maxStep = 1;
+
+        if (!isNextEnabledForStep(1)) {
+            return maxStep;
+        }
+
+        maxStep = 2;
+
+        if (!isNextEnabledForStep(2)) {
+            return maxStep;
+        }
+
+        maxStep = 3;
+
+        if (!isNextEnabledForStep(3)) {
+            return maxStep;
+        }
+
+        return 4;
+    }
+
+    function getCurrentWizardStep() {
+        const $activeStep = $('.book-step.active-step');
+        if ($activeStep.length) {
+            const activeId = $activeStep.attr('id') || '';
+            if (activeId.startsWith('step-')) {
+                const activeStep = Number.parseInt(activeId.replace('step-', ''), 10);
+                if (Number.isInteger(activeStep)) {
+                    return activeStep;
+                }
+            }
+        }
+
+        const $visibleFrame = $('.wizard-frame:visible').first();
+        if ($visibleFrame.length) {
+            const frameId = $visibleFrame.attr('id') || '';
+            if (frameId.startsWith('wizard-frame-')) {
+                const frameStep = Number.parseInt(frameId.replace('wizard-frame-', ''), 10);
+                if (Number.isInteger(frameStep)) {
+                    return frameStep;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    function showWizardStep(stepIndex, { animate } = {}) {
+        const targetIndex = Number.parseInt(stepIndex, 10);
+
+        if (!Number.isInteger(targetIndex)) {
+            return false;
+        }
+
+        const $targetFrame = $('#wizard-frame-' + targetIndex);
+        if (!$targetFrame.length) {
+            return false;
+        }
+
+        if (targetIndex === 1) {
+            $('#wizard-frame-1').css('visibility', 'visible');
+        }
+
+        $('.wizard-frame').hide();
+        $('.active-step').removeClass('active-step');
+        $('#step-' + targetIndex).addClass('active-step');
+
+        if (animate) {
+            $targetFrame.fadeIn();
+        } else {
+            $targetFrame.show();
+        }
+
+        return true;
+    }
+
+    function restoreWizardStep() {
+        const storedStep = wizardState.get();
+        const currentStep = getCurrentWizardStep();
+        const maxStep = getHighestRestorableStep();
+        let targetStep = storedStep || currentStep || 1;
+
+        if (targetStep > maxStep) {
+            targetStep = maxStep;
+        }
+
+        if (targetStep === 1 && !$('#step-1').is(':visible')) {
+            targetStep = currentStep || 1;
+        }
+
+        if (showWizardStep(targetStep, { animate: false })) {
+            wizardState.set(targetStep);
+        }
+    }
+
+    function clearWizardState() {
+        try {
+            window.sessionStorage.removeItem(wizardState.storageKey);
+        } catch (error) {
+            // Ignore storage failures (private mode, etc.)
+        }
     }
 
     function renderProviderCards() {
@@ -752,6 +885,7 @@ App.Pages.Booking = (function () {
                 $('#step-' + nextTabIndex).addClass('active-step');
                 $('#wizard-frame-' + nextTabIndex).fadeIn();
                 updateNextButtons();
+                wizardState.set(nextTabIndex);
             });
 
             // Scroll to the top of the page. On a small screen, especially on a mobile device, this is very useful.
@@ -767,15 +901,32 @@ App.Pages.Booking = (function () {
          * This handler is triggered every time the user pressed the "back" button on the
          * book wizard.
          */
-        $('.button-back').on('click', (event) => {
-            const prevTabIndex = parseInt($(event.currentTarget).attr('data-step_index')) - 1;
+        $(document).on('click', '.button-back, #top-nav-back-button', (event) => {
+            const $activeFrame = $('.wizard-frame:visible');
+            const frameId = $activeFrame.attr('id');
 
-            $(event.currentTarget).closest('.wizard-frame').fadeOut(() => {
-                $('.active-step').removeClass('active-step');
-                $('#step-' + prevTabIndex).addClass('active-step');
-                $('#wizard-frame-' + prevTabIndex).fadeIn();
-                updateNextButtons();
-            });
+            // Only intercept if we are in the booking wizard (frames 2, 3, 4)
+            if (frameId && frameId.startsWith('wizard-frame-') && frameId !== 'wizard-frame-1') {
+                event.preventDefault();
+                event.stopPropagation();
+
+                const currentStepIndex = parseInt(frameId.replace('wizard-frame-', ''));
+                const prevTabIndex = currentStepIndex - 1;
+
+                $activeFrame.fadeOut(() => {
+                    $('.active-step').removeClass('active-step');
+                    $('#step-' + prevTabIndex).addClass('active-step');
+                    $('#wizard-frame-' + prevTabIndex).fadeIn();
+                    updateNextButtons();
+                    wizardState.set(prevTabIndex);
+                });
+            }
+            // If we are on the first frame of the booking wizard, we want to go back to the dashboard
+            else if (frameId === 'wizard-frame-1') {
+                event.preventDefault();
+                window.location.href = App.Utils.Url.siteUrl('dashboard');
+            }
+            // Otherwise, let the default behavior happen (history.back or link)
         });
 
         /**
@@ -1264,6 +1415,7 @@ App.Pages.Booking = (function () {
 
     return {
         manageMode,
+        clearWizardState,
         updateConfirmFrame,
         updateServiceDescription,
         validateCustomerForm,

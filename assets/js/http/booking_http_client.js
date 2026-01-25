@@ -165,7 +165,25 @@ App.Http.Booking = (function () {
             }
         }
 
-        const formData = JSON.parse($('input[name="post_data"]').val());
+        let rawPostData = $('input[name="post_data"]').val();
+
+        if (!rawPostData && window.App?.Pages?.Booking?.updateConfirmFrame) {
+            window.App.Pages.Booking.updateConfirmFrame();
+            rawPostData = $('input[name="post_data"]').val();
+        }
+
+        let formData;
+        try {
+            formData = JSON.parse(rawPostData);
+        } catch (error) {
+            if (window.App?.Utils?.Message?.show) {
+                App.Utils.Message.show(
+                    lang('oops_something_went_wrong'),
+                    lang('unexpected_issues_message'),
+                );
+            }
+            return;
+        }
 
         const data = {
             csrf_token: vars('csrf_token'),
@@ -214,6 +232,15 @@ App.Http.Booking = (function () {
                     $captchaText.addClass('is-invalid');
 
                     return false;
+                }
+
+                if (window.App?.Pages?.Booking?.clearWizardState) {
+                    window.App.Pages.Booking.clearWizardState();
+                }
+
+                if (response.stripe_checkout_url) {
+                    window.location.href = response.stripe_checkout_url;
+                    return;
                 }
 
                 window.location.href = App.Utils.Url.siteUrl('booking_confirmation/of/' + response.appointment_hash);

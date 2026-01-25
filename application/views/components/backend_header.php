@@ -44,6 +44,16 @@
                 </a>
             </li>
 
+            <?php $hidden = can('view', PRIV_SYSTEM_SETTINGS) ? '' : 'd-none'; ?>
+            <?php $active = $active_menu == 'billing' ? 'active' : ''; ?>
+            <li class="nav-item <?= $active . $hidden ?>">
+                <a href="<?= site_url('billing') ?>" class="nav-link"
+                   data-tippy-content="View all billing transactions">
+                    <i class="fas fa-file-invoice-dollar me-2"></i>
+                    Billing
+                </a>
+            </li>
+
             <?php $hidden = can('view', PRIV_SERVICES) ? '' : 'd-none'; ?>
             <?php $active = $active_menu == PRIV_SERVICES ? 'active' : ''; ?>
             <li class="nav-item dropdown <?= $active . $hidden ?>">

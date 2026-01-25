@@ -42,7 +42,9 @@ class Customer_account extends EA_Controller
 
         $this->load->model('customers_model');
         $this->load->model('customer_auth_model');
+        $this->load->model('appointments_model');
         $this->load->library('timezones');
+        $this->load->library('stripe_gateway');
     }
 
     public function index(): void
@@ -58,6 +60,11 @@ class Customer_account extends EA_Controller
         $flash = session('customer_flash');
         session(['customer_flash' => null]);
 
+        $appointments = $this->appointments_model->get([
+            'id_users_customer' => $customer['id'],
+            'payment_status !=' => 'not-paid',
+        ]);
+
         html_vars([
             'page_title' => 'My Account',
             'theme' => $theme,
@@ -70,9 +77,33 @@ class Customer_account extends EA_Controller
             'flash' => $flash,
             'complete_profile' => request('complete') === '1',
             'grouped_timezones' => $this->timezones->to_grouped_array(),
+            'appointments' => $appointments,
+            'stripe_enabled' => $this->stripe_gateway->is_enabled(),
         ]);
 
         $this->load->view('pages/customer_account');
+    }
+
+    public function stripe_portal(): void
+    {
+        try {
+            $customer = $this->require_customer();
+
+            if (empty($customer['stripe_customer_id'])) {
+                throw new RuntimeException('No Stripe customer ID found.');
+            }
+
+            $session = $this->stripe_gateway->create_portal_session($customer['stripe_customer_id']);
+            redirect($session->url);
+        } catch (Throwable $e) {
+            session([
+                'customer_flash' => [
+                    'type' => 'danger',
+                    'message' => 'Could not open billing portal: ' . $e->getMessage(),
+                ],
+            ]);
+            redirect('customer/account');
+        }
     }
 
     public function update_profile(): void

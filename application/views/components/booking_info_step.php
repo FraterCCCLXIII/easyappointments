@@ -23,12 +23,6 @@
 
 <div id="wizard-frame-3" class="wizard-frame" style="display:none;">
     <div class="frame-container">
-        <div class="wizard-back-button-wrapper">
-            <button type="button" id="button-back-3" class="btn btn-outline-secondary wizard-back-button button-back"
-                    data-step_index="3" aria-label="<?= lang('back') ?>">
-                <i class="fas fa-arrow-left"></i>
-            </button>
-        </div>
 
         <h2 class="frame-title"><?= lang('customer_information') ?></h2>
 

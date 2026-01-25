@@ -21,7 +21,10 @@ window.App.Layouts.Booking = (function () {
      * Initialize the module.
      */
     function initialize() {
-        App.Utils.Lang.enableLanguageSelection($selectLanguage);
+        $(document).on('change', '#select-language', function () {
+            const language = $(this).val();
+            App.Http.Localization.changeLanguage(language).done(() => document.location.reload());
+        });
     }
 
     document.addEventListener('DOMContentLoaded', initialize);
