@@ -54,8 +54,10 @@ class Customers extends EA_Controller
 
         $this->load->model('appointments_model');
         $this->load->model('customers_model');
+        $this->load->model('providers_model');
         $this->load->model('secretaries_model');
         $this->load->model('roles_model');
+        $this->load->model('services_model');
 
         $this->load->library('accounts');
         $this->load->library('permissions');
@@ -96,6 +98,7 @@ class Customers extends EA_Controller
         $require_address = setting('require_address');
         $require_city = setting('require_city');
         $require_zip_code = setting('require_zip_code');
+        $require_notes = setting('require_notes');
 
         $secretary_providers = [];
 
@@ -104,6 +107,27 @@ class Customers extends EA_Controller
 
             $secretary_providers = $secretary['providers'];
         }
+
+        $available_providers = $this->providers_model->get_available_providers();
+
+        if ($role_slug === DB_SLUG_PROVIDER) {
+            $available_providers = array_values(
+                array_filter($available_providers, function ($available_provider) use ($user_id) {
+                    return (int) $available_provider['id'] === (int) $user_id;
+                }),
+            );
+        }
+
+        if ($role_slug === DB_SLUG_SECRETARY) {
+            $available_providers = array_values(
+                array_filter($available_providers, function ($available_provider) use ($secretary_providers) {
+                    return in_array($available_provider['id'], $secretary_providers);
+                }),
+            );
+        }
+
+        $available_services = $this->services_model->get_available_services();
+        $appointment_status_options = setting('appointment_status_options');
 
         script_vars([
             'user_id' => $user_id,
@@ -114,6 +138,9 @@ class Customers extends EA_Controller
             'secretary_providers' => $secretary_providers,
             'default_language' => setting('default_language'),
             'default_timezone' => setting('default_timezone'),
+            'available_providers' => $available_providers,
+            'available_services' => $available_services,
+            'customers' => $this->customers_model->get(null, 50, null, 'update_datetime DESC'),
         ]);
 
         html_vars([
@@ -130,7 +157,10 @@ class Customers extends EA_Controller
             'require_address' => $require_address,
             'require_city' => $require_city,
             'require_zip_code' => $require_zip_code,
+            'require_notes' => $require_notes,
             'available_languages' => config('available_languages'),
+            'available_services' => $available_services,
+            'appointment_status_options' => $appointment_status_options,
         ]);
 
         $this->load->view('pages/customers');

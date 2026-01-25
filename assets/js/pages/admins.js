@@ -378,7 +378,7 @@ App.Pages.Admins = (function () {
         $admins.find('.record-details #notifications').prop('checked', true);
         $('#edit-admin, #delete-admin').prop('disabled', true);
 
-        updateAdminSummary(admin);
+        updateAdminSummary();
 
         $('#admins .is-invalid').removeClass('is-invalid');
         $('#admins .form-message').hide();

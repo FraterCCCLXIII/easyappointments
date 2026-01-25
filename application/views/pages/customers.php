@@ -70,7 +70,7 @@
                 <?php slot('after_page_actions'); ?>
             </div>
 
-            <input id="customer-id" type="hidden">
+            <input id="customer-record-id" type="hidden">
 
             <div class="mb-4 rounded-xl border border-slate-200 bg-white p-4">
                 <div class="text-lg font-semibold text-slate-900" id="customer-summary-name">
@@ -124,7 +124,7 @@
             <div class="tab-content mt-6 w-full" id="customer-tabs-content">
                 <div class="tab-pane fade show active" id="customer-appointments-panel" role="tabpanel"
                      aria-labelledby="customer-appointments-tab">
-                    <div id="customer-appointments" class="card w-full bg-white border"></div>
+                    <div id="customer-appointments" class="w-full"></div>
                 </div>
                 <div class="tab-pane fade" id="customer-billing-panel" role="tabpanel"
                      aria-labelledby="customer-billing-tab">
@@ -294,6 +294,22 @@
         </div>
     </div>
 </div>
+
+<!-- Page Components -->
+
+<?php component('appointments_modal', [
+    'available_services' => vars('available_services'),
+    'appointment_status_options' => vars('appointment_status_options'),
+    'timezones' => vars('timezones'),
+    'require_first_name' => vars('require_first_name'),
+    'require_last_name' => vars('require_last_name'),
+    'require_email' => vars('require_email'),
+    'require_phone_number' => vars('require_phone_number'),
+    'require_address' => vars('require_address'),
+    'require_city' => vars('require_city'),
+    'require_zip_code' => vars('require_zip_code'),
+    'require_notes' => vars('require_notes'),
+]); ?>
 
 <?php end_section('content'); ?>
 

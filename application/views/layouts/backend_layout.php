@@ -18,9 +18,16 @@
     <link rel="stylesheet" type="text/css" href="<?= asset_url('assets/vendor/select2/select2.min.css') ?>">
     <link rel="stylesheet" type="text/css" href="<?= asset_url('assets/vendor/flatpickr/flatpickr.min.css') ?>">
     <link rel="stylesheet" type="text/css" href="<?= asset_url('assets/vendor/flatpickr/material_green.min.css') ?>">
+    <link rel="stylesheet" type="text/css"
+          href="<?= asset_url('assets/css/themes/' . setting('theme', 'default') . '.css') ?>">
     <link rel="stylesheet" type="text/css" href="<?= asset_url('assets/css/general.css') ?>">
     <link rel="stylesheet" type="text/css" href="<?= asset_url('assets/css/tailwind/booking.css') ?>">
     <link rel="stylesheet" type="text/css" href="<?= asset_url('assets/css/layouts/backend_layout.css') ?>">
+    <style>
+        body .modal .btn-close::before {
+            content: none;
+        }
+    </style>
 
     <?php component('company_color_style', ['company_color' => setting('company_color')]); ?>
 
@@ -60,11 +67,14 @@
 <script src="<?= asset_url('assets/js/utils/http.js') ?>"></script>
 <script src="<?= asset_url('assets/js/utils/lang.js') ?>"></script>
 <script src="<?= asset_url('assets/js/utils/bootstrap_replacements.js') ?>"></script>
+<script src="<?= asset_url('assets/js/utils/popover_fix.js') ?>"></script>
+<script src="<?= asset_url('assets/js/utils/ui.js') ?>"></script>
 <script src="<?= asset_url('assets/js/utils/message.js') ?>"></script>
 <script src="<?= asset_url('assets/js/utils/string.js') ?>"></script>
 <script src="<?= asset_url('assets/js/utils/url.js') ?>"></script>
 <script src="<?= asset_url('assets/js/utils/validation.js') ?>"></script>
 <script src="<?= asset_url('assets/js/layouts/backend_layout.js') ?>"></script>
+<script src="<?= asset_url('assets/js/http/calendar_http_client.js') ?>"></script>
 <script src="<?= asset_url('assets/js/http/localization_http_client.js') ?>"></script>
 
 <?php component('js_vars_script'); ?>
