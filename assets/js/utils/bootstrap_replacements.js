@@ -323,6 +323,14 @@
             });
         };
 
+        const normalizePopoverContent = (content) => {
+            if (content && typeof content === 'object' && content.jquery) {
+                return content[0];
+            }
+
+            return content ?? '';
+        };
+
         $.fn.popover = function (option) {
             return this.each(function () {
                 const element = this;
@@ -345,12 +353,22 @@
                 }
 
                 const options = option || {};
-                const content = options.content || element.getAttribute('data-content') || '';
+                const content = normalizePopoverContent(
+                    options.content || element.getAttribute('data-content') || '',
+                );
                 const placement = options.placement || 'top';
                 const trigger = options.trigger || 'mouseenter focus';
+                const appendTo = options.container ? resolveElement(options.container) : document.body;
 
                 if (instance) {
-                    instance.setProps({content, placement, trigger, allowHTML: true, interactive: true});
+                    instance.setProps({
+                        content,
+                        placement,
+                        trigger,
+                        allowHTML: true,
+                        interactive: true,
+                        appendTo,
+                    });
                     return;
                 }
 
@@ -360,6 +378,7 @@
                     trigger,
                     allowHTML: true,
                     interactive: true,
+                    appendTo,
                 });
             });
         };

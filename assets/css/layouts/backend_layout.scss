@@ -91,6 +91,13 @@ root {
     justify-self: end;
 }
 
+.fc .fc-toolbar {
+    background: transparent;
+    border: 0;
+    box-shadow: none;
+    padding: 0;
+}
+
 #footer {
     background-color: #f8fafc;
     border-top: 1px solid #e2e8f0;
@@ -154,6 +161,8 @@ body .modal .modal-title {
 body .modal-header {
     padding: 20px 15px;
     background: #f8fafc;
+    border-top-left-radius: inherit;
+    border-top-right-radius: inherit;
 }
 
 body .modal-header h3 {
@@ -166,8 +175,19 @@ body .modal-header .close {
     color: #64748b;
 }
 
+body .modal .btn-close::before {
+    content: none;
+}
+
 body .modal-content {
     border: none;
+    border-radius: var(--bs-modal-border-radius, var(--bs-border-radius-lg, 0.75rem));
+    overflow: hidden;
+}
+
+body .modal .modal-body {
+    max-height: calc(100vh - 12rem);
+    overflow-y: auto;
 }
 
 /* Full screen modal */
@@ -182,6 +202,7 @@ body .modal.full-screen .modal-content {
     height: 100%;
     border: none;
     box-shadow: none;
+    border-radius: 0;
     overflow-y: auto;
 }
 
@@ -216,12 +237,19 @@ body legend {
 .backend-page .form-control[readonly],
 .backend-page .form-select:disabled,
 .backend-page .form-select[readonly] {
-    background-color: #fff;
-    color: #666;
-    border-color: #fff;
+    background-color: var(--bs-body-bg);
+    color: var(--bs-secondary-color);
+    border: 1px solid var(--bs-gray-300, var(--bs-border-color));
+    box-shadow: none;
+    outline: none;
     opacity: 1;
-    padding-left: 0;
-    padding-right: 0;
+}
+
+.backend-page .form-control[readonly]:focus,
+.backend-page .form-select[readonly]:focus {
+    border-color: var(--bs-gray-300, var(--bs-border-color));
+    box-shadow: none;
+    outline: none;
 }
 
 /* BACKEND COMPONENTS
@@ -435,6 +463,38 @@ body legend {
     font-size: 0.875rem;
 }
 
+#customers-page #filter-customers .input-group {
+    position: static;
+}
+
+#customers-page #filter-customers .input-group .form-control {
+    padding-right: 0.75rem;
+    border-radius: 0.375rem 0 0 0.375rem;
+}
+
+#customers-page #filter-customers .input-group .filter.btn {
+    position: static;
+    width: auto;
+    height: auto;
+    padding: 0.375rem 0.75rem;
+    border-radius: 0 0.375rem 0.375rem 0;
+    border: 1px solid var(--bs-border-color);
+    background-color: transparent;
+    transform: none;
+}
+
+#customers-page #filter-customers.backend-sticky-panel {
+    border-right: none !important;
+}
+
+#customers-page #add-customer.btn-primary:hover,
+#customers-page #add-customer.btn-primary:focus-visible,
+#customers-page #add-customer.btn-primary:active {
+    background-color: var(--bs-btn-hover-bg, var(--bs-primary));
+    border-color: var(--bs-btn-hover-border-color, var(--bs-primary));
+    filter: none;
+}
+
 .backend-page .filter-records .results {
     overflow-y: auto;
     max-height: 650px;
@@ -513,9 +573,9 @@ body legend {
 
 #calendar-page #calendar-toolbar {
     margin-bottom: 15px;
-    color: white;
-    background: #353535;
-    padding: 15px 0;
+    color: inherit !important;
+    background: transparent !important;
+    padding: 0 !important;
 }
 
 #calendar-page #calendar-filter .form-group {
@@ -555,6 +615,15 @@ body legend {
 
 #select-filter-item {
     margin-bottom: 10px;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    background-color: #fff;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 20 20' fill='none'%3E%3Cpath d='M5.25 7.5L10 12.25L14.75 7.5' stroke='currentColor' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-position: right 0.75rem center;
+    background-repeat: no-repeat;
+    background-size: 12px;
+    padding-right: 2rem;
 }
 
 #calendar .fc-header-toolbar {
@@ -567,10 +636,11 @@ body legend {
 }
 
 #calendar-page #calendar .fc-header-toolbar {
-    padding: 12px 16px;
-    border: 1px solid var(--bs-border-color);
-    border-radius: 16px;
-    background-color: #fff;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background-color: transparent;
+    box-shadow: none;
     gap: 12px;
 }
 
@@ -581,11 +651,33 @@ body legend {
 }
 
 #calendar-page #calendar .fc-header-toolbar .fc-button-group {
-    gap: 6px;
+    display: inline-flex;
+    gap: 0;
+    border-radius: 10px;
+}
+
+#calendar-page #calendar .fc-header-toolbar .fc-button-group .fc-button {
+    border-radius: 0;
+    border: 1px solid var(--bs-border-color) !important;
+    background-color: #fff;
+}
+
+#calendar-page #calendar .fc-header-toolbar .fc-button-group .fc-button + .fc-button {
+    margin-left: -1px;
+}
+
+#calendar-page #calendar .fc-header-toolbar .fc-button-group .fc-button:first-child {
+    border-top-left-radius: 10px;
+    border-bottom-left-radius: 10px;
+}
+
+#calendar-page #calendar .fc-header-toolbar .fc-button-group .fc-button:last-child {
+    border-top-right-radius: 10px;
+    border-bottom-right-radius: 10px;
 }
 
 #calendar-page #calendar .fc-header-toolbar .fc-button {
-    border-radius: 10px;
+    border-radius: 999px;
     border: 1px solid var(--bs-border-color);
     background-color: #fff;
     color: #475569;
@@ -593,6 +685,14 @@ body legend {
     padding: 6px 12px;
     box-shadow: none;
     transition: all 0.2s ease;
+}
+
+#calendar-page #calendar .fc-header-toolbar .fc-today-button {
+    border-radius: 10px;
+}
+
+#calendar-page #calendar .fc-header-toolbar .fc-button.fc-button-primary {
+    border: 1px solid var(--bs-border-color, #e2e8f0) !important;
 }
 
 #calendar-page #calendar .fc-header-toolbar .fc-button:hover:not(:disabled) {
@@ -958,7 +1058,8 @@ body .form-horizontal .controls {
     width: 100%;
     margin-bottom: 20px;
     outline: none;
-    padding: 15px;
+    padding: 0;
+    background: transparent;
 }
 
 #customers-page .tab-content,
@@ -966,16 +1067,6 @@ body .form-horizontal .controls {
 #customers-page #customer-billing,
 #customers-page #customer-account-panel {
     width: 100%;
-}
-
-#customers-page #customer-appointments .appointment-row {
-    padding: 0 0 7px 0;
-    border-bottom: 1px solid #e2e2e2;
-    border-right: none;
-}
-
-#customers-page #customer-appointments .appointment-row:last-child {
-    border-bottom: none;
 }
 
 /* BACKEND SERVICES PAGE

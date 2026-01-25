@@ -17,7 +17,7 @@
 App.Pages.Customers = (function () {
     const $customers = $('#customers');
     const $filterCustomers = $('#filter-customers');
-    const $id = $('#customer-id');
+    const $id = $('#customer-record-id');
     const $firstName = $('#first-name');
     const $lastName = $('#last-name');
     const $email = $('#email');
@@ -196,6 +196,36 @@ App.Pages.Customers = (function () {
             App.Utils.Message.show(lang('delete_customer'), lang('delete_record_prompt'), buttons);
         });
 
+        $customers.on('click', '.customer-appointment-edit', (event) => {
+            event.preventDefault();
+
+            const $link = $(event.currentTarget);
+            const appointmentId = $link.closest('tr').data('id');
+            const appointmentsById = $customerAppointments.data('appointmentsById');
+
+            if (!appointmentsById || !appointmentsById.has(appointmentId)) {
+                window.location.href = $link.attr('href');
+                return;
+            }
+
+            if (!$('#appointments-modal').length) {
+                window.location.href = $link.attr('href');
+                return;
+            }
+
+            openAppointmentModal(appointmentsById.get(appointmentId));
+        });
+
+        $customers.on('hidden.bs.modal', '#appointments-modal', () => {
+            const currentId = $id.val();
+
+            if (!currentId) {
+                return;
+            }
+
+            App.Pages.Customers.filter($filterCustomers.find('.key').val(), currentId, true);
+        });
+
         $customers.on(
             'input',
             '#first-name, #last-name, #email, #phone-number, #address, #city, #zip-code',
@@ -248,6 +278,53 @@ App.Pages.Customers = (function () {
         $summaryEmail.find('.summary-text').text(email || '—');
         $summaryPhone.find('.summary-text').text(phoneNumber || '—');
         $summaryLocation.find('.summary-text').text(locationText);
+    }
+
+    function openAppointmentModal(appointment) {
+        const $appointmentsModal = $('#appointments-modal');
+
+        if (!appointment || !$appointmentsModal.length) {
+            return;
+        }
+
+        const customerInfo = appointment.customer || $customerAppointments.data('customerInfo') || {};
+
+        App.Components.AppointmentsModal.resetModal();
+
+        $appointmentsModal.find('.modal-header h3').text(lang('edit_appointment_title'));
+        $appointmentsModal.find('#appointment-id').val(appointment.id);
+        $appointmentsModal.find('#select-service').val(appointment.id_services).trigger('change');
+        $appointmentsModal.find('#select-provider').val(appointment.id_users_provider);
+
+        const startMoment = moment(appointment.start_datetime);
+        App.Utils.UI.setDateTimePickerValue($appointmentsModal.find('#start-datetime'), startMoment.toDate());
+
+        const endMoment = moment(appointment.end_datetime);
+        App.Utils.UI.setDateTimePickerValue($appointmentsModal.find('#end-datetime'), endMoment.toDate());
+
+        $appointmentsModal.find('#customer-id').val(appointment.id_users_customer);
+        $appointmentsModal.find('#first-name').val(customerInfo.first_name || '');
+        $appointmentsModal.find('#last-name').val(customerInfo.last_name || '');
+        $appointmentsModal.find('#email').val(customerInfo.email || '');
+        $appointmentsModal.find('#phone-number').val(customerInfo.phone_number || '');
+        $appointmentsModal.find('#address').val(customerInfo.address || '');
+        $appointmentsModal.find('#city').val(customerInfo.city || '');
+        $appointmentsModal.find('#zip-code').val(customerInfo.zip_code || '');
+        $appointmentsModal.find('#language').val(customerInfo.language || vars('default_language'));
+        $appointmentsModal.find('#timezone').val(customerInfo.timezone || vars('default_timezone'));
+        $appointmentsModal.find('#appointment-location').val(appointment.location || '');
+        $appointmentsModal.find('#appointment-status').val(appointment.status || '');
+        $appointmentsModal.find('#appointment-notes').val(appointment.notes || '');
+        $appointmentsModal.find('#customer-notes').val(customerInfo.notes || '');
+        $appointmentsModal.find('#custom-field-1').val(customerInfo.custom_field_1 || '');
+        $appointmentsModal.find('#custom-field-2').val(customerInfo.custom_field_2 || '');
+        $appointmentsModal.find('#custom-field-3').val(customerInfo.custom_field_3 || '');
+        $appointmentsModal.find('#custom-field-4').val(customerInfo.custom_field_4 || '');
+        $appointmentsModal.find('#custom-field-5').val(customerInfo.custom_field_5 || '');
+
+        App.Components.ColorSelection.setColor($appointmentsModal.find('#appointment-color'), appointment.color);
+
+        $appointmentsModal.modal('show');
     }
 
     /**
@@ -351,11 +428,57 @@ App.Pages.Customers = (function () {
         $customerAppointments.empty();
         $billingHistoryBody.empty();
 
-        if (!customer.appointments.length) {
-            $('<p/>', {
-                'text': lang('no_records_found'),
-            }).appendTo($customerAppointments);
-        }
+        $customerAppointments.data('customerInfo', {
+            first_name: customer.first_name,
+            last_name: customer.last_name,
+            email: customer.email,
+            phone_number: customer.phone_number,
+            address: customer.address,
+            city: customer.city,
+            zip_code: customer.zip_code,
+            language: customer.language,
+            timezone: customer.timezone,
+            notes: customer.notes,
+            custom_field_1: customer.custom_field_1,
+            custom_field_2: customer.custom_field_2,
+            custom_field_3: customer.custom_field_3,
+            custom_field_4: customer.custom_field_4,
+            custom_field_5: customer.custom_field_5,
+        });
+
+        const $appointmentsWrapper = $('<div/>', {
+            'class': 'overflow-hidden rounded-xl border border-slate-200 bg-white',
+        });
+        const $appointmentsTable = $('<table/>', {
+            'class': 'w-full text-left text-sm',
+        });
+        const $appointmentsHead = $('<thead/>', {
+            'class': 'bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-500',
+        });
+        const $appointmentsBody = $('<tbody/>', {
+            'class': 'divide-y divide-slate-200',
+        });
+        const $appointmentsHeadRow = $('<tr/>');
+
+        [
+            lang('service'),
+            lang('provider'),
+            'Date & Time',
+            lang('status'),
+            '',
+        ].forEach((title) => {
+            $('<th/>', {
+                'class': 'px-4 py-3' + (title ? '' : ' text-right'),
+                'text': title,
+            }).appendTo($appointmentsHeadRow);
+        });
+
+        $appointmentsHead.append($appointmentsHeadRow);
+        $appointmentsTable.append($appointmentsHead, $appointmentsBody);
+        $appointmentsWrapper.append($appointmentsTable);
+
+        let visibleAppointments = 0;
+        const appointmentsById = new Map();
 
         customer.appointments.forEach((appointment) => {
             if (
@@ -379,58 +502,47 @@ App.Pages.Customers = (function () {
                 true,
             );
 
-            const end = App.Utils.Date.format(
-                moment(appointment.end_datetime).toDate(),
-                vars('date_format'),
-                vars('time_format'),
-                true,
-            );
+            visibleAppointments += 1;
+            appointmentsById.set(Number(appointment.id), appointment);
 
-            $('<div/>', {
-                'class': 'appointment-row',
+            const providerName = `${appointment.provider.first_name} ${appointment.provider.last_name}`.trim();
+            const statusLabel = appointment.status || 'Booked';
+            const statusClass = 'bg-emerald-50 text-emerald-700';
+
+            $('<tr/>', {
+                'class': 'bg-white border-b border-slate-200 last:border-b-0',
                 'data-id': appointment.id,
                 'html': [
-                    // Service - Provider
-
-                    $('<a/>', {
-                        'href': App.Utils.Url.siteUrl(`calendar/reschedule/${appointment.hash}`),
-                        'html': [
-                            $('<i/>', {
-                                'class': 'fas fa-edit me-1',
-                            }),
-                            $('<strong/>', {
-                                'text':
-                                    appointment.service.name +
-                                    ' - ' +
-                                    appointment.provider.first_name +
-                                    ' ' +
-                                    appointment.provider.last_name,
-                            }),
-                            $('<br/>'),
-                        ],
+                    $('<td/>', {
+                        'class': 'px-4 py-3 font-semibold text-slate-900',
+                        'text': appointment.service.name || '-',
                     }),
-
-                    // Start
-
-                    $('<small/>', {
+                    $('<td/>', {
+                        'class': 'px-4 py-3 text-slate-700',
+                        'text': providerName || '-',
+                    }),
+                    $('<td/>', {
+                        'class': 'px-4 py-3 text-slate-700',
                         'text': start,
                     }),
-                    $('<br/>'),
-
-                    // End
-
-                    $('<small/>', {
-                        'text': end,
+                    $('<td/>', {
+                        'class': 'px-4 py-3',
+                        'html': $('<span/>', {
+                            'class': `inline-flex rounded-full px-3 py-1 text-xs font-semibold ${statusClass}`,
+                            'text': statusLabel,
+                        }),
                     }),
-                    $('<br/>'),
-
-                    // Timezone
-
-                    $('<small/>', {
-                        'text': vars('timezones')[appointment.provider.timezone],
+                    $('<td/>', {
+                        'class': 'px-4 py-3 text-right',
+                        'html': $('<a/>', {
+                            'href': App.Utils.Url.siteUrl(`calendar/reschedule/${appointment.hash}`),
+                            'class':
+                                'customer-appointment-edit inline-flex items-center rounded-xl border border-slate-200 px-3 py-2 text-sm font-semibold text-slate-700 hover:border-slate-300 hover:text-slate-900',
+                            'text': lang('edit'),
+                        }),
                     }),
                 ],
-            }).appendTo('#customer-appointments');
+            }).appendTo($appointmentsBody);
 
             // Add to billing history if payment info exists
             if (appointment.payment_status && appointment.payment_status !== 'not-paid') {
@@ -454,6 +566,17 @@ App.Pages.Customers = (function () {
                 }).appendTo($billingHistoryBody);
             }
         });
+
+        if (!visibleAppointments) {
+            $('<div/>', {
+                'class': 'rounded-xl border border-slate-200 bg-slate-50 px-4 py-6 text-center text-sm text-slate-500',
+                'text': lang('no_records_found'),
+            }).appendTo($customerAppointments);
+        } else {
+            $appointmentsWrapper.appendTo($customerAppointments);
+        }
+
+        $customerAppointments.data('appointmentsById', appointmentsById);
 
         if ($billingHistoryBody.is(':empty')) {
             $billingHistoryBody.append('<tr><td colspan="3" class="text-center py-3 text-muted">No billing history found.</td></tr>');
