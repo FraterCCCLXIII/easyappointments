@@ -156,7 +156,7 @@
                                 <div class="text-lg font-semibold text-slate-900">
                                     <?= lang('appointment_details_title') ?>
                                 </div>
-                                <div class="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2 text-sm text-slate-700">
+                                <div class="mt-4 grid grid-cols-3 gap-4 text-sm text-slate-700">
                                     <div>
                                         <div class="text-xs font-semibold uppercase text-slate-400">Booking ID</div>
                                         <div id="customer-appointment-id">—</div>
@@ -205,7 +205,7 @@
                                         </div>
                                         <div id="customer-appointment-customer">—</div>
                                     </div>
-                                    <div class="md:col-span-2">
+                                    <div class="col-span-3">
                                         <div class="text-xs font-semibold uppercase text-slate-400">
                                             <?= lang('address') ?>
                                         </div>
@@ -293,25 +293,22 @@
                 </div>
                 <div class="tab-pane fade" id="customer-account-panel" role="tabpanel"
                      aria-labelledby="customer-account-tab">
-                    <h4 class="text-black-50 mb-3 fw-light">
-                        <?= lang('details') ?>
-                    </h4>
+                    <div class="rounded-xl border border-[var(--bs-border-color,#e2e8f0)] bg-white p-4">
+                        <div id="form-message" class="alert" style="display:none;"></div>
 
-                    <div id="form-message" class="alert" style="display:none;"></div>
-
-                    <div class="row">
-                        <div class="col-12 col-md-6" style="margin-left: 0;">
-                            <div class="mb-3">
-                                <label for="first-name" class="form-label">
-                                    <?= lang('first_name') ?>
-                                    <?php if (vars('require_first_name')): ?>
-                                        <span class="text-danger" hidden>*</span>
-                                    <?php endif; ?>
-                                </label>
-                                <input type="text" id="first-name"
-                                       class="<?= vars('require_first_name') ? 'required' : '' ?> form-control"
-                                       maxlength="100" disabled/>
-                            </div>
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="mb-3">
+                                    <label for="first-name" class="form-label">
+                                        <?= lang('first_name') ?>
+                                        <?php if (vars('require_first_name')): ?>
+                                            <span class="text-danger" hidden>*</span>
+                                        <?php endif; ?>
+                                    </label>
+                                    <input type="text" id="first-name"
+                                           class="<?= vars('require_first_name') ? 'required' : '' ?> form-control"
+                                           maxlength="100" disabled/>
+                                </div>
 
                             <div class="mb-3">
                                 <label for="last-name" class="form-label">
@@ -430,11 +427,12 @@
                                 <textarea id="notes" rows="4" class="form-control" disabled></textarea>
                             </div>
 
-                            <?php slot('after_primary_fields'); ?>
+                                <?php slot('after_primary_fields'); ?>
+                            </div>
                         </div>
-                    </div>
 
-                    <?php slot('after_secondary_fields'); ?>
+                        <?php slot('after_secondary_fields'); ?>
+                    </div>
                 </div>
             </div>
         </div>

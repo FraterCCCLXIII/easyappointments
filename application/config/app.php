@@ -15,4 +15,4 @@ $config['url'] = getenv('BASE_URL') ?: Config::BASE_URL;
 
 $config['debug'] = getenv('DEBUG_MODE') !== false ? (getenv('DEBUG_MODE') === 'true') : Config::DEBUG_MODE;
 
-$config['cache_busting_token'] = 'TSJ86';
+$config['cache_busting_token'] = 'TSJ88';

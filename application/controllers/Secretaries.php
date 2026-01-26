@@ -74,7 +74,7 @@ class Secretaries extends EA_Controller
      * On this page secretary users will be able to manage secretaries, which are eventually selected by customers during the
      * booking process.
      */
-    public function index(): void
+    public function index(?string $slug = null): void
     {
         session(['dest_url' => site_url('secretaries')]);
 
@@ -98,6 +98,8 @@ class Secretaries extends EA_Controller
             $this->providers_model->only($provider, $this->allowed_provider_fields);
         }
 
+        $selected_slug = $slug ?: request('slug');
+
         script_vars([
             'user_id' => $user_id,
             'role_slug' => $role_slug,
@@ -106,6 +108,7 @@ class Secretaries extends EA_Controller
             'providers' => $providers,
             'default_language' => setting('default_language'),
             'default_timezone' => setting('default_timezone'),
+            'selected_record_slug' => $selected_slug,
         ]);
 
         html_vars([
@@ -194,6 +197,30 @@ class Secretaries extends EA_Controller
             $secretary_id = request('secretary_id');
 
             $secretary = $this->secretaries_model->find($secretary_id);
+
+            json_response($secretary);
+        } catch (Throwable $e) {
+            json_exception($e);
+        }
+    }
+
+    /**
+     * Find a secretary by slug.
+     */
+    public function find_by_slug(): void
+    {
+        try {
+            if (cannot('view', PRIV_USERS)) {
+                abort(403, 'Forbidden');
+            }
+
+            $slug = request('slug');
+
+            if (empty($slug)) {
+                abort(400, 'Bad Request');
+            }
+
+            $secretary = $this->secretaries_model->find_by_slug($slug);
 
             json_response($secretary);
         } catch (Throwable $e) {

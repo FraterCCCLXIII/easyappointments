@@ -69,7 +69,7 @@ class Admins extends EA_Controller
      * On this page admin users will be able to manage admins, which are eventually selected by customers during the
      * booking process.
      */
-    public function index(): void
+    public function index(?string $slug = null): void
     {
         session(['dest_url' => site_url('admins')]);
 
@@ -87,6 +87,8 @@ class Admins extends EA_Controller
 
         $role_slug = session('role_slug');
 
+        $selected_slug = $slug ?: request('slug');
+
         script_vars([
             'user_id' => $user_id,
             'role_slug' => $role_slug,
@@ -94,6 +96,7 @@ class Admins extends EA_Controller
             'min_password_length' => MIN_PASSWORD_LENGTH,
             'default_language' => setting('default_language'),
             'default_timezone' => setting('default_timezone'),
+            'selected_record_slug' => $selected_slug,
         ]);
 
         html_vars([
@@ -181,6 +184,30 @@ class Admins extends EA_Controller
             $admin_id = request('admin_id');
 
             $admin = $this->admins_model->find($admin_id);
+
+            json_response($admin);
+        } catch (Throwable $e) {
+            json_exception($e);
+        }
+    }
+
+    /**
+     * Find an admin by slug.
+     */
+    public function find_by_slug(): void
+    {
+        try {
+            if (cannot('view', PRIV_USERS)) {
+                abort(403, 'Forbidden');
+            }
+
+            $slug = request('slug');
+
+            if (empty($slug)) {
+                abort(400, 'Bad Request');
+            }
+
+            $admin = $this->admins_model->find_by_slug($slug);
 
             json_response($admin);
         } catch (Throwable $e) {

@@ -123,6 +123,24 @@ App.Http.Providers = (function () {
     }
 
     /**
+     * Find a provider by slug.
+     *
+     * @param {String} slug
+     *
+     * @return {Object}
+     */
+    function findBySlug(slug) {
+        const url = App.Utils.Url.siteUrl('providers/find_by_slug');
+
+        const data = {
+            csrf_token: vars('csrf_token'),
+            slug,
+        };
+
+        return $.post(url, data);
+    }
+
+    /**
      * Get provider bookings.
      *
      * @param {Number} providerId
@@ -147,6 +165,7 @@ App.Http.Providers = (function () {
         destroy,
         search,
         find,
+        findBySlug,
         bookings,
     };
 })();

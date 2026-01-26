@@ -174,5 +174,10 @@ $route['customer/account/email'] = 'customer_account/update_email';
 $route['customer/account/password'] = 'customer_account/update_password';
 $route['customer/bookings'] = 'customer_bookings/index';
 
+$route['admins/profile/(:any)'] = 'admins/index/$1';
+$route['providers/profile/(:any)'] = 'providers/index/$1';
+$route['secretaries/profile/(:any)'] = 'secretaries/index/$1';
+$route['customers/profile/(:any)'] = 'customers/index/$1';
+
 /* End of file routes.php */
 /* Location: ./application/config/routes.php */

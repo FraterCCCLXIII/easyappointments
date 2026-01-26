@@ -73,7 +73,7 @@ class Customers extends EA_Controller
      * On this page admin users will be able to manage customers, which are eventually selected by customers during the
      * booking process.
      */
-    public function index(): void
+    public function index(?string $slug = null): void
     {
         session(['dest_url' => site_url('customers')]);
 
@@ -131,6 +131,8 @@ class Customers extends EA_Controller
         $available_services = $this->services_model->get_available_services();
         $appointment_status_options = setting('appointment_status_options');
 
+        $selected_slug = $slug ?: request('slug');
+
         script_vars([
             'user_id' => $user_id,
             'role_slug' => $role_slug,
@@ -143,6 +145,7 @@ class Customers extends EA_Controller
             'available_providers' => $available_providers,
             'available_services' => $available_services,
             'customers' => $this->customers_model->get(null, 50, null, 'update_datetime DESC'),
+            'selected_record_slug' => $selected_slug,
         ]);
 
         html_vars([
@@ -187,6 +190,44 @@ class Customers extends EA_Controller
             }
 
             $customer = $this->customers_model->find($customer_id);
+
+            json_response($customer);
+        } catch (Throwable $e) {
+            json_exception($e);
+        }
+    }
+
+    /**
+     * Find a customer by slug.
+     */
+    public function find_by_slug(): void
+    {
+        try {
+            if (cannot('view', PRIV_CUSTOMERS)) {
+                abort(403, 'Forbidden');
+            }
+
+            $slug = request('slug');
+
+            if (empty($slug)) {
+                abort(400, 'Bad Request');
+            }
+
+            $customer = $this->customers_model->find_by_slug($slug);
+
+            $user_id = session('user_id');
+
+            if (!$this->permissions->has_customer_access($user_id, $customer['id'])) {
+                abort(403, 'Forbidden');
+            }
+
+            $appointments = $this->appointments_model->get(['id_users_customer' => $customer['id']]);
+
+            foreach ($appointments as &$appointment) {
+                $this->appointments_model->load($appointment, ['service', 'provider']);
+            }
+
+            $customer['appointments'] = $appointments;
 
             json_response($customer);
         } catch (Throwable $e) {

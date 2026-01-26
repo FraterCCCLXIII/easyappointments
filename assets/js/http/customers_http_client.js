@@ -123,6 +123,24 @@ App.Http.Customers = (function () {
     }
 
     /**
+     * Find a customer by slug.
+     *
+     * @param {String} slug
+     *
+     * @return {Object}
+     */
+    function findBySlug(slug) {
+        const url = App.Utils.Url.siteUrl('customers/find_by_slug');
+
+        const data = {
+            csrf_token: vars('csrf_token'),
+            slug,
+        };
+
+        return $.post(url, data);
+    }
+
+    /**
      * Get customer visit notes (appointment notes).
      *
      * @param {Number} customerId
@@ -219,6 +237,7 @@ App.Http.Customers = (function () {
         destroy,
         search,
         find,
+        findBySlug,
         notes,
         visitNotes,
         storeNote,

@@ -42,6 +42,7 @@ App.Pages.Admins = (function () {
     const $summaryLocation = $('#admin-summary-location');
     let filterResults = {};
     let filterLimit = 20;
+    let pendingSlug = null;
 
     function setRecordDetailsVisible(visible) {
         const $recordDetails = $admins.find('.record-details');
@@ -150,6 +151,7 @@ App.Pages.Admins = (function () {
             $(event.currentTarget).addClass('selected');
             $('#edit-admin, #delete-admin').prop('disabled', false);
             setRecordDetailsVisible(true);
+            updateProfileUrl(admin?.slug);
         });
 
         /**
@@ -450,6 +452,13 @@ App.Pages.Admins = (function () {
                 }).appendTo('#filter-admins .results');
             }
 
+            if (pendingSlug) {
+                const slugToSelect = pendingSlug;
+                pendingSlug = null;
+                selectBySlug(slugToSelect);
+                return;
+            }
+
             if (response.length) {
                 const defaultId = selectId ?? response[0].id;
                 const shouldShow = show || !selectId;
@@ -479,6 +488,7 @@ App.Pages.Admins = (function () {
         return $('<div/>', {
             'class': 'admin-row entry',
             'data-id': admin.id,
+            'data-slug': admin.slug || undefined,
             'html': [
                 $('<strong/>', {
                     'text': name,
@@ -516,11 +526,48 @@ App.Pages.Admins = (function () {
         }
     }
 
+    function selectBySlug(slug) {
+        if (!slug || typeof App.Http.Admins.findBySlug !== 'function') {
+            return;
+        }
+
+        App.Http.Admins.findBySlug(slug)
+            .then((admin) => {
+                App.Pages.Admins.display(admin);
+                $('#edit-admin, #delete-admin').prop('disabled', false);
+                setRecordDetailsVisible(true);
+                updateProfileUrl(admin?.slug, true);
+                if (admin?.slug) {
+                    $filterAdmins.find('.selected').removeClass('selected');
+                    $filterAdmins.find('.entry[data-slug="' + admin.slug + '"]').addClass('selected');
+                }
+            })
+            .fail(() => {
+                App.Layouts.Backend.displayNotification(lang('no_records_found'));
+            });
+    }
+
+    function updateProfileUrl(slug, replace = false) {
+        if (!slug) {
+            return;
+        }
+
+        const url = App.Utils.Url.siteUrl(`admins/profile/${slug}`);
+
+        if (replace) {
+            window.history.replaceState({ slug }, '', url);
+            return;
+        }
+
+        window.history.pushState({ slug }, '', url);
+    }
+
     /**
      * Initialize the module.
      */
     function initialize() {
         App.Pages.Admins.resetForm();
+        pendingSlug = vars('selected_record_slug') || null;
         App.Pages.Admins.filter('');
         App.Pages.Admins.addEventListeners();
     }
@@ -536,6 +583,7 @@ App.Pages.Admins = (function () {
         resetForm,
         display,
         select,
+        selectBySlug,
         addEventListeners,
     };
 })();

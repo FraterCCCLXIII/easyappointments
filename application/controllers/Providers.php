@@ -87,7 +87,7 @@ class Providers extends EA_Controller
      * On this page admin users will be able to manage providers, which are eventually selected by customers during the
      * booking process.
      */
-    public function index(): void
+    public function index(?string $slug = null): void
     {
         session(['dest_url' => site_url('providers')]);
 
@@ -111,6 +111,8 @@ class Providers extends EA_Controller
             $this->services_model->only($service, $this->allowed_service_fields);
         }
 
+        $selected_slug = $slug ?: request('slug');
+
         script_vars([
             'user_id' => $user_id,
             'role_slug' => $role_slug,
@@ -123,6 +125,7 @@ class Providers extends EA_Controller
             'services' => $services,
             'default_language' => setting('default_language'),
             'default_timezone' => setting('default_timezone'),
+            'selected_record_slug' => $selected_slug,
         ]);
 
         html_vars([
@@ -293,6 +296,30 @@ class Providers extends EA_Controller
             $provider_id = request('provider_id');
 
             $provider = $this->providers_model->find($provider_id);
+
+            json_response($provider);
+        } catch (Throwable $e) {
+            json_exception($e);
+        }
+    }
+
+    /**
+     * Find a provider by slug.
+     */
+    public function find_by_slug(): void
+    {
+        try {
+            if (cannot('view', PRIV_USERS)) {
+                abort(403, 'Forbidden');
+            }
+
+            $slug = request('slug');
+
+            if (empty($slug)) {
+                abort(400, 'Bad Request');
+            }
+
+            $provider = $this->providers_model->find_by_slug($slug);
 
             json_response($provider);
         } catch (Throwable $e) {

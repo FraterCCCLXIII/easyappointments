@@ -262,6 +262,7 @@ class Admins_model extends EA_Model
     protected function insert(array $admin): int
     {
         $admin['id_roles'] = $this->get_admin_role_id();
+        $admin['slug'] = $admin['slug'] ?? $this->generate_unique_slug();
 
         $settings = $admin['settings'];
 
@@ -401,6 +402,33 @@ class Admins_model extends EA_Model
 
         if (!$admin) {
             throw new InvalidArgumentException('The provided admin ID was not found in the database: ' . $admin_id);
+        }
+
+        $this->cast($admin);
+        $admin['settings'] = $this->get_settings($admin['id']);
+
+        return $admin;
+    }
+
+    /**
+     * Get a specific admin from the database by slug.
+     *
+     * @param string $slug
+     *
+     * @return array
+     */
+    public function find_by_slug(string $slug): array
+    {
+        $role_id = $this->get_admin_role_id();
+
+        $admin = $this->db
+            ->get_where('users', ['slug' => $slug, 'id_roles' => $role_id])
+            ->row_array();
+
+        if (!$admin) {
+            throw new InvalidArgumentException(
+                'The provided admin slug was not found in the database: ' . $slug,
+            );
         }
 
         $this->cast($admin);

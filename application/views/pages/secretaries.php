@@ -111,13 +111,14 @@
                      aria-labelledby="secretary-details-tab">
                     <div class="row">
                         <div class="details col-12">
-                    <div class="mb-3">
-                        <label class="form-label" for="first-name">
-                            <?= lang('first_name') ?>
-                            <span class="text-danger" hidden>*</span>
-                        </label>
-                        <input id="first-name" class="form-control required" maxlength="256" disabled>
-                    </div>
+                            <div class="rounded-xl border border-[var(--bs-border-color,#e2e8f0)] bg-white p-4">
+                                <div class="mb-3">
+                                    <label class="form-label" for="first-name">
+                                        <?= lang('first_name') ?>
+                                        <span class="text-danger" hidden>*</span>
+                                    </label>
+                                    <input id="first-name" class="form-control required" maxlength="256" disabled>
+                                </div>
 
                     <div class="mb-3">
                         <label class="form-label" for="last-name">
@@ -179,27 +180,29 @@
                         <input id="zip-code" class="form-control" maxlength="64" disabled>
                     </div>
 
-                    <div class="mb-3">
-                        <label class="form-label" for="notes">
-                            <?= lang('notes') ?>
-                        </label>
-                        <textarea id="notes" class="form-control" rows="3" disabled></textarea>
-                    </div>
+                                <div class="mb-3">
+                                    <label class="form-label" for="notes">
+                                        <?= lang('notes') ?>
+                                    </label>
+                                    <textarea id="notes" class="form-control" rows="3" disabled></textarea>
+                                </div>
 
-                        <?php slot('after_primary_fields'); ?>
+                                <?php slot('after_primary_fields'); ?>
+                            </div>
                     </div>
                 </div>
                 </div>
                 <div class="tab-pane fade" id="secretary-settings-panel" role="tabpanel"
                      aria-labelledby="secretary-settings-tab">
                     <div class="settings col-12">
-                    <div class="mb-3">
-                        <label class="form-label" for="username">
-                            <?= lang('username') ?>
-                            <span class="text-danger" hidden>*</span>
-                        </label>
-                        <input id="username" class="form-control required" maxlength="256" disabled>
-                    </div>
+                        <div class="rounded-xl border border-[var(--bs-border-color,#e2e8f0)] bg-white p-4">
+                            <div class="mb-3">
+                                <label class="form-label" for="username">
+                                    <?= lang('username') ?>
+                                    <span class="text-danger" hidden>*</span>
+                                </label>
+                                <input id="username" class="form-control required" maxlength="256" disabled>
+                            </div>
 
                     <div class="mb-3">
                         <label class="form-label" for="password">
@@ -285,11 +288,12 @@
                         </label>
                     </div>
 
-                    <div id="secretary-providers" class="card card-body bg-white border">
-                        <!-- JS -->
-                    </div>
+                            <div id="secretary-providers" class="card card-body bg-white border">
+                                <!-- JS -->
+                            </div>
 
-                        <?php slot('after_secondary_fields'); ?>
+                            <?php slot('after_secondary_fields'); ?>
+                        </div>
                     </div>
                 </div>
             </div>

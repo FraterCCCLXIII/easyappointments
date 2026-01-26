@@ -122,6 +122,24 @@ App.Http.Secretaries = (function () {
         return $.post(url, data);
     }
 
+    /**
+     * Find a secretary by slug.
+     *
+     * @param {String} slug
+     *
+     * @return {Object}
+     */
+    function findBySlug(slug) {
+        const url = App.Utils.Url.siteUrl('secretaries/find_by_slug');
+
+        const data = {
+            csrf_token: vars('csrf_token'),
+            slug,
+        };
+
+        return $.post(url, data);
+    }
+
     return {
         save,
         store,
@@ -129,5 +147,6 @@ App.Http.Secretaries = (function () {
         destroy,
         search,
         find,
+        findBySlug,
     };
 })();
