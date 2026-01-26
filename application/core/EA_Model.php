@@ -55,6 +55,26 @@ class EA_Model extends CI_Model
     }
 
     /**
+     * Generate a unique opaque slug for a table.
+     *
+     * @param string $table
+     * @param int $length
+     *
+     * @return string
+     */
+    protected function generate_unique_slug(string $table = 'users', int $length = 12): string
+    {
+        $this->load->helper('string');
+
+        do {
+            $slug = random_string('alnum', $length);
+            $exists = $this->db->get_where($table, ['slug' => $slug])->num_rows() > 0;
+        } while ($exists);
+
+        return $slug;
+    }
+
+    /**
      * Get a specific field value from the database.
      *
      * @param string $field Name of the value to be returned.

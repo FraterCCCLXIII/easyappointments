@@ -298,6 +298,7 @@ class Secretaries_model extends EA_Model
         $secretary['update_datetime'] = date('Y-m-d H:i:s');
 
         $secretary['id_roles'] = $this->get_secretary_role_id();
+        $secretary['slug'] = $secretary['slug'] ?? $this->generate_unique_slug();
 
         $provider_ids = $secretary['providers'] ?? [];
 
@@ -743,6 +744,34 @@ class Secretaries_model extends EA_Model
         if (!$secretary) {
             throw new InvalidArgumentException(
                 'The provided secretary ID was not found in the database: ' . $secretary_id,
+            );
+        }
+
+        $this->cast($secretary);
+        $secretary['settings'] = $this->get_settings($secretary['id']);
+        $secretary['providers'] = $this->get_provider_ids($secretary['id']);
+
+        return $secretary;
+    }
+
+    /**
+     * Get a specific secretary from the database by slug.
+     *
+     * @param string $slug
+     *
+     * @return array
+     */
+    public function find_by_slug(string $slug): array
+    {
+        $role_id = $this->get_secretary_role_id();
+
+        $secretary = $this->db
+            ->get_where('users', ['slug' => $slug, 'id_roles' => $role_id])
+            ->row_array();
+
+        if (!$secretary) {
+            throw new InvalidArgumentException(
+                'The provided secretary slug was not found in the database: ' . $slug,
             );
         }
 

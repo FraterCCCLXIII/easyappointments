@@ -126,8 +126,11 @@ function watch(done) {
     gulp.watch([
         'assets/css/tailwind/**/*.css',
         'application/views/layouts/booking_layout.php',
-        'application/views/components/booking_*.php',
+        'application/views/layouts/backend_layout.php',
+        'application/views/components/**/*.php',
+        'application/views/pages/**/*.php',
         'assets/js/layouts/booking_layout.js',
+        'assets/js/**/*.js',
     ], gulp.parallel(tailwindStyles));
     done();
 }

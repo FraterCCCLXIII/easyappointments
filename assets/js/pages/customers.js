@@ -69,6 +69,7 @@ App.Pages.Customers = (function () {
 
     let filterResults = {};
     let filterLimit = 20;
+    let pendingSlug = null;
 
     function setRecordDetailsVisible(visible) {
         const $recordDetails = $customers.find('.record-details');
@@ -118,6 +119,7 @@ App.Pages.Customers = (function () {
             $(event.currentTarget).addClass('selected');
             $('#edit-customer, #delete-customer').prop('disabled', false);
             setRecordDetailsVisible(true);
+            updateProfileUrl(customer?.slug);
         });
 
         /**
@@ -1184,6 +1186,13 @@ App.Pages.Customers = (function () {
                 }).appendTo('#filter-customers .results');
             }
 
+            if (pendingSlug) {
+                const slugToSelect = pendingSlug;
+                pendingSlug = null;
+                selectBySlug(slugToSelect);
+                return;
+            }
+
             if (response.length) {
                 const defaultId = selectId ?? response[0].id;
                 const shouldShow = show || !selectId;
@@ -1211,6 +1220,7 @@ App.Pages.Customers = (function () {
         return $('<div/>', {
             'class': 'customer-row entry',
             'data-id': customer.id,
+            'data-slug': customer.slug || undefined,
             'html': [
                 $('<strong/>', {
                     'text': name,
@@ -1248,12 +1258,49 @@ App.Pages.Customers = (function () {
         }
     }
 
+    function selectBySlug(slug) {
+        if (!slug || typeof App.Http.Customers.findBySlug !== 'function') {
+            return;
+        }
+
+        App.Http.Customers.findBySlug(slug)
+            .then((customer) => {
+                App.Pages.Customers.display(customer);
+                $('#edit-customer, #delete-customer').prop('disabled', false);
+                setRecordDetailsVisible(true);
+                updateProfileUrl(customer?.slug, true);
+                if (customer?.slug) {
+                    $('#filter-customers .selected').removeClass('selected');
+                    $('#filter-customers .entry[data-slug="' + customer.slug + '"]').addClass('selected');
+                }
+            })
+            .fail(() => {
+                App.Layouts.Backend.displayNotification(lang('no_records_found'));
+            });
+    }
+
+    function updateProfileUrl(slug, replace = false) {
+        if (!slug) {
+            return;
+        }
+
+        const url = App.Utils.Url.siteUrl(`customers/profile/${slug}`);
+
+        if (replace) {
+            window.history.replaceState({ slug }, '', url);
+            return;
+        }
+
+        window.history.pushState({ slug }, '', url);
+    }
+
     /**
      * Initialize the module.
      */
     function initialize() {
         App.Pages.Customers.resetForm();
         App.Pages.Customers.addEventListeners();
+        pendingSlug = vars('selected_record_slug') || null;
         App.Pages.Customers.filter('');
     }
 
@@ -1268,6 +1315,7 @@ App.Pages.Customers = (function () {
         resetForm,
         display,
         select,
+        selectBySlug,
         addEventListeners,
     };
 })();

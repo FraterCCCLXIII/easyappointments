@@ -299,6 +299,7 @@ class Customers_model extends EA_Model
         $customer['create_datetime'] = date('Y-m-d H:i:s');
         $customer['update_datetime'] = date('Y-m-d H:i:s');
         $customer['id_roles'] = $this->get_customer_role_id();
+        $customer['slug'] = $customer['slug'] ?? $this->generate_unique_slug();
 
         if (!$this->db->insert('users', $customer)) {
             throw new RuntimeException('Could not insert customer.');
@@ -353,6 +354,32 @@ class Customers_model extends EA_Model
         if (!$customer) {
             throw new InvalidArgumentException(
                 'The provided customer ID was not found in the database: ' . $customer_id,
+            );
+        }
+
+        $this->cast($customer);
+
+        return $customer;
+    }
+
+    /**
+     * Get a specific customer from the database by slug.
+     *
+     * @param string $slug
+     *
+     * @return array
+     */
+    public function find_by_slug(string $slug): array
+    {
+        $role_id = $this->get_customer_role_id();
+
+        $customer = $this->db
+            ->get_where('users', ['slug' => $slug, 'id_roles' => $role_id])
+            ->row_array();
+
+        if (!$customer) {
+            throw new InvalidArgumentException(
+                'The provided customer slug was not found in the database: ' . $slug,
             );
         }
 

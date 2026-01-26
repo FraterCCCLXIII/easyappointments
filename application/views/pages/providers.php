@@ -121,7 +121,7 @@
 
                     <div class="row">
                         <div class="details col-12">
-                            <div class="mb-4 rounded border p-3">
+                            <div class="mb-4 rounded-xl border border-[var(--bs-border-color,#e2e8f0)] bg-white p-4">
                                 <h6 class="mb-3 fw-semibold text-muted text-uppercase small">
                                     <?= lang('contact_info') ?>
                                 </h6>
@@ -166,7 +166,7 @@
                                 </div>
                             </div>
 
-                            <div class="mb-4 rounded border p-3">
+                            <div class="mb-4 rounded-xl border border-[var(--bs-border-color,#e2e8f0)] bg-white p-4">
                                 <h6 class="mb-3 fw-semibold text-muted text-uppercase small">
                                     <?= lang('address') ?>
                                 </h6>
@@ -200,7 +200,7 @@
                                 </div>
                             </div>
 
-                            <div class="mb-3 rounded border p-3">
+                            <div class="mb-3 rounded-xl border border-[var(--bs-border-color,#e2e8f0)] bg-white p-4">
                                 <h6 class="mb-3 fw-semibold text-muted text-uppercase small">
                                     <?= lang('notes') ?>
                                 </h6>
@@ -366,94 +366,96 @@
                 </div>
 
                 <div class="working-plan-view tab-pane fade clearfix" id="working-plan">
-                    <h4 class="text-black-50 mb-3 fw-light">
-                        <?= lang('working_plan') ?>
-                    </h4>
+                    <div class="rounded-xl border border-[var(--bs-border-color,#e2e8f0)] bg-white p-4">
+                        <h4 class="text-black-50 mb-3 fw-light">
+                            <?= lang('working_plan') ?>
+                        </h4>
 
-                    <button id="reset-working-plan" class="btn btn-primary"
-                            data-tippy-content="<?= lang('reset_working_plan') ?>">
-                        <i class="fas fa-undo-alt me-2"></i>
-                        <?= lang('reset_plan') ?></button>
-                    <table class="working-plan table table-striped mt-2">
-                        <thead>
-                        <tr>
-                            <th><?= lang('day') ?></th>
-                            <th><?= lang('start') ?></th>
-                            <th><?= lang('end') ?></th>
-                        </tr>
-                        </thead>
-                        <tbody><!-- Dynamic Content --></tbody>
-                    </table>
+                        <button id="reset-working-plan" class="btn btn-primary"
+                                data-tippy-content="<?= lang('reset_working_plan') ?>">
+                            <i class="fas fa-undo-alt me-2"></i>
+                            <?= lang('reset_plan') ?></button>
+                        <table class="working-plan table table-striped mt-2">
+                            <thead>
+                            <tr>
+                                <th><?= lang('day') ?></th>
+                                <th><?= lang('start') ?></th>
+                                <th><?= lang('end') ?></th>
+                            </tr>
+                            </thead>
+                            <tbody><!-- Dynamic Content --></tbody>
+                        </table>
 
-                    <?php slot('after_working_plan'); ?>
+                        <?php slot('after_working_plan'); ?>
 
-                    <br>
+                        <br>
 
-                    <h4 class="text-black-50 mb-3 fw-light">
-                        <?= lang('breaks') ?>
-                    </h4>
+                        <h4 class="text-black-50 mb-3 fw-light">
+                            <?= lang('breaks') ?>
+                        </h4>
 
-                    <p>
-                        <?= lang('add_breaks_during_each_day') ?>
-                    </p>
+                        <p>
+                            <?= lang('add_breaks_during_each_day') ?>
+                        </p>
 
-                    <div>
-                        <button type="button" class="add-break btn btn-primary">
-                            <i class="fas fa-plus-square me-2"></i>
-                            <?= lang('add_break') ?>
-                        </button>
+                        <div>
+                            <button type="button" class="add-break btn btn-primary">
+                                <i class="fas fa-plus-square me-2"></i>
+                                <?= lang('add_break') ?>
+                            </button>
+                        </div>
+
+                        <br>
+
+                        <table class="breaks table table-striped">
+                            <thead>
+                            <tr>
+                                <th><?= lang('day') ?></th>
+                                <th><?= lang('start') ?></th>
+                                <th><?= lang('end') ?></th>
+                                <th><?= lang('actions') ?></th>
+                            </tr>
+                            </thead>
+                            <tbody><!-- Dynamic Content --></tbody>
+                        </table>
+
+                        <?php slot('after_breaks'); ?>
+
+                        <br>
+
+                        <h4 class="text-black-50 mb-3 fw-light">
+                            <?= lang('working_plan_exceptions') ?>
+                        </h4>
+
+                        <p>
+                            <?= lang('add_working_plan_exceptions_during_each_day') ?>
+                        </p>
+
+                        <div>
+                            <button type="button" class="add-working-plan-exception btn btn-primary me-2">
+                                <i class="fas fa-plus-square me-2"></i>
+                                <?= lang('add_working_plan_exception') ?>
+                            </button>
+                        </div>
+
+                        <br>
+
+                        <table class="working-plan-exceptions table table-striped">
+                            <thead>
+                            <tr>
+                                <th><?= lang('day') ?></th>
+                                <th><?= lang('start') ?></th>
+                                <th><?= lang('end') ?></th>
+                                <th><?= lang('actions') ?></th>
+                            </tr>
+                            </thead>
+                            <tbody><!-- Dynamic Content --></tbody>
+                        </table>
+
+                        <?php component('working_plan_exceptions_modal'); ?>
+
+                        <?php slot('after_working_plan_exceptions'); ?>
                     </div>
-
-                    <br>
-
-                    <table class="breaks table table-striped">
-                        <thead>
-                        <tr>
-                            <th><?= lang('day') ?></th>
-                            <th><?= lang('start') ?></th>
-                            <th><?= lang('end') ?></th>
-                            <th><?= lang('actions') ?></th>
-                        </tr>
-                        </thead>
-                        <tbody><!-- Dynamic Content --></tbody>
-                    </table>
-
-                    <?php slot('after_breaks'); ?>
-
-                    <br>
-
-                    <h4 class="text-black-50 mb-3 fw-light">
-                        <?= lang('working_plan_exceptions') ?>
-                    </h4>
-
-                    <p>
-                        <?= lang('add_working_plan_exceptions_during_each_day') ?>
-                    </p>
-
-                    <div>
-                        <button type="button" class="add-working-plan-exception btn btn-primary me-2">
-                            <i class="fas fa-plus-square me-2"></i>
-                            <?= lang('add_working_plan_exception') ?>
-                        </button>
-                    </div>
-
-                    <br>
-
-                    <table class="working-plan-exceptions table table-striped">
-                        <thead>
-                        <tr>
-                            <th><?= lang('day') ?></th>
-                            <th><?= lang('start') ?></th>
-                            <th><?= lang('end') ?></th>
-                            <th><?= lang('actions') ?></th>
-                        </tr>
-                        </thead>
-                        <tbody><!-- Dynamic Content --></tbody>
-                    </table>
-
-                    <?php component('working_plan_exceptions_modal'); ?>
-
-                    <?php slot('after_working_plan_exceptions'); ?>
                 </div>
             </div>
         </div>

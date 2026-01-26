@@ -42,6 +42,7 @@ App.Pages.Secretaries = (function () {
     const $summaryLocation = $('#secretary-summary-location');
     let filterResults = [];
     let filterLimit = 20;
+    let pendingSlug = null;
 
     function setRecordDetailsVisible(visible) {
         const $recordDetails = $secretaries.find('.record-details');
@@ -151,6 +152,7 @@ App.Pages.Secretaries = (function () {
             $(event.currentTarget).addClass('selected');
             $('#edit-secretary, #delete-secretary').prop('disabled', false);
             setRecordDetailsVisible(true);
+            updateProfileUrl(secretary?.slug);
         });
 
         /**
@@ -491,6 +493,13 @@ App.Pages.Secretaries = (function () {
                 }).appendTo('#filter-secretaries .results');
             }
 
+            if (pendingSlug) {
+                const slugToSelect = pendingSlug;
+                pendingSlug = null;
+                selectBySlug(slugToSelect);
+                return;
+            }
+
             if (filterResults.length) {
                 const defaultId = selectId ?? filterResults[0].id;
                 const shouldShow = show || !selectId;
@@ -520,6 +529,7 @@ App.Pages.Secretaries = (function () {
         return $('<div/>', {
             'class': 'secretary-row entry',
             'data-id': secretary.id,
+            'data-slug': secretary.slug || undefined,
             'html': [
                 $('<strong/>', {
                     'text': name,
@@ -558,13 +568,57 @@ App.Pages.Secretaries = (function () {
         }
     }
 
+    function selectBySlug(slug) {
+        if (!slug || typeof App.Http.Secretaries.findBySlug !== 'function') {
+            return;
+        }
+
+        App.Http.Secretaries.findBySlug(slug)
+            .then((secretary) => {
+                App.Pages.Secretaries.display(secretary);
+                if (secretary) {
+                    $('#edit-secretary, #delete-secretary').prop('disabled', false);
+                    setRecordDetailsVisible(true);
+                }
+                updateProfileUrl(secretary?.slug, true);
+                if (secretary?.slug) {
+                    $filterSecretaries.find('.selected').removeClass('selected');
+                    $filterSecretaries.find('.entry[data-slug="' + secretary.slug + '"]').addClass('selected');
+                }
+            })
+            .fail(() => {
+                App.Layouts.Backend.displayNotification(lang('no_records_found'));
+            });
+    }
+
+    function updateProfileUrl(slug, replace = false) {
+        if (!slug) {
+            return;
+        }
+
+        const url = App.Utils.Url.siteUrl(`secretaries/profile/${slug}`);
+
+        if (replace) {
+            window.history.replaceState({ slug }, '', url);
+            return;
+        }
+
+        window.history.pushState({ slug }, '', url);
+    }
+
     /**
      * Initialize the module.
      */
     function initialize() {
         App.Pages.Secretaries.resetForm();
+        pendingSlug = vars('selected_record_slug') || null;
         App.Pages.Secretaries.filter('');
         App.Pages.Secretaries.addEventListeners();
+
+        const selectedSlug = vars('selected_record_slug');
+        if (selectedSlug) {
+            selectBySlug(selectedSlug);
+        }
 
         const providers = Array.isArray(vars('providers')) ? vars('providers') : [];
 
@@ -609,6 +663,7 @@ App.Pages.Secretaries = (function () {
         resetForm,
         display,
         select,
+        selectBySlug,
         addEventListeners,
     };
 })();

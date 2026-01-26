@@ -45,6 +45,7 @@ App.Pages.Providers = (function () {
     const $bookingsTableBody = $bookingsPanel.find('tbody');
     let filterResults = {};
     let filterLimit = 20;
+    let pendingSlug = null;
     let workingPlanManager;
 
     function setRecordDetailsVisible(visible) {
@@ -238,6 +239,7 @@ App.Pages.Providers = (function () {
             $(event.currentTarget).addClass('selected');
             $('#edit-provider, #delete-provider').prop('disabled', false);
             setRecordDetailsVisible(true);
+            updateProfileUrl(provider?.slug);
         });
 
         /**
@@ -659,6 +661,13 @@ App.Pages.Providers = (function () {
                 }).appendTo('#filter-providers .results');
             }
 
+            if (pendingSlug) {
+                const slugToSelect = pendingSlug;
+                pendingSlug = null;
+                selectBySlug(slugToSelect);
+                return;
+            }
+
             if (response.length) {
                 const defaultId = selectId ?? response[0].id;
                 const shouldShow = show || !selectId;
@@ -688,6 +697,7 @@ App.Pages.Providers = (function () {
         return $('<div/>', {
             'class': 'provider-row entry',
             'data-id': provider.id,
+            'data-slug': provider.slug || undefined,
             'html': [
                 $('<strong/>', {
                     'text': name,
@@ -724,6 +734,42 @@ App.Pages.Providers = (function () {
         }
     }
 
+    function selectBySlug(slug) {
+        if (!slug || typeof App.Http.Providers.findBySlug !== 'function') {
+            return;
+        }
+
+        App.Http.Providers.findBySlug(slug)
+            .then((provider) => {
+                App.Pages.Providers.display(provider);
+                $('#edit-provider, #delete-provider').prop('disabled', false);
+                setRecordDetailsVisible(true);
+                updateProfileUrl(provider?.slug, true);
+                if (provider?.slug) {
+                    $filterProviders.find('.selected').removeClass('selected');
+                    $filterProviders.find('.entry[data-slug="' + provider.slug + '"]').addClass('selected');
+                }
+            })
+            .fail(() => {
+                App.Layouts.Backend.displayNotification(lang('no_records_found'));
+            });
+    }
+
+    function updateProfileUrl(slug, replace = false) {
+        if (!slug) {
+            return;
+        }
+
+        const url = App.Utils.Url.siteUrl(`providers/profile/${slug}`);
+
+        if (replace) {
+            window.history.replaceState({ slug }, '', url);
+            return;
+        }
+
+        window.history.pushState({ slug }, '', url);
+    }
+
     /**
      * Initialize the module.
      */
@@ -732,6 +778,7 @@ App.Pages.Providers = (function () {
         workingPlanManager.addEventListeners();
 
         App.Pages.Providers.resetForm();
+        pendingSlug = vars('selected_record_slug') || null;
         App.Pages.Providers.filter('');
         App.Pages.Providers.addEventListeners();
 
@@ -776,6 +823,7 @@ App.Pages.Providers = (function () {
         resetForm,
         display,
         select,
+        selectBySlug,
         addEventListeners,
     };
 })();

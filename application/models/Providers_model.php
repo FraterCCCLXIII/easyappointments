@@ -299,6 +299,7 @@ class Providers_model extends EA_Model
         $provider['create_datetime'] = date('Y-m-d H:i:s');
         $provider['update_datetime'] = date('Y-m-d H:i:s');
         $provider['id_roles'] = $this->get_provider_role_id();
+        $provider['slug'] = $provider['slug'] ?? $this->generate_unique_slug();
 
         $service_ids = $provider['services'];
 
@@ -586,6 +587,34 @@ class Providers_model extends EA_Model
         if (!$provider) {
             throw new InvalidArgumentException(
                 'The provided provider ID was not found in the database: ' . $provider_id,
+            );
+        }
+
+        $this->cast($provider);
+        $provider['settings'] = $this->get_settings($provider['id']);
+        $provider['services'] = $this->get_service_ids($provider['id']);
+
+        return $provider;
+    }
+
+    /**
+     * Get a specific provider from the database by slug.
+     *
+     * @param string $slug
+     *
+     * @return array
+     */
+    public function find_by_slug(string $slug): array
+    {
+        $role_id = $this->get_provider_role_id();
+
+        $provider = $this->db
+            ->get_where('users', ['slug' => $slug, 'id_roles' => $role_id])
+            ->row_array();
+
+        if (!$provider) {
+            throw new InvalidArgumentException(
+                'The provided provider slug was not found in the database: ' . $slug,
             );
         }
 
