@@ -59,6 +59,7 @@ App.Pages.Customers = (function () {
     const $customerNoteText = $('#customer-note-text');
     const $customerNotesList = $('#customer-notes-list');
     const $customerVisitNotesList = $('#customer-visit-notes-list');
+    const $customerFilesPanel = $('#customer-files-panel .user-files-panel');
     const $addCustomerNote = $('#add-customer-note');
     const $summaryName = $('#customer-summary-name');
     const $summaryId = $('#customer-summary-id');
@@ -71,6 +72,7 @@ App.Pages.Customers = (function () {
     let filterResults = {};
     let filterLimit = 20;
     let pendingSlug = null;
+    let userFilesManager;
 
     function setRecordDetailsVisible(visible) {
         const $recordDetails = $customers.find('.record-details');
@@ -588,6 +590,10 @@ App.Pages.Customers = (function () {
         $filterCustomers.find('.selected').removeClass('selected');
         $filterCustomers.find('.results').css('color', '');
         setRecordDetailsVisible(false);
+
+        if (userFilesManager) {
+            userFilesManager.reset();
+        }
     }
 
     /**
@@ -643,6 +649,10 @@ App.Pages.Customers = (function () {
             custom_field_4: customer.custom_field_4,
             custom_field_5: customer.custom_field_5,
         });
+
+        if (userFilesManager) {
+            userFilesManager.refresh();
+        }
 
         const $appointmentsWrapper = $('<div/>', {
             'class': 'overflow-hidden rounded-xl border border-[var(--bs-border-color,#e2e8f0)] bg-white',
@@ -1303,6 +1313,12 @@ App.Pages.Customers = (function () {
     function initialize() {
         App.Pages.Customers.resetForm();
         App.Pages.Customers.addEventListeners();
+        userFilesManager = App.Components.UserFiles.create($customerFilesPanel, {
+            userType: 'customer',
+            getUserId: () => $id.val(),
+            canUpload: Number($customerFilesPanel.data('can-upload')) === 1,
+            canDelete: Number($customerFilesPanel.data('can-delete')) === 1,
+        });
         pendingSlug = vars('selected_record_slug') || null;
         App.Pages.Customers.filter('');
     }

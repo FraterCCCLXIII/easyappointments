@@ -43,10 +43,12 @@ App.Pages.Providers = (function () {
     const $summaryLocation = $('#provider-summary-location');
     const $bookingsPanel = $('#provider-bookings');
     const $bookingsTableBody = $bookingsPanel.find('tbody');
+    const $providerFilesPanel = $('#provider-files-panel .user-files-panel');
     let filterResults = {};
     let filterLimit = 20;
     let pendingSlug = null;
     let workingPlanManager;
+    let userFilesManager;
 
     function setRecordDetailsVisible(visible) {
         const $recordDetails = $providers.find('.record-details');
@@ -530,6 +532,10 @@ App.Pages.Providers = (function () {
         renderBookings([]);
         updateProviderSummary();
         setRecordDetailsVisible(false);
+
+        if (userFilesManager) {
+            userFilesManager.reset();
+        }
     }
 
     /**
@@ -558,6 +564,10 @@ App.Pages.Providers = (function () {
         $calendarView.val(provider.settings.calendar_view);
         $notifications.prop('checked', Boolean(Number(provider.settings.notifications)));
         updateProviderSummary();
+
+        if (userFilesManager) {
+            userFilesManager.refresh();
+        }
 
         // Add dedicated provider link.
         let dedicatedUrl = App.Utils.Url.siteUrl('?provider=' + encodeURIComponent(provider.id));
@@ -778,6 +788,12 @@ App.Pages.Providers = (function () {
         workingPlanManager.addEventListeners();
 
         App.Pages.Providers.resetForm();
+        userFilesManager = App.Components.UserFiles.create($providerFilesPanel, {
+            userType: 'provider',
+            getUserId: () => $id.val(),
+            canUpload: Number($providerFilesPanel.data('can-upload')) === 1,
+            canDelete: Number($providerFilesPanel.data('can-delete')) === 1,
+        });
         pendingSlug = vars('selected_record_slug') || null;
         App.Pages.Providers.filter('');
         App.Pages.Providers.addEventListeners();
