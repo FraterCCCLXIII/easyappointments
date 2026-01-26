@@ -22,6 +22,10 @@ body {
     min-height: 100%;
 }
 
+.booking-tab-line-list {
+    border-color: var(--bs-border-color);
+}
+
 /* BOOK APPOINTMENT WIZARD
  ------------------------------------------------------------------------------ */
 
@@ -169,7 +173,7 @@ body {
     background: #fff;
     text-align: center;
     height: auto;
-    border: 1px solid #e5e7eb;
+    border: 1px solid var(--bs-border-color, #e2e8f0);
     padding: 1rem 1.5rem;
 }
 
@@ -221,7 +225,7 @@ body {
     width: 100%;
     background-color: #fff;
     border-radius: 8px;
-    border: 1px solid #e2e8f0;
+    border: 1px solid var(--bs-border-color, #e2e8f0);
 }
 
 .months-container,
@@ -243,7 +247,7 @@ body {
 }
 
 .months-container {
-    border-bottom: 1px solid #e2e8f0;
+    border-bottom: 1px solid var(--bs-border-color, #e2e8f0);
 }
 
 .month,
@@ -251,7 +255,7 @@ body {
     flex: 0 0 auto;
     padding: 8px 12px;
     text-align: center;
-    border: 1px solid #e2e8f0;
+    border: 1px solid var(--bs-border-color, #e2e8f0);
     margin: 0 4px;
     border-radius: 6px;
     cursor: pointer;

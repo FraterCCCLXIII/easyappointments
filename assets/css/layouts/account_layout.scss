@@ -19,7 +19,7 @@ body {
 #login-frame {
     width: 630px;
     margin: auto;
-    border: 1px solid #dddada;
+    border: 1px solid var(--bs-border-color, #e2e8f0);
     padding: 70px;
 }
 

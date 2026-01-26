@@ -15,6 +15,7 @@
 
 root {
     display: block;
+    --ea-shadow-soft: var(--bs-box-shadow-sm, 0 1px 2px 0 rgb(0 0 0 / 0.05));
 }
 
 /* BACKEND GENERAL ELEMENTS
@@ -22,7 +23,7 @@ root {
 
 #header {
     background-color: #fff !important;
-    border-bottom: 1px solid #e2e8f0;
+    border-bottom: 1px solid var(--bs-border-color, #e2e8f0);
     box-shadow: none;
     border-radius: 0;
     padding: 0;
@@ -100,7 +101,7 @@ root {
 
 #footer {
     background-color: #f8fafc;
-    border-top: 1px solid #e2e8f0;
+    border-top: 1px solid var(--bs-border-color, #e2e8f0);
     font-size: 11px;
 }
 
@@ -318,6 +319,10 @@ body legend {
     font-weight: 600;
 }
 
+.backend-page .form-check.form-switch {
+    padding-left: 0;
+}
+
 .backend-page .form-switch {
     display: inline-flex;
     align-items: center;
@@ -328,6 +333,7 @@ body legend {
     width: 2.5rem;
     height: 1.5rem;
     margin: 0;
+    margin-left: 0;
     background-color: var(--bs-secondary-bg);
     border: 1px solid var(--bs-border-color);
     border-radius: 999px;
@@ -483,7 +489,47 @@ body legend {
     transform: none;
 }
 
+#admins-page #filter-admins .input-group,
+#providers-page #filter-providers .input-group,
+#secretaries-page #filter-secretaries .input-group,
+#services-page #filter-services .input-group,
+#service-categories-page #filter-service-categories .input-group {
+    position: static;
+}
+
+#admins-page #filter-admins .input-group .form-control,
+#providers-page #filter-providers .input-group .form-control,
+#secretaries-page #filter-secretaries .input-group .form-control,
+#services-page #filter-services .input-group .form-control,
+#service-categories-page #filter-service-categories .input-group .form-control {
+    padding-right: 0.75rem;
+    border-radius: 0.375rem 0 0 0.375rem;
+}
+
+#admins-page #filter-admins .input-group .filter.btn,
+#providers-page #filter-providers .input-group .filter.btn,
+#secretaries-page #filter-secretaries .input-group .filter.btn,
+#services-page #filter-services .input-group .filter.btn,
+#service-categories-page #filter-service-categories .input-group .filter.btn {
+    position: static;
+    width: auto;
+    height: auto;
+    padding: 0.375rem 0.75rem;
+    border-radius: 0 0.375rem 0.375rem 0;
+    border: 1px solid var(--bs-border-color);
+    background-color: transparent;
+    transform: none;
+}
+
 #customers-page #filter-customers.backend-sticky-panel {
+    border-right: none !important;
+}
+
+#admins-page #filter-admins.backend-sticky-panel,
+#providers-page #filter-providers.backend-sticky-panel,
+#secretaries-page #filter-secretaries.backend-sticky-panel,
+#services-page #filter-services.backend-sticky-panel,
+#service-categories-page #filter-service-categories.backend-sticky-panel {
     border-right: none !important;
 }
 
@@ -499,6 +545,11 @@ body legend {
     overflow-y: auto;
     max-height: 650px;
     outline: none;
+    background-color: #fff;
+    border: 1px solid var(--bs-border-color);
+    border-radius: 0.75rem;
+    box-shadow: var(--ea-shadow-soft);
+    padding: 0.25rem 0;
 }
 
 .backend-page .filter-records .results .entry {
@@ -517,6 +568,36 @@ body legend {
 
 .backend-page .filter-records .results hr {
     margin: 5px 0;
+    border: 0;
+    border-top: 1px solid var(--bs-border-color, #e2e8f0);
+    opacity: 1;
+}
+
+.booking-tab-line-list {
+    border-color: var(--bs-border-color);
+}
+
+.backend-page .add-edit-delete-group .btn-outline-secondary,
+.backend-page #add-edit-delete-group.btn-group .btn-outline-secondary {
+    border-color: var(--bs-gray-300, var(--bs-border-color));
+    color: var(--bs-secondary-color);
+}
+
+.backend-page .add-edit-delete-group .btn-outline-secondary:not([disabled]):not(.disabled):hover,
+.backend-page .add-edit-delete-group .btn-outline-secondary:not([disabled]):not(.disabled):focus-visible,
+.backend-page .add-edit-delete-group .btn-outline-secondary:not([disabled]):not(.disabled):active,
+.backend-page #add-edit-delete-group.btn-group .btn-outline-secondary:not([disabled]):not(.disabled):hover,
+.backend-page #add-edit-delete-group.btn-group .btn-outline-secondary:not([disabled]):not(.disabled):focus-visible,
+.backend-page #add-edit-delete-group.btn-group .btn-outline-secondary:not([disabled]):not(.disabled):active {
+    border-color: var(--bs-gray-400, var(--bs-border-color));
+    color: var(--bs-body-color);
+    background-color: var(--bs-gray-100, var(--bs-secondary-bg));
+}
+
+body.bg-slate-50 .dropdown-menu {
+    border-color: var(--bs-border-color);
+    border-radius: 0.75rem;
+    box-shadow: var(--ea-shadow-soft);
 }
 
 .record-details {
@@ -756,7 +837,7 @@ body legend {
     font-weight: bold;
     color: #333;
     opacity: 0.75;
-    border: 1px solid #e6e6e6;
+    border: 1px solid var(--bs-border-color, #e2e8f0);
 }
 
 #calendar-page #calendar .fc-unavailability.fc-blocked-period {
@@ -833,7 +914,7 @@ body legend {
 }
 
 #calendar .fc-event {
-    border: 1px solid #7cbae8;
+    border: 1px solid var(--bs-border-color, #e2e8f0);
     background-color: #7cbae8;
     color: #333;
     min-height: 12px;
@@ -911,7 +992,7 @@ body .form-horizontal .controls {
 
 #calendar .select2-container--default .select2-selection--multiple .select2-selection__choice {
     background-color: #f8f9fa;
-    border: 1px solid #ced4da;
+    border: 1px solid var(--bs-border-color, #e2e8f0);
 }
 
 #calendar .calendar-view {
@@ -1239,6 +1320,13 @@ body .form-horizontal .controls {
     margin-top: 2px;
     margin-left: -24px;
     margin-bottom: 2px;
+}
+
+#providers-page #provider-services {
+    background-color: transparent;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
 }
 
 /* BACKEND SETTINGS PAGE

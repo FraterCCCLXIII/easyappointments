@@ -41,6 +41,8 @@ App.Pages.Providers = (function () {
     const $summaryEmail = $('#provider-summary-email');
     const $summaryPhone = $('#provider-summary-phone');
     const $summaryLocation = $('#provider-summary-location');
+    const $bookingsPanel = $('#provider-bookings');
+    const $bookingsTableBody = $bookingsPanel.find('tbody');
     let filterResults = {};
     let filterLimit = 20;
     let workingPlanManager;
@@ -72,6 +74,130 @@ App.Pages.Providers = (function () {
         $summaryEmail.find('.summary-text').text(email || '—');
         $summaryPhone.find('.summary-text').text(phoneNumber || '—');
         $summaryLocation.find('.summary-text').text(locationParts.length ? locationParts.join(', ') : '—');
+    }
+
+    function formatBookingDate(dateTime) {
+        try {
+            return App.Utils.Date.format(dateTime, vars('date_format'), vars('time_format'), true);
+        } catch (error) {
+            return '—';
+        }
+    }
+
+    function getBookingStatusBadge(status) {
+        const normalized = (status || '').toString().toLowerCase();
+        let badgeClass = 'bg-slate-100 text-slate-700';
+
+        if (['booked', 'confirmed', 'approved'].includes(normalized)) {
+            badgeClass = 'bg-emerald-50 text-emerald-700';
+        } else if (['cancelled', 'canceled', 'rejected'].includes(normalized)) {
+            badgeClass = 'bg-rose-50 text-rose-700';
+        } else if (['completed', 'done', 'finished'].includes(normalized)) {
+            badgeClass = 'bg-blue-50 text-blue-700';
+        } else if (['pending'].includes(normalized)) {
+            badgeClass = 'bg-amber-50 text-amber-700';
+        }
+
+        return $('<span/>', {
+            'class': `inline-flex rounded-full px-3 py-1 text-xs font-semibold ${badgeClass}`,
+            'text': status ? status.charAt(0).toUpperCase() + status.slice(1) : '—',
+        });
+    }
+
+    function renderBookings(bookings) {
+        $bookingsTableBody.empty();
+
+        if (!bookings.length) {
+            $('<tr/>', {
+                'html': $('<td/>', {
+                    'class': 'px-4 py-6 text-center text-slate-500',
+                    'colspan': 5,
+                    'text': lang('no_records_found'),
+                }),
+            }).appendTo($bookingsTableBody);
+            return;
+        }
+
+        bookings.forEach((booking) => {
+            const editUrl = booking.hash ? App.Utils.Url.siteUrl(`calendar/reschedule/${booking.hash}`) : null;
+
+            const $row = $('<tr/>', {
+                'class': 'bg-white border-b border-[var(--bs-border-color,#e2e8f0)] last:border-b-0',
+                'data-id': booking.id,
+            });
+
+            $('<td/>', {
+                'class': 'px-4 py-3 font-semibold text-slate-900',
+                'text': booking.service_name || '—',
+            }).appendTo($row);
+
+            const customerNameParts = [booking.customer_first_name, booking.customer_last_name].filter(Boolean);
+            const customerName = customerNameParts.length
+                ? customerNameParts.join(' ')
+                : booking.customer_name || '—';
+
+            $('<td/>', {
+                'class': 'px-4 py-3 text-slate-700',
+                'text': customerName,
+            }).appendTo($row);
+
+            $('<td/>', {
+                'class': 'px-4 py-3 text-slate-700',
+                'text': formatBookingDate(booking.start_datetime),
+            }).appendTo($row);
+
+            $('<td/>', {
+                'class': 'px-4 py-3',
+                'html': getBookingStatusBadge(booking.status),
+            }).appendTo($row);
+
+            $('<td/>', {
+                'class': 'px-4 py-3 text-right',
+                'html': editUrl
+                    ? $('<a/>', {
+                          'href': editUrl,
+                          'class':
+                              'customer-appointment-edit inline-flex items-center rounded-xl border border-[var(--bs-border-color,#e2e8f0)] px-3 py-2 text-sm font-semibold text-slate-700 hover:border-[var(--bs-border-color,#e2e8f0)] hover:text-slate-900',
+                          'text': lang('edit'),
+                      })
+                    : '',
+            }).appendTo($row);
+
+            $row.appendTo($bookingsTableBody);
+        });
+    }
+
+    function loadBookings(providerId) {
+        if (!providerId) {
+            renderBookings([]);
+            return;
+        }
+
+        if (!App.Http || !App.Http.Providers || typeof App.Http.Providers.bookings !== 'function') {
+            App.Http = App.Http || {};
+            App.Http.Providers = App.Http.Providers || {};
+            App.Http.Providers.bookings = (id) => {
+                const url = App.Utils.Url.siteUrl('providers/bookings');
+                const data = {
+                    csrf_token: vars('csrf_token'),
+                    provider_id: id,
+                };
+                return $.post(url, data);
+            };
+        }
+
+        $bookingsTableBody.empty();
+        $('<tr/>', {
+            'html': $('<td/>', {
+                'class': 'px-4 py-6 text-center text-slate-500',
+                'colspan': 5,
+                'text': 'Loading...',
+            }),
+        }).appendTo($bookingsTableBody);
+
+        App.Http.Providers.bookings(providerId).then((response) => {
+            renderBookings(Array.isArray(response) ? response : []);
+        });
     }
 
     /**
@@ -399,6 +525,7 @@ App.Pages.Providers = (function () {
         $('#providers .working-plan tbody').empty();
         $('#providers .breaks tbody').empty();
         $('#providers .working-plan-exceptions tbody').empty();
+        renderBookings([]);
         updateProviderSummary();
         setRecordDetailsVisible(false);
     }
@@ -494,6 +621,8 @@ App.Pages.Providers = (function () {
             .find('.edit-working-plan-exception, .delete-working-plan-exception')
             .prop('disabled', true);
         $providers.find('.working-plan input:checkbox').prop('disabled', true);
+
+        loadBookings(provider.id);
     }
 
     /**

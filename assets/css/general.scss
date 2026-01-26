@@ -107,7 +107,7 @@ body .ui-dialog #error-technical {
 }
 
 body .ui-widget.ui-widget-content {
-    border: 1px solid #429a82;
+    border: 1px solid var(--bs-border-color, #e2e8f0);
     padding: 0;
 }
 

@@ -53,7 +53,7 @@ window.App.Layouts.Backend = (function () {
         }
 
         const $toast = $(`
-            <div class="toast fixed bottom-0 end-0 m-4 flex w-full max-w-sm items-center gap-2 rounded-xl border border-slate-200 bg-slate-900/90 p-2 shadow-lg show backend-notification" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast fixed bottom-0 end-0 m-4 flex w-full max-w-sm items-center gap-2 rounded-xl border border-[var(--bs-border-color,#e2e8f0)] bg-slate-900/90 p-2 shadow-lg show backend-notification" role="alert" aria-live="assertive" aria-atomic="true">
                 <div class="toast-body w-100 text-white">
                     ${message}
                 </div>

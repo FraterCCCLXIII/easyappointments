@@ -342,7 +342,7 @@ $web-font-path: 'https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;50
 }
 
 .border-secondary {
-    border: 1px solid #dfdfdf !important;
+    border: 1px solid var(--bs-border-color, #e2e8f0) !important;
 }
 
 // Typography

@@ -55,6 +55,7 @@ App.Pages.Services = (function () {
             event.preventDefault();
             const key = $filterServices.find('.key').val();
             $filterServices.find('.selected').removeClass('selected');
+            filterLimit = 20;
             App.Pages.Services.resetForm();
             App.Pages.Services.filter(key);
         });

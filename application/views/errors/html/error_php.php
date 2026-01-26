@@ -8,7 +8,7 @@
 ?>
 
 <div style="
-    border: 1px solid #dfdfdf; 
+    border: 1px solid var(--bs-border-color, #e2e8f0); 
     margin: 0 0 10px 0; 
     padding: 15px;
     font-size: 14px;

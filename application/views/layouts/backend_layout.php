@@ -40,7 +40,10 @@
     <?php component('backend_header', ['active_menu' => vars('active_menu')]); ?>
 
     <div class="mx-auto w-full max-w-6xl px-4 py-6">
-        <?php if (vars('active_menu') !== PRIV_SYSTEM_SETTINGS): ?>
+        <?php
+        $hide_page_title = in_array(vars('active_menu'), [PRIV_CUSTOMERS, PRIV_USERS, PRIV_SERVICES], true);
+        ?>
+        <?php if (vars('active_menu') !== PRIV_SYSTEM_SETTINGS && !$hide_page_title): ?>
             <h2 class="mb-6 text-left text-2xl font-semibold text-slate-900">
                 <?= e(vars('page_title') ?? lang('backend_section')) ?>
             </h2>

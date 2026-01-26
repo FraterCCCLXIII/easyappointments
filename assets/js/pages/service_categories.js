@@ -44,8 +44,9 @@ App.Pages.ServiceCategories = (function () {
          */
         $serviceCategories.on('submit', '#filter-service-categories form', (event) => {
             event.preventDefault();
-            const key = $('#filter-service-categories .key').val();
-            $('.selected').removeClass('selected');
+            const key = $filterServiceCategories.find('.key').val();
+            $filterServiceCategories.find('.selected').removeClass('selected');
+            filterLimit = 20;
             App.Pages.ServiceCategories.resetForm();
             App.Pages.ServiceCategories.filter(key);
         });

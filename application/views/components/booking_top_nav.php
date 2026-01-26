@@ -6,20 +6,20 @@
  */
 ?>
 
-<nav id="booking-top-nav" class="sticky top-0 z-50 border-b border-slate-200 bg-white/90 backdrop-blur"
+<nav id="booking-top-nav" class="sticky top-0 z-50 border-b border-[var(--bs-border-color,#e2e8f0)] bg-white/90 backdrop-blur"
      aria-label="Booking">
     <div class="flex w-full items-center px-4 py-3">
         <div class="flex w-1/3 items-center justify-start">
             <?php if (vars('page_title') === 'Dashboard' || vars('page_title') === 'Customer Login'): ?>
                 <a href="https://usegoodness.com"
-                   class="inline-flex items-center rounded-xl border border-slate-200 px-3 py-1 text-sm text-slate-600 hover:border-slate-300 hover:text-slate-800">
+                   class="inline-flex items-center rounded-xl border border-[var(--bs-border-color,#e2e8f0)] px-3 py-1 text-sm text-slate-600 hover:border-[var(--bs-border-color,#e2e8f0)] hover:text-slate-800">
                     <i class="fas fa-arrow-left mr-2"
                        style="width: 14px; height: 14px; font-size: 14px; display: inline-flex; align-items: center; justify-content: center;"></i>
                     Return to Site
                 </a>
             <?php else: ?>
                 <a href="<?= site_url('dashboard') ?>" id="top-nav-back-button"
-                   class="inline-flex h-9 items-center rounded-xl border border-slate-200 px-4 py-1 text-base leading-none text-slate-600 hover:border-slate-300 hover:text-slate-800">
+                   class="inline-flex h-9 items-center rounded-xl border border-[var(--bs-border-color,#e2e8f0)] px-4 py-1 text-base leading-none text-slate-600 hover:border-[var(--bs-border-color,#e2e8f0)] hover:text-slate-800">
                     <i class="fas fa-arrow-left mr-2"
                        style="width: 16px; height: 16px; font-size: 16px; display: inline-flex; align-items: center; justify-content: center;"></i>
                     Back
@@ -87,7 +87,7 @@
                                 </a>
                             </li>
                             <li>
-                                <hr class="my-2 border-slate-200">
+                                <hr class="my-2 border-[var(--bs-border-color,#e2e8f0)]">
                             </li>
                             <li class="px-3 py-2">
                                 <small class="mb-1 block text-xs text-slate-500">Language</small>
@@ -101,7 +101,7 @@
                                 </select>
                             </li>
                             <li>
-                                <hr class="my-2 border-slate-200">
+                                <hr class="my-2 border-[var(--bs-border-color,#e2e8f0)]">
                             </li>
                             <li>
                                 <a class="block rounded-md px-3 py-2 text-sm text-slate-600 hover:bg-slate-100"

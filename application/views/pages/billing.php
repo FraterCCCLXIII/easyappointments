@@ -4,7 +4,7 @@
 <div id="billing-page" class="container backend-page">
     <div class="row">
         <div class="col-12">
-            <div class="card bg-white border">
+            <div class="rounded-xl border border-[var(--bs-border-color,#e2e8f0)] bg-white shadow-sm overflow-hidden">
                 <div class="card-body p-0">
                     <table class="table table-hover mb-0">
                         <thead class="bg-light">

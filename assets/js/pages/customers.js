@@ -447,7 +447,7 @@ App.Pages.Customers = (function () {
         });
 
         const $appointmentsWrapper = $('<div/>', {
-            'class': 'overflow-hidden rounded-xl border border-slate-200 bg-white',
+            'class': 'overflow-hidden rounded-xl border border-[var(--bs-border-color,#e2e8f0)] bg-white',
         });
         const $appointmentsTable = $('<table/>', {
             'class': 'w-full text-left text-sm',
@@ -456,7 +456,7 @@ App.Pages.Customers = (function () {
             'class': 'bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-500',
         });
         const $appointmentsBody = $('<tbody/>', {
-            'class': 'divide-y divide-slate-200',
+            'class': 'divide-y divide-[var(--bs-border-color,#e2e8f0)]',
         });
         const $appointmentsHeadRow = $('<tr/>');
 
@@ -510,7 +510,7 @@ App.Pages.Customers = (function () {
             const statusClass = 'bg-emerald-50 text-emerald-700';
 
             $('<tr/>', {
-                'class': 'bg-white border-b border-slate-200 last:border-b-0',
+                'class': 'bg-white border-b border-[var(--bs-border-color,#e2e8f0)] last:border-b-0',
                 'data-id': appointment.id,
                 'html': [
                     $('<td/>', {
@@ -537,7 +537,7 @@ App.Pages.Customers = (function () {
                         'html': $('<a/>', {
                             'href': App.Utils.Url.siteUrl(`calendar/reschedule/${appointment.hash}`),
                             'class':
-                                'customer-appointment-edit inline-flex items-center rounded-xl border border-slate-200 px-3 py-2 text-sm font-semibold text-slate-700 hover:border-slate-300 hover:text-slate-900',
+                                'customer-appointment-edit inline-flex items-center rounded-xl border border-[var(--bs-border-color,#e2e8f0)] px-3 py-2 text-sm font-semibold text-slate-700 hover:border-[var(--bs-border-color,#e2e8f0)] hover:text-slate-900',
                             'text': lang('edit'),
                         }),
                     }),
@@ -546,20 +546,25 @@ App.Pages.Customers = (function () {
 
             // Add to billing history if payment info exists
             if (appointment.payment_status && appointment.payment_status !== 'not-paid') {
+                const paymentStatus = appointment.payment_status.toLowerCase();
+                const paymentBadgeClass =
+                    paymentStatus === 'paid' ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700';
                 $('<tr/>', {
+                    'class': 'bg-white border-b border-[var(--bs-border-color,#e2e8f0)] last:border-b-0',
                     'html': [
                         $('<td/>', {
-                            'class': 'ps-3',
+                            'class': 'px-4 py-3 text-slate-700',
                             'text': moment(appointment.book_datetime).format('YYYY-MM-DD HH:mm'),
                         }),
                         $('<td/>', {
+                            'class': 'px-4 py-3 text-slate-700',
                             'text': Number(appointment.payment_amount).toFixed(2),
                         }),
                         $('<td/>', {
-                            'class': 'pe-3',
+                            'class': 'px-4 py-3',
                             'html': $('<span/>', {
-                                'class': 'badge bg-' + (appointment.payment_status === 'paid' ? 'success' : 'warning'),
-                                'text': appointment.payment_status.charAt(0).toUpperCase() + appointment.payment_status.slice(1),
+                                'class': `inline-flex rounded-full px-3 py-1 text-xs font-semibold ${paymentBadgeClass}`,
+                                'text': paymentStatus.charAt(0).toUpperCase() + paymentStatus.slice(1),
                             }),
                         }),
                     ],
@@ -569,7 +574,7 @@ App.Pages.Customers = (function () {
 
         if (!visibleAppointments) {
             $('<div/>', {
-                'class': 'rounded-xl border border-slate-200 bg-slate-50 px-4 py-6 text-center text-sm text-slate-500',
+                'class': 'rounded-xl border border-[var(--bs-border-color,#e2e8f0)] bg-slate-50 px-4 py-6 text-center text-sm text-slate-500',
                 'text': lang('no_records_found'),
             }).appendTo($customerAppointments);
         } else {
@@ -579,7 +584,9 @@ App.Pages.Customers = (function () {
         $customerAppointments.data('appointmentsById', appointmentsById);
 
         if ($billingHistoryBody.is(':empty')) {
-            $billingHistoryBody.append('<tr><td colspan="3" class="text-center py-3 text-muted">No billing history found.</td></tr>');
+            $billingHistoryBody.append(
+                '<tr><td colspan="3" class="px-4 py-3 text-center text-slate-500">No billing history found.</td></tr>',
+            );
         }
     }
 

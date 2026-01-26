@@ -32,7 +32,7 @@ footer {
     padding: 10px 35px;
     background-color: #fafafa;
     margin-top: 20px;
-    border-top: 1px solid #eee;
+    border-top: 1px solid var(--bs-border-color, #e2e8f0);
 }
 
 #loading {
