@@ -61,6 +61,7 @@ App.Pages.Customers = (function () {
     const $customerVisitNotesList = $('#customer-visit-notes-list');
     const $addCustomerNote = $('#add-customer-note');
     const $summaryName = $('#customer-summary-name');
+    const $summaryId = $('#customer-summary-id');
     const $summaryEmail = $('#customer-summary-email');
     const $summaryPhone = $('#customer-summary-phone');
     const $summaryLocation = $('#customer-summary-location');
@@ -442,6 +443,7 @@ App.Pages.Customers = (function () {
     }
 
     function updateCustomerSummaryFromInputs() {
+        const customerId = $id.val();
         const firstName = $firstName.val();
         const lastName = $lastName.val();
         const email = $email.val();
@@ -455,6 +457,7 @@ App.Pages.Customers = (function () {
 
         const nameParts = [firstName, lastName].filter(Boolean);
         $summaryName.text(nameParts.length ? nameParts.join(' ') : '—');
+        $summaryId.text(`ID: ${customerId || '—'}`);
 
         $summaryEmail.find('.summary-text').text(email || '—');
         $summaryPhone.find('.summary-text').text(phoneNumber || '—');

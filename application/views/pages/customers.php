@@ -72,67 +72,72 @@
 
             <input id="customer-record-id" type="hidden">
 
-            <div class="mb-4 rounded-xl border border-[var(--bs-border-color,#e2e8f0)] bg-white p-4">
-                <div class="text-lg font-semibold text-slate-900" id="customer-summary-name">
-                    —
+            <div class="mb-4 rounded-xl border border-[var(--bs-border-color,#e2e8f0)] overflow-hidden bg-white">
+                <div class="p-4">
+                    <div class="text-lg font-semibold text-slate-900" id="customer-summary-name">
+                        —
+                    </div>
+                    <div class="mt-1 text-sm text-slate-500" id="customer-summary-id">
+                        ID: —
+                    </div>
+                    <div class="mt-3 flex flex-wrap items-center gap-3 text-sm text-slate-700">
+                        <span class="inline-flex items-center gap-2" id="customer-summary-email">
+                            <i class="fas fa-envelope text-slate-400"
+                               style="width: 14px; height: 14px; font-size: 14px; display: inline-flex; align-items: center; justify-content: center;"></i>
+                            <span class="summary-text">—</span>
+                        </span>
+                        <span class="inline-flex items-center gap-2" id="customer-summary-phone">
+                            <i class="fas fa-phone text-slate-400"
+                               style="width: 14px; height: 14px; font-size: 14px; display: inline-flex; align-items: center; justify-content: center;"></i>
+                            <span class="summary-text">—</span>
+                        </span>
+                        <span class="inline-flex items-center gap-2" id="customer-summary-location">
+                            <i class="fas fa-location-dot text-slate-400"
+                               style="width: 14px; height: 14px; font-size: 14px; display: inline-flex; align-items: center; justify-content: center;"></i>
+                            <span class="summary-text">—</span>
+                        </span>
+                    </div>
                 </div>
-                <div class="mt-3 flex flex-wrap items-center gap-3 text-sm text-slate-700">
-                    <span class="inline-flex items-center gap-2" id="customer-summary-email">
-                        <i class="fas fa-envelope text-slate-400"
-                           style="width: 14px; height: 14px; font-size: 14px; display: inline-flex; align-items: center; justify-content: center;"></i>
-                        <span class="summary-text">—</span>
-                    </span>
-                    <span class="inline-flex items-center gap-2" id="customer-summary-phone">
-                        <i class="fas fa-phone text-slate-400"
-                           style="width: 14px; height: 14px; font-size: 14px; display: inline-flex; align-items: center; justify-content: center;"></i>
-                        <span class="summary-text">—</span>
-                    </span>
-                    <span class="inline-flex items-center gap-2" id="customer-summary-location">
-                        <i class="fas fa-location-dot text-slate-400"
-                           style="width: 14px; height: 14px; font-size: 14px; display: inline-flex; align-items: center; justify-content: center;"></i>
-                        <span class="summary-text">—</span>
-                    </span>
+                <div class="border-t border-[var(--bs-border-color,#e2e8f0)]">
+                    <ul class="booking-tab-line-list border-0 bg-transparent shadow-none rounded-none px-4"
+                        id="customer-tabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="booking-tab-line active" id="customer-appointments-tab" data-bs-toggle="pill"
+                                    data-bs-target="#customer-appointments-panel" type="button" role="tab"
+                                    aria-selected="true">
+                                <?= lang('appointments') ?>
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="booking-tab-line" id="customer-billing-tab" data-bs-toggle="pill"
+                                    data-bs-target="#customer-billing-panel" type="button" role="tab"
+                                    aria-selected="false" tabindex="-1">
+                                Billing History
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="booking-tab-line" id="customer-notes-tab" data-bs-toggle="pill"
+                                    data-bs-target="#customer-notes-panel" type="button" role="tab"
+                                    aria-selected="false" tabindex="-1">
+                                <?= lang('notes') ?>
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="booking-tab-line" id="customer-visit-notes-tab" data-bs-toggle="pill"
+                                    data-bs-target="#customer-visit-notes-panel" type="button" role="tab"
+                                    aria-selected="false" tabindex="-1">
+                                Visit Notes
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="booking-tab-line" id="customer-account-tab" data-bs-toggle="pill"
+                                    data-bs-target="#customer-account-panel" type="button" role="tab"
+                                    aria-selected="false" tabindex="-1">
+                                <?= lang('account') ?>
+                            </button>
+                        </li>
+                    </ul>
                 </div>
-            </div>
-
-            <div class="flex w-full">
-                <ul class="booking-tab-line-list" id="customer-tabs" role="tablist">
-                    <li class="nav-item" role="presentation">
-                        <button class="booking-tab-line active" id="customer-appointments-tab" data-bs-toggle="pill"
-                                data-bs-target="#customer-appointments-panel" type="button" role="tab"
-                                aria-selected="true">
-                            <?= lang('appointments') ?>
-                        </button>
-                    </li>
-                    <li class="nav-item" role="presentation">
-                        <button class="booking-tab-line" id="customer-billing-tab" data-bs-toggle="pill"
-                                data-bs-target="#customer-billing-panel" type="button" role="tab"
-                                aria-selected="false" tabindex="-1">
-                            Billing History
-                        </button>
-                    </li>
-                    <li class="nav-item" role="presentation">
-                        <button class="booking-tab-line" id="customer-notes-tab" data-bs-toggle="pill"
-                                data-bs-target="#customer-notes-panel" type="button" role="tab"
-                                aria-selected="false" tabindex="-1">
-                            <?= lang('notes') ?>
-                        </button>
-                    </li>
-                    <li class="nav-item" role="presentation">
-                        <button class="booking-tab-line" id="customer-visit-notes-tab" data-bs-toggle="pill"
-                                data-bs-target="#customer-visit-notes-panel" type="button" role="tab"
-                                aria-selected="false" tabindex="-1">
-                            Visit Notes
-                        </button>
-                    </li>
-                    <li class="nav-item" role="presentation">
-                        <button class="booking-tab-line" id="customer-account-tab" data-bs-toggle="pill"
-                                data-bs-target="#customer-account-panel" type="button" role="tab"
-                                aria-selected="false" tabindex="-1">
-                            <?= lang('account') ?>
-                        </button>
-                    </li>
-                </ul>
             </div>
 
             <div class="tab-content mt-6 w-full" id="customer-tabs-content">
