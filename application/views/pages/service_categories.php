@@ -6,8 +6,14 @@
 
     <div class="row" id="service-categories">
         <div id="filter-service-categories" class="filter-records column col-12 col-md-5 backend-sticky-panel">
-            <form class="input-append mb-4">
-                <div class="input-group">
+            <h2 class="mb-6 text-left text-2xl font-semibold text-slate-900">
+                <?= lang('service_categories') ?>
+            </h2>
+
+            <?php slot('after_page_title'); ?>
+
+            <form class="mb-4">
+                <div class="input-group mb-3">
                     <input type="text" class="key form-control" aria-label="keyword">
 
                     <button class="filter btn btn-outline-secondary" type="submit"
@@ -23,12 +29,6 @@
                     <?= lang('add') ?>
                 </button>
             </div>
-
-            <h4 class="text-black-50 mb-3 fw-light">
-                <?= lang('service_categories') ?>
-            </h4>
-
-            <?php slot('after_page_title'); ?>
 
             <div class="results">
                 <!-- JS -->

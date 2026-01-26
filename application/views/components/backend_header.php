@@ -12,10 +12,10 @@ $nav_link_base = 'inline-flex items-center rounded-lg px-3 py-2 text-sm font-med
 $nav_link_inactive = $nav_link_base . ' text-slate-600 hover:bg-slate-100 hover:text-slate-900';
 $nav_link_active = $nav_link_base . ' bg-slate-100 text-slate-900';
 $dropdown_item_class = 'block rounded-lg px-3 py-2 text-sm normal-case text-slate-600 hover:bg-slate-100 hover:text-slate-900';
-$dropdown_menu_class = 'dropdown-menu dropdown-menu-end absolute right-0 top-full z-50 mt-2 w-56 rounded-xl border border-slate-200 bg-white p-2 shadow-lg';
+$dropdown_menu_class = 'dropdown-menu dropdown-menu-end absolute right-0 top-full z-50 mt-2 w-56 rounded-xl border border-[var(--bs-border-color,#e2e8f0)] bg-white p-2 shadow-lg';
 ?>
 
-<nav id="header" class="sticky top-0 z-40 border-b border-slate-200 bg-white">
+<nav id="header" class="sticky top-0 z-40 border-b border-[var(--bs-border-color,#e2e8f0)] bg-white">
     <div class="mx-auto w-full px-4 py-3 backend-header-grid">
         <a id="header-logo" href="<?= site_url('dashboard') ?>" class="flex items-center text-slate-900">
             <svg role="img" aria-label="<?= e(setting('company_name')) ?>" xmlns="http://www.w3.org/2000/svg"
@@ -162,6 +162,11 @@ $dropdown_menu_class = 'dropdown-menu dropdown-menu-end absolute right-0 top-ful
                             <a class="<?= $dropdown_item_class ?>" href="<?= site_url('account') ?>">
                                 <?= lang('account') ?>
                             </a>
+                            <?php if (can('view', PRIV_SYSTEM_SETTINGS)): ?>
+                                <a class="<?= $dropdown_item_class ?>" href="<?= site_url('components') ?>">
+                                    Components
+                                </a>
+                            <?php endif; ?>
                             <a class="<?= $dropdown_item_class ?>" href="<?= site_url('about') ?>">
                                 <?= lang('about') ?>
                             </a>
@@ -171,13 +176,13 @@ $dropdown_menu_class = 'dropdown-menu dropdown-menu-end absolute right-0 top-ful
                             <div class="px-3 py-2">
                                 <small class="mb-2 block text-xs text-slate-500">Language</small>
                                 <button id="select-language" type="button"
-                                        class="inline-flex w-full items-center justify-between rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-600 hover:border-slate-300 hover:text-slate-900">
+                                        class="inline-flex w-full items-center justify-between rounded-lg border border-[var(--bs-border-color,#e2e8f0)] px-3 py-2 text-sm text-slate-600 hover:border-[var(--bs-border-color,#e2e8f0)] hover:text-slate-900">
                                     <?= ucfirst(config('language')) ?>
                                     <i class="fas fa-chevron-down"
                                        style="width: 10px; height: 10px; font-size: 10px; display: inline-flex; align-items: center; justify-content: center;"></i>
                                 </button>
                             </div>
-                            <div class="my-2 border-t border-slate-200"></div>
+                            <div class="my-2 border-t border-[var(--bs-border-color,#e2e8f0)]"></div>
                             <a class="<?= $dropdown_item_class ?>" href="<?= site_url('logout') ?>">
                                 <?= lang('log_out') ?>
                             </a>

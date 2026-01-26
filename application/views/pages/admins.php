@@ -5,8 +5,14 @@
 <div class="container-fluid backend-page" id="admins-page">
     <div class="row" id="admins">
         <div id="filter-admins" class="filter-records column col-12 col-md-5 backend-sticky-panel">
+            <h2 class="mb-6 text-left text-2xl font-semibold text-slate-900">
+                <?= lang('admins') ?>
+            </h2>
+
+            <?php slot('after_page_title'); ?>
+
             <form class="mb-4">
-                <div class="input-group">
+                <div class="input-group mb-3">
                     <input type="text" class="key form-control" aria-label="keyword">
 
                     <button class="filter btn btn-outline-secondary" type="submit"
@@ -22,12 +28,6 @@
                     <?= lang('add') ?>
                 </button>
             </div>
-
-            <h4 class="text-black-50 mb-3 fw-light">
-                <?= lang('admins') ?>
-            </h4>
-
-            <?php slot('after_page_title'); ?>
 
             <div class="results">
                 <!-- JS -->
@@ -62,7 +62,7 @@
 
             <input type="hidden" id="id" class="record-id">
 
-            <div class="mb-4 rounded-xl border border-slate-200 bg-white p-4">
+            <div class="mb-4 rounded-xl border border-[var(--bs-border-color,#e2e8f0)] bg-white p-4">
                 <div class="text-lg font-semibold text-slate-900" id="admin-summary-name">
                     —
                 </div>

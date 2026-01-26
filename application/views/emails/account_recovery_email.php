@@ -13,7 +13,7 @@
 </head>
 <body style="font: 13px arial, helvetica, tahoma;">
 
-<div class="email-container" style="width: 650px; border: 1px solid #eee; margin: 30px auto;">
+<div class="email-container" style="width: 650px; border: 1px solid var(--bs-border-color, #e2e8f0); margin: 30px auto;">
     <div id="header"
          style="background-color: <?= $settings['company_color'] ?? '#429a82' ?>; height: 45px; padding: 10px 15px;">
         <strong id="logo" style="color: white; font-size: 20px; margin-top: 10px; display: inline-block">
@@ -31,7 +31,7 @@
     </div>
 
     <div id="footer" style="padding: 10px; text-align: center; margin-top: 10px;
-                border-top: 1px solid #EEE; background: #FAFAFA;">
+                border-top: 1px solid var(--bs-border-color, #e2e8f0); background: #FAFAFA;">
         Powered by
         <a href="https://easyappointments.org" style="text-decoration: none;">
             Easy!Appointments

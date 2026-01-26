@@ -1167,7 +1167,7 @@ App.Pages.Booking = (function () {
             : serviceOptionText;
 
         $('#appointment-details').html(`
-            <div class="rounded-xl border border-slate-200 bg-slate-50 p-4 text-left">
+            <div class="rounded-xl border border-[var(--bs-border-color,#e2e8f0)] bg-slate-50 p-4 text-left">
                 <div class="space-y-2">
                     <div class="text-xl font-semibold text-slate-900">
                         ${serviceHeadline}
@@ -1214,7 +1214,7 @@ App.Pages.Booking = (function () {
         }
 
         $('#customer-details').html(`
-            <div class="rounded-xl border border-slate-200 bg-slate-50 p-4 text-left">
+            <div class="rounded-xl border border-[var(--bs-border-color,#e2e8f0)] bg-slate-50 p-4 text-left">
                 <div class="space-y-2">
                     <div class="text-xl font-semibold text-slate-900">
                         ${lang('contact_info')}

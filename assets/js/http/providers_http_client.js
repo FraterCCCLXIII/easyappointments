@@ -122,6 +122,24 @@ App.Http.Providers = (function () {
         return $.post(url, data);
     }
 
+    /**
+     * Get provider bookings.
+     *
+     * @param {Number} providerId
+     *
+     * @return {Object}
+     */
+    function bookings(providerId) {
+        const url = App.Utils.Url.siteUrl('providers/bookings');
+
+        const data = {
+            csrf_token: vars('csrf_token'),
+            provider_id: providerId,
+        };
+
+        return $.post(url, data);
+    }
+
     return {
         save,
         store,
@@ -129,5 +147,6 @@ App.Http.Providers = (function () {
         destroy,
         search,
         find,
+        bookings,
     };
 })();

@@ -145,6 +145,27 @@ class Booking extends EA_Controller
             'page_title' => lang('booking_complete'),
         ]);
 
+        $session_id = request('session_id');
+        $appointment = $results[0];
+
+        if ($session_id && $this->stripe_gateway->is_enabled()) {
+            try {
+                $session = $this->stripe_gateway->retrieve_checkout_session($session_id);
+
+                $matches_appointment =
+                    (string)$session->client_reference_id === (string)$appointment['id'] ||
+                    (($session->metadata->appointment_hash ?? '') === $appointment_hash);
+
+                if ($matches_appointment && ($session->payment_status ?? '') === 'paid') {
+                    $appointment['payment_status'] = 'paid';
+                    $appointment['stripe_payment_intent_id'] = $session->payment_intent ?? null;
+                    $this->appointments_model->save($appointment);
+                }
+            } catch (Throwable $e) {
+                log_message('error', 'Stripe Payment Success Error: ' . $e->getMessage());
+            }
+        }
+
         $this->load->view('pages/booking_success');
     }
 
@@ -582,23 +603,39 @@ class Booking extends EA_Controller
                 'time_format' => setting('time_format'),
             ];
 
-            $this->synchronization->sync_appointment_saved($appointment, $service, $provider, $customer, $settings);
-
-            $this->notifications->notify_appointment_saved(
-                $appointment,
-                $service,
-                $provider,
-                $customer,
-                $settings,
-                $manage_mode,
-            );
-
-            $this->webhooks_client->trigger(WEBHOOK_APPOINTMENT_SAVE, $appointment);
-
             $response = [
                 'appointment_id' => $appointment['id'],
                 'appointment_hash' => $appointment['hash'],
             ];
+
+            $requires_payment =
+                !$manage_mode &&
+                $this->stripe_gateway->is_enabled() &&
+                !empty($service['price']) &&
+                (float)$service['price'] > 0;
+
+            if ($requires_payment) {
+                $appointment['payment_amount'] = (float)$service['price'];
+                $appointment['payment_status'] = 'pending';
+                $this->appointments_model->save($appointment);
+                $appointment = $this->appointments_model->find($appointment_id);
+
+                $session = $this->stripe_gateway->create_checkout_session($appointment, $service, $customer);
+                $response['stripe_checkout_url'] = $session->url;
+            } else {
+                $this->synchronization->sync_appointment_saved($appointment, $service, $provider, $customer, $settings);
+
+                $this->notifications->notify_appointment_saved(
+                    $appointment,
+                    $service,
+                    $provider,
+                    $customer,
+                    $settings,
+                    $manage_mode,
+                );
+
+                $this->webhooks_client->trigger(WEBHOOK_APPOINTMENT_SAVE, $appointment);
+            }
 
             json_response($response);
         } catch (Throwable $e) {

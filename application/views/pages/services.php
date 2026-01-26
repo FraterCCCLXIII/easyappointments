@@ -4,9 +4,15 @@
 
 <div class="container-fluid backend-page" id="services-page">
     <div class="row" id="services">
-        <div id="filter-services" class="filter-records col col-12 col-md-5 backend-sticky-panel">
+        <div id="filter-services" class="filter-records column col-12 col-md-5 backend-sticky-panel">
+            <h2 class="mb-6 text-left text-2xl font-semibold text-slate-900">
+                <?= lang('services') ?>
+            </h2>
+
+            <?php slot('after_page_title'); ?>
+
             <form class="mb-4">
-                <div class="input-group">
+                <div class="input-group mb-3">
                     <input type="text" class="key form-control" aria-label="keyword">
 
                     <button class="filter btn btn-outline-secondary" type="submit"
@@ -22,12 +28,6 @@
                     <?= lang('add') ?>
                 </button>
             </div>
-
-            <h4 class="text-black-50 mb-3 fw-light">
-                <?= lang('services') ?>
-            </h4>
-
-            <?php slot('after_page_title'); ?>
 
             <div class="results">
                 <!-- JS -->

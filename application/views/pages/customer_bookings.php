@@ -39,11 +39,11 @@
 
             <div class="tab-pane fade show active" id="current" role="tabpanel">
                 <?php if (empty($current_appointments)): ?>
-                    <div class="rounded-xl border border-slate-200 bg-slate-50 px-4 py-6 text-center text-sm text-slate-500">
+                    <div class="rounded-xl border border-[var(--bs-border-color,#e2e8f0)] bg-slate-50 px-4 py-6 text-center text-sm text-slate-500">
                         You have no upcoming appointments.
                     </div>
                 <?php else: ?>
-                    <div class="overflow-hidden rounded-xl border border-slate-200">
+                    <div class="overflow-hidden rounded-xl border border-[var(--bs-border-color,#e2e8f0)]">
                         <table class="w-full text-left text-sm">
                             <thead class="bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-500">
                             <tr>
@@ -54,14 +54,14 @@
                                 <th class="px-4 py-3 text-right"></th>
                             </tr>
                             </thead>
-                            <tbody class="divide-y divide-slate-200">
+                            <tbody class="divide-y divide-[var(--bs-border-color,#e2e8f0)]">
                             <?php foreach ($current_appointments as $row): ?>
                                 <?php
                                 $appointment = $row['appointment'];
                                 $service = $row['service'];
                                 $provider = $row['provider'];
                                 ?>
-                                <tr class="bg-white border-b border-slate-200 last:border-b-0">
+                                <tr class="bg-white border-b border-[var(--bs-border-color,#e2e8f0)] last:border-b-0">
                                     <td class="px-4 py-3 font-semibold text-slate-900"><?= e($service['name'] ?? '-') ?></td>
                                     <td class="px-4 py-3 text-slate-700">
                                         <?= e(($provider['first_name'] ?? '') . ' ' . ($provider['last_name'] ?? '')) ?>
@@ -76,7 +76,7 @@
                                     </td>
                                     <td class="px-4 py-3 text-right">
                                         <a href="<?= site_url('booking/reschedule/' . $appointment['hash']) ?>"
-                                           class="inline-flex items-center rounded-xl border border-slate-200 px-3 py-2 text-sm font-semibold text-slate-700 hover:border-slate-300 hover:text-slate-900">
+                                           class="inline-flex items-center rounded-xl border border-[var(--bs-border-color,#e2e8f0)] px-3 py-2 text-sm font-semibold text-slate-700 hover:border-[var(--bs-border-color,#e2e8f0)] hover:text-slate-900">
                                             Edit
                                         </a>
                                     </td>
@@ -90,11 +90,11 @@
 
             <div class="tab-pane fade" id="past" role="tabpanel">
                 <?php if (empty($past_appointments)): ?>
-                    <div class="rounded-xl border border-slate-200 bg-slate-50 px-4 py-6 text-center text-sm text-slate-500">
+                    <div class="rounded-xl border border-[var(--bs-border-color,#e2e8f0)] bg-slate-50 px-4 py-6 text-center text-sm text-slate-500">
                         You have no past appointments.
                     </div>
                 <?php else: ?>
-                    <div class="overflow-hidden rounded-xl border border-slate-200">
+                    <div class="overflow-hidden rounded-xl border border-[var(--bs-border-color,#e2e8f0)]">
                         <table class="w-full text-left text-sm">
                             <thead class="bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-500">
                             <tr>
@@ -104,14 +104,14 @@
                                 <th class="px-4 py-3">Status</th>
                             </tr>
                             </thead>
-                            <tbody class="divide-y divide-slate-200">
+                            <tbody class="divide-y divide-[var(--bs-border-color,#e2e8f0)]">
                             <?php foreach ($past_appointments as $row): ?>
                                 <?php
                                 $appointment = $row['appointment'];
                                 $service = $row['service'];
                                 $provider = $row['provider'];
                                 ?>
-                                <tr class="bg-white border-b border-slate-200 last:border-b-0">
+                                <tr class="bg-white border-b border-[var(--bs-border-color,#e2e8f0)] last:border-b-0">
                                     <td class="px-4 py-3 font-semibold text-slate-900"><?= e($service['name'] ?? '-') ?></td>
                                     <td class="px-4 py-3 text-slate-700">
                                         <?= e(($provider['first_name'] ?? '') . ' ' . ($provider['last_name'] ?? '')) ?>

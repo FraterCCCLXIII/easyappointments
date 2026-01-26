@@ -68,7 +68,9 @@ class Providers extends EA_Controller
     {
         parent::__construct();
 
+        $this->load->model('appointments_model');
         $this->load->model('providers_model');
+        $this->load->model('secretaries_model');
         $this->load->model('services_model');
         $this->load->model('roles_model');
 
@@ -156,6 +158,88 @@ class Providers extends EA_Controller
             $providers = $this->providers_model->search($keyword, $limit, $offset, $order_by);
 
             json_response($providers);
+        } catch (Throwable $e) {
+            json_exception($e);
+        }
+    }
+
+    /**
+     * Get provider bookings list.
+     */
+    public function bookings(): void
+    {
+        try {
+            if (cannot('view', PRIV_APPOINTMENTS)) {
+                abort(403, 'Forbidden');
+            }
+
+            $provider_id = (int) request('provider_id');
+
+            if (!$provider_id) {
+                abort(400, 'Bad Request');
+            }
+
+            $user_id = session('user_id');
+            $role_slug = session('role_slug');
+
+            if ($role_slug === DB_SLUG_PROVIDER && $provider_id !== (int) $user_id) {
+                abort(403, 'Forbidden');
+            }
+
+            if ($role_slug === DB_SLUG_SECRETARY) {
+                $provider_ids = $this->secretaries_model->find($user_id)['providers'];
+
+                if (!in_array($provider_id, $provider_ids)) {
+                    abort(403, 'Forbidden');
+                }
+            }
+
+            $appointments = $this->appointments_model
+                ->query()
+                ->select(
+                    'appointments.*,
+                    services.name AS service_name,
+                    providers.first_name AS provider_first_name,
+                    providers.last_name AS provider_last_name,
+                    customers.first_name AS customer_first_name,
+                    customers.last_name AS customer_last_name',
+                )
+                ->join('services', 'services.id = appointments.id_services', 'left')
+                ->join('users AS providers', 'providers.id = appointments.id_users_provider', 'left')
+                ->join('users AS customers', 'customers.id = appointments.id_users_customer', 'left')
+                ->where('appointments.is_unavailability', false)
+                ->where('appointments.id_users_provider', $provider_id)
+                ->order_by('appointments.start_datetime', 'DESC')
+                ->limit(50)
+                ->get()
+                ->result_array();
+
+            $response = [];
+
+            foreach ($appointments as $appointment) {
+                $provider_name = trim(
+                    ($appointment['provider_first_name'] ?? '') . ' ' . ($appointment['provider_last_name'] ?? ''),
+                );
+                $customer_first_name = $appointment['customer_first_name'] ?? null;
+                $customer_last_name = $appointment['customer_last_name'] ?? null;
+                $customer_name = trim(($customer_first_name ?? '') . ' ' . ($customer_last_name ?? ''));
+
+                $response[] = [
+                    'id' => $appointment['id'],
+                    'provider_id' => $appointment['id_users_provider'] ?? null,
+                    'customer_id' => $appointment['id_users_customer'] ?? null,
+                    'start_datetime' => $appointment['start_datetime'],
+                    'status' => $appointment['status'],
+                    'hash' => $appointment['hash'],
+                    'service_name' => $appointment['service_name'] ?? null,
+                    'provider_name' => $provider_name ?: null,
+                    'customer_name' => $customer_name ?: null,
+                    'customer_first_name' => $customer_first_name,
+                    'customer_last_name' => $customer_last_name,
+                ];
+            }
+
+            json_response($response);
         } catch (Throwable $e) {
             json_exception($e);
         }

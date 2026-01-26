@@ -51,21 +51,29 @@ class Stripe_gateway
     {
         $currency = setting('stripe_currency', 'USD');
         
+        $product_data = [
+            'name' => $service['name'],
+        ];
+
+        $service_description = trim((string)($service['description'] ?? ''));
+
+        if ($service_description !== '') {
+            $product_data['description'] = $service_description;
+        }
+
         $session_data = [
             'payment_method_types' => ['card'],
             'line_items' => [[
                 'price_data' => [
                     'currency' => $currency,
-                    'product_data' => [
-                        'name' => $service['name'],
-                        'description' => $service['description'] ?? '',
-                    ],
+                    'product_data' => $product_data,
                     'unit_amount' => (int)($service['price'] * 100), // Stripe expects cents
                 ],
                 'quantity' => 1,
             ]],
             'mode' => 'payment',
-            'success_url' => site_url('booking/payment_success/' . $appointment['hash']),
+            'success_url' => site_url('booking/payment_success/' . $appointment['hash']) .
+                '?session_id={CHECKOUT_SESSION_ID}',
             'cancel_url' => site_url('booking/payment_cancel/' . $appointment['hash']),
             'client_reference_id' => $appointment['id'],
             'customer_email' => $customer['email'],
@@ -108,5 +116,16 @@ class Stripe_gateway
             'customer' => $stripe_customer_id,
             'return_url' => site_url('customer/account'),
         ]);
+    }
+
+    /**
+     * Retrieve a Stripe Checkout session.
+     *
+     * @param string $session_id
+     * @return Session
+     */
+    public function retrieve_checkout_session(string $session_id): Session
+    {
+        return $this->stripe->checkout->sessions->retrieve($session_id, []);
     }
 }

@@ -4,7 +4,13 @@
 
 <div class="container-fluid backend-page" id="customers-page">
     <div class="row" id="customers">
-        <div id="filter-customers" class="filter-records backend-sticky-panel col col-12 col-md-5">
+        <div id="filter-customers" class="filter-records column col-12 col-md-5 backend-sticky-panel">
+            <h2 class="mb-6 text-left text-2xl font-semibold text-slate-900">
+                <?= lang('customers') ?>
+            </h2>
+
+            <?php slot('after_page_title'); ?>
+
             <form class="mb-4">
                 <div class="input-group mb-3">
                     <input type="text" class="key form-control" aria-label="keyword">
@@ -27,12 +33,6 @@
                     </button>
                 </div>
             <?php endif; ?>
-
-            <h4 class="text-black-50 mb-3 fw-light">
-                <?= lang('customers') ?>
-            </h4>
-
-            <?php slot('after_page_title'); ?>
 
             <div class="results">
                 <!-- JS -->
@@ -72,7 +72,7 @@
 
             <input id="customer-record-id" type="hidden">
 
-            <div class="mb-4 rounded-xl border border-slate-200 bg-white p-4">
+            <div class="mb-4 rounded-xl border border-[var(--bs-border-color,#e2e8f0)] bg-white p-4">
                 <div class="text-lg font-semibold text-slate-900" id="customer-summary-name">
                     —
                 </div>
@@ -128,17 +128,17 @@
                 </div>
                 <div class="tab-pane fade" id="customer-billing-panel" role="tabpanel"
                      aria-labelledby="customer-billing-tab">
-                    <div id="customer-billing" class="card w-full bg-white border">
-                        <div class="card-body p-0">
-                            <table class="table table-sm mb-0">
-                                <thead>
+                    <div id="customer-billing" class="w-full overflow-hidden rounded-xl border border-[var(--bs-border-color,#e2e8f0)] bg-white">
+                        <div class="p-0">
+                            <table class="w-full text-left text-sm">
+                                <thead class="bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-500">
                                     <tr>
-                                        <th class="ps-3"><?= lang('date') ?></th>
-                                        <th><?= lang('amount') ?></th>
-                                        <th class="pe-3"><?= lang('status') ?></th>
+                                        <th class="px-4 py-3"><?= lang('date') ?></th>
+                                        <th class="px-4 py-3"><?= lang('amount') ?></th>
+                                        <th class="px-4 py-3"><?= lang('status') ?></th>
                                     </tr>
                                 </thead>
-                                <tbody id="billing-history-body">
+                                <tbody id="billing-history-body" class="divide-y divide-[var(--bs-border-color,#e2e8f0)]">
                                     <!-- JS -->
                                 </tbody>
                             </table>

@@ -5,8 +5,14 @@
 <div class="container-fluid backend-page" id="providers-page">
     <div class="row" id="providers">
         <div id="filter-providers" class="filter-records column col-12 col-md-5 backend-sticky-panel">
+            <h2 class="mb-6 text-left text-2xl font-semibold text-slate-900">
+                <?= lang('providers') ?>
+            </h2>
+
+            <?php slot('after_page_title'); ?>
+
             <form class="mb-4">
-                <div class="input-group">
+                <div class="input-group mb-3">
                     <input type="text" class="key form-control" aria-label="keyword">
 
                     <button class="filter btn btn-outline-secondary" type="submit"
@@ -22,12 +28,6 @@
                     <?= lang('add') ?>
                 </button>
             </div>
-
-            <h4 class="text-black-50 mb-3 fw-light">
-                <?= lang('providers') ?>
-            </h4>
-
-            <?php slot('after_page_title'); ?>
 
             <div class="results">
                 <!-- JS -->
@@ -60,7 +60,7 @@
                 <?php slot('after_page_actions'); ?>
             </div>
 
-            <div class="mb-4 rounded-xl border border-slate-200 bg-white p-4">
+            <div class="mb-4 rounded-xl border border-[var(--bs-border-color,#e2e8f0)] bg-white p-4">
                 <div class="text-lg font-semibold text-slate-900" id="provider-summary-name">
                     —
                 </div>
@@ -86,8 +86,15 @@
             <div class="flex w-full">
                 <ul class="booking-tab-line-list" id="provider-tabs" role="tablist">
                     <li class="nav-item" role="presentation">
-                        <button class="booking-tab-line active" id="provider-details-tab" data-bs-toggle="pill"
-                                data-bs-target="#details" type="button" role="tab" aria-selected="true">
+                        <button class="booking-tab-line active" id="provider-bookings-tab" data-bs-toggle="pill"
+                                data-bs-target="#provider-bookings" type="button" role="tab" aria-selected="true">
+                            <?= lang('appointments') ?>
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="booking-tab-line" id="provider-details-tab" data-bs-toggle="pill"
+                                data-bs-target="#details" type="button" role="tab" aria-selected="false"
+                                tabindex="-1">
                             <?= lang('details') ?>
                         </button>
                     </li>
@@ -109,170 +116,195 @@
             <div class="form-message alert" style="display:none;"></div>
 
             <div class="tab-content mt-6 w-full">
-                <div class="details-view tab-pane fade show active clearfix" id="details">
+                <div class="details-view tab-pane fade clearfix" id="details">
                     <input type="hidden" id="id" class="record-id">
 
                     <div class="row">
-                        <div class="details col-12 col-md-6">
-                            <div class="mb-3">
-                                <label class="form-label" for="first-name">
-                                    <?= lang('first_name') ?>
-                                    <span class="text-danger" hidden>*</span>
-                                </label>
-                                <input id="first-name" class="form-control required" maxlength="256" disabled>
+                        <div class="details col-12">
+                            <div class="mb-4 rounded border p-3">
+                                <h6 class="mb-3 fw-semibold text-muted text-uppercase small">
+                                    <?= lang('contact_info') ?>
+                                </h6>
+
+                                <div class="mb-3">
+                                    <label class="form-label" for="first-name">
+                                        <?= lang('first_name') ?>
+                                        <span class="text-danger" hidden>*</span>
+                                    </label>
+                                    <input id="first-name" class="form-control required" maxlength="256" disabled>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label" for="last-name">
+                                        <?= lang('last_name') ?>
+                                        <span class="text-danger" hidden>*</span>
+                                    </label>
+                                    <input id="last-name" class="form-control required" maxlength="512" disabled>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label" for="email">
+                                        <?= lang('email') ?>
+                                        <span class="text-danger" hidden>*</span>
+                                    </label>
+                                    <input id="email" class="form-control required" max="512" disabled>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label" for="phone-number">
+                                        <?= lang('phone_number') ?>
+                                        <span class="text-danger" hidden>*</span>
+                                    </label>
+                                    <input id="phone-number" class="form-control required" max="128" disabled>
+                                </div>
+
+                                <div class="mb-0">
+                                    <label class="form-label" for="mobile-number">
+                                        <?= lang('mobile_number') ?>
+                                    </label>
+                                    <input id="mobile-number" class="form-control" maxlength="128" disabled>
+                                </div>
                             </div>
 
-                            <div class="mb-3">
-                                <label class="form-label" for="last-name">
-                                    <?= lang('last_name') ?>
-                                    <span class="text-danger" hidden>*</span>
-                                </label>
-                                <input id="last-name" class="form-control required" maxlength="512" disabled>
-                            </div>
-
-                            <div class="mb-3">
-                                <label class="form-label" for="email">
-                                    <?= lang('email') ?>
-                                    <span class="text-danger" hidden>*</span>
-                                </label>
-                                <input id="email" class="form-control required" max="512" disabled>
-                            </div>
-
-                            <div class="mb-3">
-                                <label class="form-label" for="phone-number">
-                                    <?= lang('phone_number') ?>
-                                    <span class="text-danger" hidden>*</span>
-                                </label>
-                                <input id="phone-number" class="form-control required" max="128" disabled>
-                            </div>
-
-                            <div class="mb-3">
-                                <label class="form-label" for="mobile-number">
-                                    <?= lang('mobile_number') ?>
-
-                                </label>
-                                <input id="mobile-number" class="form-control" maxlength="128" disabled>
-                            </div>
-
-                            <div class="mb-3">
-                                <label class="form-label" for="address">
+                            <div class="mb-4 rounded border p-3">
+                                <h6 class="mb-3 fw-semibold text-muted text-uppercase small">
                                     <?= lang('address') ?>
-                                </label>
-                                <input id="address" class="form-control" maxlength="256" disabled>
+                                </h6>
+
+                                <div class="mb-3">
+                                    <label class="form-label" for="address">
+                                        <?= lang('address') ?>
+                                    </label>
+                                    <input id="address" class="form-control" maxlength="256" disabled>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label" for="city">
+                                        <?= lang('city') ?>
+                                    </label>
+                                    <input id="city" class="form-control" maxlength="256" disabled>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label" for="state">
+                                        <?= lang('state') ?>
+                                    </label>
+                                    <input id="state" class="form-control" maxlength="256" disabled>
+                                </div>
+
+                                <div class="mb-0">
+                                    <label class="form-label" for="zip-code">
+                                        <?= lang('zip_code') ?>
+                                    </label>
+                                    <input id="zip-code" class="form-control" maxlength="64" disabled>
+                                </div>
                             </div>
 
-                            <div class="mb-3">
-                                <label class="form-label" for="city">
-                                    <?= lang('city') ?>
-
-                                </label>
-                                <input id="city" class="form-control" maxlength="256" disabled>
-                            </div>
-
-                            <div class="mb-3">
-                                <label class="form-label" for="state">
-                                    <?= lang('state') ?>
-                                </label>
-                                <input id="state" class="form-control" maxlength="256" disabled>
-                            </div>
-
-                            <div class="mb-3">
-                                <label class="form-label" for="zip-code">
-                                    <?= lang('zip_code') ?>
-
-                                </label>
-                                <input id="zip-code" class="form-control" maxlength="64" disabled>
-                            </div>
-
-                            <div class="mb-3">
-                                <label class="form-label" for="notes">
+                            <div class="mb-3 rounded border p-3">
+                                <h6 class="mb-3 fw-semibold text-muted text-uppercase small">
                                     <?= lang('notes') ?>
-                                </label>
-                                <textarea id="notes" class="form-control" rows="3" disabled></textarea>
+                                </h6>
+
+                                <div class="mb-0">
+                                    <label class="form-label" for="notes">
+                                        <?= lang('notes') ?>
+                                    </label>
+                                    <textarea id="notes" class="form-control" rows="3" disabled></textarea>
+                                </div>
                             </div>
 
                             <?php slot('after_primary_fields'); ?>
                         </div>
-                        <div class="settings col-12 col-md-6">
-                            <div class="mb-3">
-                                <label class="form-label" for="username">
-                                    <?= lang('username') ?>
-                                    <span class="text-danger" hidden>*</span>
-                                </label>
-                                <input id="username" class="form-control required" maxlength="256" disabled>
-                            </div>
+                        <div class="settings col-12 mt-4">
+                            <div class="mb-4 rounded border p-3">
+                                <h6 class="mb-3 fw-semibold text-muted text-uppercase small">
+                                    <?= lang('account') ?>
+                                </h6>
 
-                            <div class="mb-3">
-                                <label class="form-label" for="password">
-                                    <?= lang('password') ?>
-                                    <span class="text-danger" hidden>*</span>
-                                </label>
-                                <input type="password" id="password" class="form-control required"
-                                       maxlength="512" autocomplete="new-password" disabled>
-                            </div>
-
-                            <div class="mb-3">
-                                <label class="form-label" for="password-confirm">
-                                    <?= lang('retype_password') ?>
-                                    <span class="text-danger" hidden>*</span>
-                                </label>
-                                <input type="password" id="password-confirm"
-                                       class="form-control required" maxlength="512"
-                                       autocomplete="new-password" disabled>
-                            </div>
-
-                            <div class="mb-3">
-                                <label class="form-label" for="calendar-view">
-                                    <?= lang('calendar') ?>
-                                    <span class="text-danger" hidden>*</span>
-                                </label>
-                                <select id="calendar-view" class="form-select required" disabled>
-                                    <option value="default"><?= lang('default') ?></option>
-                                    <option value="table"><?= lang('table') ?></option>
-                                </select>
-                            </div>
-
-                            <div class="mb-3">
-                                <label class="form-label" for="language">
-                                    <?= lang('language') ?>
-                                    <span class="text-danger" hidden>*</span>
-                                </label>
-                                <select id="language" class="form-select required" disabled>
-                                    <?php foreach (vars('available_languages') as $available_language): ?>
-                                        <option value="<?= $available_language ?>">
-                                            <?= ucfirst($available_language) ?>
-                                        </option>
-                                    <?php endforeach; ?>
-                                </select>
-                            </div>
-
-                            <div class="mb-3">
-                                <label class="form-label" for="timezone">
-                                    <?= lang('timezone') ?>
-                                    <span class="text-danger" hidden>*</span>
-                                </label>
-                                <?php component('timezone_dropdown', [
-                                    'attributes' => 'id="timezone" class="form-control required" disabled',
-                                    'grouped_timezones' => vars('grouped_timezones'),
-                                ]); ?>
-                            </div>
-
-                            <?php if (setting('ldap_is_active')): ?>
                                 <div class="mb-3">
-                                    <label for="ldap-dn" class="form-label">
-                                        <?= lang('ldap_dn') ?>
+                                    <label class="form-label" for="username">
+                                        <?= lang('username') ?>
+                                        <span class="text-danger" hidden>*</span>
                                     </label>
-                                    <input type="text" id="ldap-dn" class="form-control" maxlength="100" disabled/>
+                                    <input id="username" class="form-control required" maxlength="256" disabled>
                                 </div>
-                            <?php endif; ?>
 
-                            <div>
-                                <label class="form-label mb-3">
-                                    <?= lang('options') ?>
-                                </label>
+                                <div class="mb-3">
+                                    <label class="form-label" for="password">
+                                        <?= lang('password') ?>
+                                        <span class="text-danger" hidden>*</span>
+                                    </label>
+                                    <input type="password" id="password" class="form-control required"
+                                           maxlength="512" autocomplete="new-password" disabled>
+                                </div>
+
+                                <div class="mb-0">
+                                    <label class="form-label" for="password-confirm">
+                                        <?= lang('retype_password') ?>
+                                        <span class="text-danger" hidden>*</span>
+                                    </label>
+                                    <input type="password" id="password-confirm"
+                                           class="form-control required" maxlength="512"
+                                           autocomplete="new-password" disabled>
+                                </div>
                             </div>
 
-                            <div class="border rounded mb-3 p-3">
+                            <div class="mb-4 rounded border p-3">
+                                <h6 class="mb-3 fw-semibold text-muted text-uppercase small">
+                                    <?= lang('settings') ?>
+                                </h6>
+
+                                <div class="mb-3">
+                                    <label class="form-label" for="calendar-view">
+                                        <?= lang('calendar') ?>
+                                        <span class="text-danger" hidden>*</span>
+                                    </label>
+                                    <select id="calendar-view" class="form-select required" disabled>
+                                        <option value="default"><?= lang('default') ?></option>
+                                        <option value="table"><?= lang('table') ?></option>
+                                    </select>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label" for="language">
+                                        <?= lang('language') ?>
+                                        <span class="text-danger" hidden>*</span>
+                                    </label>
+                                    <select id="language" class="form-select required" disabled>
+                                        <?php foreach (vars('available_languages') as $available_language): ?>
+                                            <option value="<?= $available_language ?>">
+                                                <?= ucfirst($available_language) ?>
+                                            </option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label" for="timezone">
+                                        <?= lang('timezone') ?>
+                                        <span class="text-danger" hidden>*</span>
+                                    </label>
+                                    <?php component('timezone_dropdown', [
+                                        'attributes' => 'id="timezone" class="form-control required" disabled',
+                                        'grouped_timezones' => vars('grouped_timezones'),
+                                    ]); ?>
+                                </div>
+
+                                <?php if (setting('ldap_is_active')): ?>
+                                    <div class="mb-0">
+                                        <label for="ldap-dn" class="form-label">
+                                            <?= lang('ldap_dn') ?>
+                                        </label>
+                                        <input type="text" id="ldap-dn" class="form-control" maxlength="100" disabled/>
+                                    </div>
+                                <?php endif; ?>
+                            </div>
+
+                            <div class="mb-4 rounded border p-3">
+                                <h6 class="mb-3 fw-semibold text-muted text-uppercase small">
+                                    <?= lang('options') ?>
+                                </h6>
+
                                 <div class="form-check form-switch">
                                     <input class="form-check-input" type="checkbox" id="is-private">
                                     <label class="form-check-label" for="is-private">
@@ -294,18 +326,42 @@
                                 </div>
                             </div>
 
-                            <div>
-                                <label class="form-label mb-3">
+                            <div class="mb-3 rounded border p-3">
+                                <h6 class="mb-3 fw-semibold text-muted text-uppercase small">
                                     <?= lang('services') ?>
-                                </label>
-                            </div>
+                                </h6>
 
-                            <div id="provider-services" class="card card-body bg-white border">
-                                <!-- JS -->
+                                <div id="provider-services" class="card card-body bg-white border-0 p-0">
+                                    <!-- JS -->
+                                </div>
                             </div>
 
                             <?php slot('after_secondary_fields'); ?>
                         </div>
+                    </div>
+                </div>
+
+                <div class="tab-pane fade show active" id="provider-bookings" role="tabpanel"
+                     aria-labelledby="provider-bookings-tab">
+                    <div class="overflow-hidden rounded-xl border border-[var(--bs-border-color,#e2e8f0)] bg-white">
+                        <table class="w-full text-left text-sm">
+                            <thead class="bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                            <tr>
+                                <th class="px-4 py-3"><?= lang('service') ?></th>
+                                <th class="px-4 py-3"><?= lang('customer') ?></th>
+                                <th class="px-4 py-3"><?= lang('date') ?> &amp; <?= lang('time') ?></th>
+                                <th class="px-4 py-3"><?= lang('status') ?></th>
+                                <th class="px-4 py-3 text-right"></th>
+                            </tr>
+                            </thead>
+                            <tbody class="divide-y divide-[var(--bs-border-color,#e2e8f0)]">
+                                <tr>
+                                    <td colspan="5" class="px-4 py-6 text-center text-slate-500">
+                                        <?= lang('no_records_found') ?>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
 

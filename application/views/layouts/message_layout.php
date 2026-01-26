@@ -29,7 +29,7 @@
 <?php component('booking_top_nav'); ?>
 <div id="main" class="mx-auto max-w-4xl px-4 py-6">
     <div class="flex w-full justify-center">
-        <div id="message-frame" class="mt-6 w-full max-w-xl border border-[#e5e7eb] sm:max-w-2xl booking-section">
+        <div id="message-frame" class="mt-6 w-full max-w-xl border border-[var(--bs-border-color,#e2e8f0)] sm:max-w-2xl booking-section">
 
             <?php slot('content'); ?>
 

@@ -40,7 +40,7 @@ App.Pages.Secretaries = (function () {
     const $summaryEmail = $('#secretary-summary-email');
     const $summaryPhone = $('#secretary-summary-phone');
     const $summaryLocation = $('#secretary-summary-location');
-    let filterResults = {};
+    let filterResults = [];
     let filterLimit = 20;
 
     function setRecordDetailsVisible(visible) {
@@ -316,8 +316,19 @@ App.Pages.Secretaries = (function () {
             let missingRequired = false;
 
             $secretaries.find('.required').each((index, requiredField) => {
-                if (!$(requiredField).val()) {
-                    $(requiredField).addClass('is-invalid');
+                const $requiredField = $(requiredField);
+
+                if ($requiredField.prop('disabled') || !$requiredField.is(':visible')) {
+                    return;
+                }
+
+                const value = $requiredField.val();
+                const isEmpty = value === null ||
+                    (typeof value === 'string' && value.trim() === '') ||
+                    (Array.isArray(value) && value.length === 0);
+
+                if (isEmpty) {
+                    $requiredField.addClass('is-invalid');
                     missingRequired = true;
                 }
             });
@@ -390,7 +401,7 @@ App.Pages.Secretaries = (function () {
         $secretaries.find('.is-invalid').removeClass('is-invalid');
         $('#edit-secretary, #delete-secretary').prop('disabled', true);
         $('#secretary-providers input:checkbox').prop('disabled', true).prop('checked', false);
-        updateSecretarySummary(secretary);
+        updateSecretarySummary();
         setRecordDetailsVisible(false);
     }
 
@@ -400,6 +411,13 @@ App.Pages.Secretaries = (function () {
      * @param {Object} secretary Contains the secretary record data.
      */
     function display(secretary) {
+        if (!secretary) {
+            return;
+        }
+
+        const settings = secretary.settings || {};
+        const providerIds = Array.isArray(secretary.providers) ? secretary.providers : [];
+
         $id.val(secretary.id);
         $firstName.val(secretary.first_name);
         $lastName.val(secretary.last_name);
@@ -415,15 +433,15 @@ App.Pages.Secretaries = (function () {
         $timezone.val(secretary.timezone);
         $ldapDn.val(secretary.ldap_dn);
 
-        $username.val(secretary.settings.username);
-        $calendarView.val(secretary.settings.calendar_view);
-        $notifications.prop('checked', Boolean(Number(secretary.settings.notifications)));
+        $username.val(settings.username || '');
+        $calendarView.val(settings.calendar_view || 'default');
+        $notifications.prop('checked', Boolean(Number(settings.notifications)));
 
         updateSecretarySummary();
 
         $('#secretary-providers input:checkbox').prop('checked', false);
 
-        secretary.providers.forEach((secretaryProviderId) => {
+        providerIds.forEach((secretaryProviderId) => {
             const $checkbox = $('#secretary-providers input[data-id="' + secretaryProviderId + '"]');
 
             if (!$checkbox.length) {
@@ -444,24 +462,24 @@ App.Pages.Secretaries = (function () {
      */
     function filter(keyword, selectId = null, show = false) {
         App.Http.Secretaries.search(keyword, filterLimit).done((response) => {
-            filterResults = response;
+            filterResults = Array.isArray(response) ? response : [];
 
             $filterSecretaries.find('.results').empty();
 
-            response.forEach((secretary) => {
+            filterResults.forEach((secretary) => {
                 $filterSecretaries
                     .find('.results')
                     .append(App.Pages.Secretaries.getFilterHtml(secretary))
                     .append($('<hr/>'));
             });
 
-            if (!response.length) {
+            if (!filterResults.length) {
                 $('#filter-secretaries .results').append(
                     $('<em/>', {
                         'text': lang('no_records_found'),
                     }),
                 );
-            } else if (response.length === filterLimit) {
+            } else if (filterResults.length === filterLimit) {
                 $('<button/>', {
                     'type': 'button',
                     'class': 'btn btn-outline-secondary w-100 load-more text-center',
@@ -473,8 +491,8 @@ App.Pages.Secretaries = (function () {
                 }).appendTo('#filter-secretaries .results');
             }
 
-            if (response.length) {
-                const defaultId = selectId ?? response[0].id;
+            if (filterResults.length) {
+                const defaultId = selectId ?? filterResults[0].id;
                 const shouldShow = show || !selectId;
                 select(defaultId, shouldShow);
             } else {
@@ -533,8 +551,10 @@ App.Pages.Secretaries = (function () {
 
             App.Pages.Secretaries.display(secretary);
 
-            $('#edit-secretary, #delete-secretary').prop('disabled', false);
-            setRecordDetailsVisible(true);
+            if (secretary) {
+                $('#edit-secretary, #delete-secretary').prop('disabled', false);
+                setRecordDetailsVisible(true);
+            }
         }
     }
 
@@ -546,7 +566,9 @@ App.Pages.Secretaries = (function () {
         App.Pages.Secretaries.filter('');
         App.Pages.Secretaries.addEventListeners();
 
-        vars('providers').forEach((provider) => {
+        const providers = Array.isArray(vars('providers')) ? vars('providers') : [];
+
+        providers.forEach((provider) => {
             const checkboxId = `provider-service-${provider.id}`;
 
             $('<div/>', {
