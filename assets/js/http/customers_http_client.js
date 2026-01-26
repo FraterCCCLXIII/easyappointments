@@ -122,6 +122,78 @@ App.Http.Customers = (function () {
         return $.post(url, data);
     }
 
+    /**
+     * Get customer notes.
+     *
+     * @param {Number} customerId
+     *
+     * @return {Object}
+     */
+    function notes(customerId) {
+        const url = App.Utils.Url.siteUrl('customers/notes');
+
+        const data = {
+            csrf_token: vars('csrf_token'),
+            customer_id: customerId,
+        };
+
+        return $.post(url, data);
+    }
+
+    /**
+     * Create a customer note.
+     *
+     * @param {Object} note
+     *
+     * @return {Object}
+     */
+    function storeNote(note) {
+        const url = App.Utils.Url.siteUrl('customers/store_note');
+
+        const data = {
+            csrf_token: vars('csrf_token'),
+            note,
+        };
+
+        return $.post(url, data);
+    }
+
+    /**
+     * Update a customer note.
+     *
+     * @param {Object} note
+     *
+     * @return {Object}
+     */
+    function updateNote(note) {
+        const url = App.Utils.Url.siteUrl('customers/update_note');
+
+        const data = {
+            csrf_token: vars('csrf_token'),
+            note,
+        };
+
+        return $.post(url, data);
+    }
+
+    /**
+     * Delete a customer note.
+     *
+     * @param {Number} noteId
+     *
+     * @return {Object}
+     */
+    function deleteNote(noteId) {
+        const url = App.Utils.Url.siteUrl('customers/delete_note');
+
+        const data = {
+            csrf_token: vars('csrf_token'),
+            note_id: noteId,
+        };
+
+        return $.post(url, data);
+    }
+
     return {
         save,
         store,
@@ -129,5 +201,9 @@ App.Http.Customers = (function () {
         destroy,
         search,
         find,
+        notes,
+        storeNote,
+        updateNote,
+        deleteNote,
     };
 })();
