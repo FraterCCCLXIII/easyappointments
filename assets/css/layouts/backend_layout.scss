@@ -577,6 +577,14 @@ body legend {
     border-color: var(--bs-border-color);
 }
 
+.booking-tab-line-list.customer-tabs-inline {
+    border: none;
+    box-shadow: none;
+    background-color: transparent;
+    padding: 0;
+    border-radius: 0;
+}
+
 .backend-page .add-edit-delete-group .btn-outline-secondary,
 .backend-page #add-edit-delete-group.btn-group .btn-outline-secondary {
     border-color: var(--bs-gray-300, var(--bs-border-color));
