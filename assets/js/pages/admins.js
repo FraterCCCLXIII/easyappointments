@@ -40,9 +40,11 @@ App.Pages.Admins = (function () {
     const $summaryEmail = $('#admin-summary-email');
     const $summaryPhone = $('#admin-summary-phone');
     const $summaryLocation = $('#admin-summary-location');
+    const $adminFilesPanel = $('#admin-files-panel .user-files-panel');
     let filterResults = {};
     let filterLimit = 20;
     let pendingSlug = null;
+    let userFilesManager;
 
     function setRecordDetailsVisible(visible) {
         const $recordDetails = $admins.find('.record-details');
@@ -385,6 +387,10 @@ App.Pages.Admins = (function () {
         $('#admins .is-invalid').removeClass('is-invalid');
         $('#admins .form-message').hide();
         setRecordDetailsVisible(false);
+
+        if (userFilesManager) {
+            userFilesManager.reset();
+        }
     }
 
     /**
@@ -413,6 +419,10 @@ App.Pages.Admins = (function () {
         $notifications.prop('checked', Boolean(Number(admin.settings.notifications)));
 
         updateAdminSummary();
+
+        if (userFilesManager) {
+            userFilesManager.refresh();
+        }
     }
 
     /**
@@ -567,6 +577,12 @@ App.Pages.Admins = (function () {
      */
     function initialize() {
         App.Pages.Admins.resetForm();
+        userFilesManager = App.Components.UserFiles.create($adminFilesPanel, {
+            userType: 'admin',
+            getUserId: () => $id.val(),
+            canUpload: Number($adminFilesPanel.data('can-upload')) === 1,
+            canDelete: Number($adminFilesPanel.data('can-delete')) === 1,
+        });
         pendingSlug = vars('selected_record_slug') || null;
         App.Pages.Admins.filter('');
         App.Pages.Admins.addEventListeners();

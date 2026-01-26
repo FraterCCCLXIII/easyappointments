@@ -103,6 +103,13 @@
                             <?= lang('settings') ?>
                         </button>
                     </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="booking-tab-line" id="secretary-files-tab" data-bs-toggle="pill"
+                                data-bs-target="#secretary-files-panel" type="button" role="tab"
+                                aria-selected="false" tabindex="-1">
+                            Files
+                        </button>
+                    </li>
                 </ul>
             </div>
 
@@ -296,6 +303,42 @@
                         </div>
                     </div>
                 </div>
+                <div class="tab-pane fade" id="secretary-files-panel" role="tabpanel"
+                     aria-labelledby="secretary-files-tab">
+                    <div class="user-files-panel w-full" data-user-type="secretary"
+                         data-can-upload="<?= can('edit', PRIV_USERS) ? '1' : '0' ?>"
+                         data-can-delete="<?= can('delete', PRIV_USERS) ? '1' : '0' ?>">
+                        <div class="mb-4">
+                            <div class="user-files-dropzone rounded-xl border border-[var(--bs-border-color,#e2e8f0)] bg-slate-50/60 p-4 text-center d-flex flex-column align-items-center justify-content-center gap-2"
+                                 role="button" tabindex="0" aria-label="Upload secretary files">
+                                <input type="file" class="user-files-input visually-hidden" multiple>
+                                <div class="text-sm text-slate-600">Drag and drop files here.</div>
+                                <div class="mt-2">
+                                    <button type="button" class="user-files-upload btn btn-outline-secondary"
+                                            <?= can('edit', PRIV_USERS) ? '' : 'disabled' ?>>
+                                        Upload File
+                                    </button>
+                                </div>
+                                <div class="mt-2 text-xs text-slate-400">PDFs can be viewed inline.</div>
+                            </div>
+                        </div>
+                        <div class="w-full overflow-hidden rounded-xl border border-[var(--bs-border-color,#e2e8f0)] bg-white">
+                            <table class="w-full text-left text-sm">
+                                <thead class="bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                                    <tr>
+                                        <th class="px-4 py-3">Name</th>
+                                        <th class="px-4 py-3">Size</th>
+                                        <th class="px-4 py-3">Date</th>
+                                        <th class="px-4 py-3 text-right">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="user-files-body divide-y divide-[var(--bs-border-color,#e2e8f0)]">
+                                    <!-- JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -307,6 +350,8 @@
 
 <script src="<?= asset_url('assets/js/http/account_http_client.js') ?>"></script>
 <script src="<?= asset_url('assets/js/http/secretaries_http_client.js') ?>"></script>
+<script src="<?= asset_url('assets/js/http/user_files_http_client.js') ?>"></script>
+<script src="<?= asset_url('assets/js/components/user_files.js') ?>"></script>
 <script src="<?= asset_url('assets/js/pages/secretaries.js') ?>"></script>
 
 <?php end_section('scripts'); ?>

@@ -40,9 +40,11 @@ App.Pages.Secretaries = (function () {
     const $summaryEmail = $('#secretary-summary-email');
     const $summaryPhone = $('#secretary-summary-phone');
     const $summaryLocation = $('#secretary-summary-location');
+    const $secretaryFilesPanel = $('#secretary-files-panel .user-files-panel');
     let filterResults = [];
     let filterLimit = 20;
     let pendingSlug = null;
+    let userFilesManager;
 
     function setRecordDetailsVisible(visible) {
         const $recordDetails = $secretaries.find('.record-details');
@@ -405,6 +407,10 @@ App.Pages.Secretaries = (function () {
         $('#secretary-providers input:checkbox').prop('disabled', true).prop('checked', false);
         updateSecretarySummary();
         setRecordDetailsVisible(false);
+
+        if (userFilesManager) {
+            userFilesManager.reset();
+        }
     }
 
     /**
@@ -440,6 +446,10 @@ App.Pages.Secretaries = (function () {
         $notifications.prop('checked', Boolean(Number(settings.notifications)));
 
         updateSecretarySummary();
+
+        if (userFilesManager) {
+            userFilesManager.refresh();
+        }
 
         $('#secretary-providers input:checkbox').prop('checked', false);
 
@@ -611,6 +621,12 @@ App.Pages.Secretaries = (function () {
      */
     function initialize() {
         App.Pages.Secretaries.resetForm();
+        userFilesManager = App.Components.UserFiles.create($secretaryFilesPanel, {
+            userType: 'secretary',
+            getUserId: () => $id.val(),
+            canUpload: Number($secretaryFilesPanel.data('can-upload')) === 1,
+            canDelete: Number($secretaryFilesPanel.data('can-delete')) === 1,
+        });
         pendingSlug = vars('selected_record_slug') || null;
         App.Pages.Secretaries.filter('');
         App.Pages.Secretaries.addEventListeners();
