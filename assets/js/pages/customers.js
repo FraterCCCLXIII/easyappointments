@@ -37,6 +37,9 @@ App.Pages.Customers = (function () {
     const $formMessage = $('#form-message');
     const $customerAppointments = $('#customer-appointments');
     const $billingHistoryBody = $('#billing-history-body');
+    const $customerNoteText = $('#customer-note-text');
+    const $customerNotesList = $('#customer-notes-list');
+    const $addCustomerNote = $('#add-customer-note');
     const $summaryName = $('#customer-summary-name');
     const $summaryEmail = $('#customer-summary-email');
     const $summaryPhone = $('#customer-summary-phone');
@@ -194,6 +197,109 @@ App.Pages.Customers = (function () {
             ];
 
             App.Utils.Message.show(lang('delete_customer'), lang('delete_record_prompt'), buttons);
+        });
+
+        $customers.on('input', '#customer-note-text', (event) => {
+            if ($(event.currentTarget).val().trim() !== '') {
+                $(event.currentTarget).removeClass('is-invalid');
+            }
+        });
+
+        $customers.on('click', '#add-customer-note', () => {
+            const customerId = Number($id.val());
+            const noteText = $customerNoteText.val().trim();
+
+            if (!customerId) {
+                return;
+            }
+
+            if (!noteText) {
+                $customerNoteText.addClass('is-invalid');
+                return;
+            }
+
+            App.Http.Customers.storeNote({
+                id_users_customer: customerId,
+                note: noteText,
+            }).then(() => {
+                $customerNoteText.val('');
+                loadCustomerNotes(customerId);
+            });
+        });
+
+        $customers.on('click', '.customer-note-edit', (event) => {
+            const $noteCard = $(event.currentTarget).closest('[data-note-id]');
+            const note = $noteCard.data('note');
+
+            if (!note) {
+                return;
+            }
+
+            enterNoteEditMode($noteCard, note);
+        });
+
+        $customers.on('click', '.customer-note-save', (event) => {
+            const $noteCard = $(event.currentTarget).closest('[data-note-id]');
+            const note = $noteCard.data('note');
+            const $textarea = $noteCard.find('.customer-note-input');
+
+            if (!note || !$textarea.length) {
+                return;
+            }
+
+            const updatedText = $textarea.val().trim();
+
+            if (!updatedText) {
+                $textarea.addClass('is-invalid');
+                return;
+            }
+
+            App.Http.Customers.updateNote({
+                id: note.id,
+                note: updatedText,
+            }).then(() => {
+                loadCustomerNotes(Number($id.val()));
+            });
+        });
+
+        $customers.on('click', '.customer-note-cancel', (event) => {
+            const $noteCard = $(event.currentTarget).closest('[data-note-id]');
+            const note = $noteCard.data('note');
+
+            if (!note) {
+                return;
+            }
+
+            renderNoteCard($noteCard, note);
+        });
+
+        $customers.on('click', '.customer-note-delete', (event) => {
+            const $noteCard = $(event.currentTarget).closest('[data-note-id]');
+            const note = $noteCard.data('note');
+
+            if (!note) {
+                return;
+            }
+
+            const buttons = [
+                {
+                    text: lang('cancel'),
+                    click: (event, messageModal) => {
+                        messageModal.hide();
+                    },
+                },
+                {
+                    text: lang('delete'),
+                    click: (event, messageModal) => {
+                        App.Http.Customers.deleteNote(note.id).then(() => {
+                            loadCustomerNotes(Number($id.val()));
+                        });
+                        messageModal.hide();
+                    },
+                },
+            ];
+
+            App.Utils.Message.show(lang('delete'), lang('delete_record_prompt'), buttons);
         });
 
         $customers.on('click', '.customer-appointment-edit', (event) => {
@@ -383,6 +489,11 @@ App.Pages.Customers = (function () {
 
         $customerAppointments.empty();
         $billingHistoryBody.empty();
+        $customerNoteText.val('');
+        $customerNoteText.removeClass('is-invalid');
+        $customerNoteText.prop('disabled', true);
+        $addCustomerNote.prop('disabled', true);
+        $customerNotesList.empty();
 
         updateCustomerSummaryFromInputs();
 
@@ -427,6 +538,11 @@ App.Pages.Customers = (function () {
 
         $customerAppointments.empty();
         $billingHistoryBody.empty();
+        $customerNoteText.val('');
+        $customerNoteText.removeClass('is-invalid');
+        $customerNoteText.prop('disabled', false);
+        $addCustomerNote.prop('disabled', false);
+        $customerNotesList.empty();
 
         $customerAppointments.data('customerInfo', {
             first_name: customer.first_name,
@@ -588,6 +704,135 @@ App.Pages.Customers = (function () {
                 '<tr><td colspan="3" class="px-4 py-3 text-center text-slate-500">No billing history found.</td></tr>',
             );
         }
+
+        loadCustomerNotes(customer.id);
+    }
+
+    function loadCustomerNotes(customerId) {
+        $customerNotesList.empty();
+
+        if (!customerId) {
+            return;
+        }
+
+        if (typeof App.Http.Customers.notes !== 'function') {
+            return;
+        }
+
+        App.Http.Customers.notes(customerId)
+            .then((notes) => {
+                renderNotesList(notes);
+            })
+            .fail(() => {
+                renderNotesList([]);
+            });
+    }
+
+    function renderNotesList(notes) {
+        $customerNotesList.empty();
+
+        if (!notes || !notes.length) {
+            $('<div/>', {
+                'class': 'rounded-xl border border-[var(--bs-border-color,#e2e8f0)] bg-slate-50 px-4 py-6 text-center text-sm text-slate-500',
+                'text': lang('no_records_found'),
+            }).appendTo($customerNotesList);
+            return;
+        }
+
+        notes.forEach((note) => {
+            const $noteCard = $('<div/>', {
+                'class': 'rounded-xl border border-[var(--bs-border-color,#e2e8f0)] bg-white p-4',
+                'data-note-id': note.id,
+            });
+
+            renderNoteCard($noteCard, note);
+            $noteCard.appendTo($customerNotesList);
+        });
+    }
+
+    function renderNoteCard($noteCard, note) {
+        const authorName = `${note.author_first_name || ''} ${note.author_last_name || ''}`.trim();
+        const authorLabel = authorName || note.author_email || '-';
+        const createdAt = formatNoteDate(note.create_datetime);
+        const isAuthor = Number(note.id_users_author) === Number(vars('user_id'));
+
+        $noteCard
+            .data('note', note)
+            .removeData('editing')
+            .empty();
+
+        const $header = $('<div/>', {
+            'class': 'd-flex align-items-start justify-content-between gap-3',
+        });
+        const $meta = $('<div/>', {
+            'class': 'text-sm text-slate-500',
+            'text': `${authorLabel} • ${createdAt}`,
+        });
+        const $actions = $('<div/>', {
+            'class': 'd-flex gap-2',
+        });
+
+        if (isAuthor) {
+            $('<button/>', {
+                'type': 'button',
+                'class': 'btn btn-outline-secondary btn-sm customer-note-edit',
+                'text': lang('edit'),
+            }).appendTo($actions);
+        }
+
+        $('<button/>', {
+            'type': 'button',
+            'class': 'btn btn-outline-secondary btn-sm customer-note-delete',
+            'text': lang('delete'),
+        }).appendTo($actions);
+
+        $header.append($meta, $actions);
+
+        const $body = $('<div/>', {
+            'class': 'mt-3 text-slate-700 customer-note-body',
+            'text': note.note,
+        });
+
+        $noteCard.append($header, $body);
+    }
+
+    function enterNoteEditMode($noteCard, note) {
+        const $textarea = $('<textarea/>', {
+            'class': 'form-control customer-note-input',
+            'rows': 4,
+            'text': note.note,
+        });
+
+        const $actions = $('<div/>', {
+            'class': 'mt-3 d-flex justify-content-end gap-2',
+        });
+
+        $('<button/>', {
+            'type': 'button',
+            'class': 'btn btn-secondary customer-note-cancel',
+            'text': lang('cancel'),
+        }).appendTo($actions);
+
+        $('<button/>', {
+            'type': 'button',
+            'class': 'btn btn-primary customer-note-save',
+            'text': lang('save'),
+        }).appendTo($actions);
+
+        $noteCard.empty().append($textarea, $actions);
+    }
+
+    function formatNoteDate(value) {
+        if (!value) {
+            return '-';
+        }
+
+        return App.Utils.Date.format(
+            moment(value).toDate(),
+            vars('date_format'),
+            vars('time_format'),
+            true,
+        );
     }
 
     /**

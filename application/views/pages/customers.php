@@ -112,6 +112,13 @@
                         </button>
                     </li>
                     <li class="nav-item" role="presentation">
+                        <button class="booking-tab-line" id="customer-notes-tab" data-bs-toggle="pill"
+                                data-bs-target="#customer-notes-panel" type="button" role="tab"
+                                aria-selected="false" tabindex="-1">
+                            <?= lang('notes') ?>
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
                         <button class="booking-tab-line" id="customer-account-tab" data-bs-toggle="pill"
                                 data-bs-target="#customer-account-panel" type="button" role="tab"
                                 aria-selected="false" tabindex="-1">
@@ -143,6 +150,23 @@
                                 </tbody>
                             </table>
                         </div>
+                    </div>
+                </div>
+                <div class="tab-pane fade" id="customer-notes-panel" role="tabpanel"
+                     aria-labelledby="customer-notes-tab">
+                    <div id="customer-notes" class="w-full">
+                        <div class="rounded-xl border border-[var(--bs-border-color,#e2e8f0)] bg-white p-4">
+                            <label for="customer-note-text" class="form-label text-slate-700">
+                                <?= lang('notes') ?>
+                            </label>
+                            <textarea id="customer-note-text" class="form-control" rows="4"></textarea>
+                            <div class="mt-3 d-flex justify-content-end">
+                                <button id="add-customer-note" class="btn btn-primary">
+                                    <?= lang('add') ?> <?= lang('notes') ?>
+                                </button>
+                            </div>
+                        </div>
+                        <div id="customer-notes-list" class="mt-4 d-flex flex-column gap-3"></div>
                     </div>
                 </div>
                 <div class="tab-pane fade" id="customer-account-panel" role="tabpanel"

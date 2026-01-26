@@ -54,6 +54,7 @@ class Customers extends EA_Controller
 
         $this->load->model('appointments_model');
         $this->load->model('customers_model');
+        $this->load->model('customer_notes_model');
         $this->load->model('providers_model');
         $this->load->model('secretaries_model');
         $this->load->model('roles_model');
@@ -231,6 +232,149 @@ class Customers extends EA_Controller
             }
 
             json_response(array_values($customers));
+        } catch (Throwable $e) {
+            json_exception($e);
+        }
+    }
+
+    /**
+     * Get customer notes.
+     */
+    public function notes(): void
+    {
+        try {
+            if (cannot('view', PRIV_CUSTOMERS)) {
+                abort(403, 'Forbidden');
+            }
+
+            $customer_id = (int) request('customer_id');
+
+            if (!$customer_id) {
+                abort(400, 'Bad Request');
+            }
+
+            $user_id = session('user_id');
+
+            if (!$this->permissions->has_customer_access($user_id, $customer_id)) {
+                abort(403, 'Forbidden');
+            }
+
+            $notes = $this->customer_notes_model->get_by_customer($customer_id);
+
+            json_response($notes);
+        } catch (Throwable $e) {
+            json_exception($e);
+        }
+    }
+
+    /**
+     * Store a new customer note.
+     */
+    public function store_note(): void
+    {
+        try {
+            if (cannot('view', PRIV_CUSTOMERS)) {
+                abort(403, 'Forbidden');
+            }
+
+            $note = request('note');
+
+            if (!$note || empty($note['id_users_customer'])) {
+                abort(400, 'Bad Request');
+            }
+
+            $customer_id = (int) $note['id_users_customer'];
+            $user_id = session('user_id');
+
+            if (!$this->permissions->has_customer_access($user_id, $customer_id)) {
+                abort(403, 'Forbidden');
+            }
+
+            $note_payload = [
+                'id_users_customer' => $customer_id,
+                'id_users_author' => $user_id,
+                'note' => $note['note'] ?? '',
+            ];
+
+            $note_id = $this->customer_notes_model->save($note_payload);
+            $note_response = $this->customer_notes_model->find_with_author($note_id);
+
+            json_response($note_response);
+        } catch (Throwable $e) {
+            json_exception($e);
+        }
+    }
+
+    /**
+     * Update an existing customer note.
+     */
+    public function update_note(): void
+    {
+        try {
+            if (cannot('view', PRIV_CUSTOMERS)) {
+                abort(403, 'Forbidden');
+            }
+
+            $note = request('note');
+
+            if (!$note || empty($note['id'])) {
+                abort(400, 'Bad Request');
+            }
+
+            $note_id = (int) $note['id'];
+            $existing_note = $this->customer_notes_model->find($note_id);
+            $user_id = session('user_id');
+
+            if (!$this->permissions->has_customer_access($user_id, (int) $existing_note['id_users_customer'])) {
+                abort(403, 'Forbidden');
+            }
+
+            if ((int) $existing_note['id_users_author'] !== (int) $user_id) {
+                abort(403, 'Forbidden');
+            }
+
+            $note_payload = [
+                'id' => $note_id,
+                'id_users_customer' => (int) $existing_note['id_users_customer'],
+                'id_users_author' => (int) $existing_note['id_users_author'],
+                'note' => $note['note'] ?? '',
+            ];
+
+            $this->customer_notes_model->save($note_payload);
+            $note_response = $this->customer_notes_model->find_with_author($note_id);
+
+            json_response($note_response);
+        } catch (Throwable $e) {
+            json_exception($e);
+        }
+    }
+
+    /**
+     * Delete an existing customer note.
+     */
+    public function delete_note(): void
+    {
+        try {
+            if (cannot('view', PRIV_CUSTOMERS)) {
+                abort(403, 'Forbidden');
+            }
+
+            $note_id = (int) request('note_id');
+
+            if (!$note_id) {
+                abort(400, 'Bad Request');
+            }
+
+            $existing_note = $this->customer_notes_model->find($note_id);
+            $user_id = session('user_id');
+
+            if (!$this->permissions->has_customer_access($user_id, (int) $existing_note['id_users_customer'])) {
+                abort(403, 'Forbidden');
+            }
+
+            $this->customer_notes_model->delete($note_id);
+
+            json_response(['deleted' => true]);
         } catch (Throwable $e) {
             json_exception($e);
         }
