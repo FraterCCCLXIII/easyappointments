@@ -49,7 +49,9 @@ class Appointments extends EA_Controller
         parent::__construct();
 
         $this->load->model('appointments_model');
+        $this->load->model('appointment_notes_model');
         $this->load->model('roles_model');
+        $this->load->model('secretaries_model');
 
         $this->load->library('accounts');
         $this->load->library('timezones');
@@ -222,6 +224,91 @@ class Appointments extends EA_Controller
             ]);
         } catch (Throwable $e) {
             json_exception($e);
+        }
+    }
+
+    /**
+     * Get appointment visit notes.
+     */
+    public function notes(): void
+    {
+        try {
+            if (cannot('view', PRIV_APPOINTMENTS)) {
+                abort(403, 'Forbidden');
+            }
+
+            $appointment_id = (int) request('appointment_id');
+
+            if (!$appointment_id) {
+                abort(400, 'Bad Request');
+            }
+
+            $appointment = $this->appointments_model->find($appointment_id);
+            $this->ensure_appointment_access($appointment);
+
+            $notes = $this->appointment_notes_model->get_by_appointment($appointment_id);
+
+            json_response($notes);
+        } catch (Throwable $e) {
+            json_exception($e);
+        }
+    }
+
+    /**
+     * Store a new appointment visit note.
+     */
+    public function store_note(): void
+    {
+        try {
+            if (cannot('view', PRIV_APPOINTMENTS)) {
+                abort(403, 'Forbidden');
+            }
+
+            $note = request('note');
+
+            if (!$note || empty($note['id_appointments'])) {
+                abort(400, 'Bad Request');
+            }
+
+            $appointment_id = (int) $note['id_appointments'];
+            $appointment = $this->appointments_model->find($appointment_id);
+            $this->ensure_appointment_access($appointment);
+
+            $note_payload = [
+                'id_appointments' => $appointment_id,
+                'id_users_author' => session('user_id'),
+                'note' => $note['note'] ?? '',
+            ];
+
+            $note_id = $this->appointment_notes_model->save($note_payload);
+            $note_response = $this->appointment_notes_model->find_with_author($note_id);
+
+            json_response($note_response);
+        } catch (Throwable $e) {
+            json_exception($e);
+        }
+    }
+
+    /**
+     * Ensure appointment access for providers/secretaries.
+     *
+     * @param array $appointment
+     */
+    private function ensure_appointment_access(array $appointment): void
+    {
+        $user_id = session('user_id');
+        $role_slug = session('role_slug');
+
+        if ($role_slug === DB_SLUG_PROVIDER && (int) $appointment['id_users_provider'] !== (int) $user_id) {
+            abort(403, 'Forbidden');
+        }
+
+        if ($role_slug === DB_SLUG_SECRETARY) {
+            $provider_ids = $this->secretaries_model->find($user_id)['providers'];
+
+            if (!in_array((int) $appointment['id_users_provider'], $provider_ids, true)) {
+                abort(403, 'Forbidden');
+            }
         }
     }
 }

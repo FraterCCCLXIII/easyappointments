@@ -122,6 +122,42 @@ App.Http.Appointments = (function () {
         return $.post(url, data);
     }
 
+    /**
+     * Get appointment visit notes.
+     *
+     * @param {Number} appointmentId
+     *
+     * @return {Object}
+     */
+    function notes(appointmentId) {
+        const url = App.Utils.Url.siteUrl('appointments/notes');
+
+        const data = {
+            csrf_token: vars('csrf_token'),
+            appointment_id: appointmentId,
+        };
+
+        return $.post(url, data);
+    }
+
+    /**
+     * Create an appointment visit note.
+     *
+     * @param {Object} note
+     *
+     * @return {Object}
+     */
+    function storeNote(note) {
+        const url = App.Utils.Url.siteUrl('appointments/store_note');
+
+        const data = {
+            csrf_token: vars('csrf_token'),
+            note,
+        };
+
+        return $.post(url, data);
+    }
+
     return {
         save,
         store,
@@ -129,5 +165,7 @@ App.Http.Appointments = (function () {
         destroy,
         search,
         find,
+        notes,
+        storeNote,
     };
 })();

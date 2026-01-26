@@ -53,6 +53,7 @@ class Customers extends EA_Controller
         parent::__construct();
 
         $this->load->model('appointments_model');
+        $this->load->model('appointment_notes_model');
         $this->load->model('customers_model');
         $this->load->model('customer_notes_model');
         $this->load->model('providers_model');
@@ -260,6 +261,36 @@ class Customers extends EA_Controller
             }
 
             $notes = $this->customer_notes_model->get_by_customer($customer_id);
+
+            json_response($notes);
+        } catch (Throwable $e) {
+            json_exception($e);
+        }
+    }
+
+    /**
+     * Get customer visit notes.
+     */
+    public function visit_notes(): void
+    {
+        try {
+            if (cannot('view', PRIV_CUSTOMERS)) {
+                abort(403, 'Forbidden');
+            }
+
+            $customer_id = (int) request('customer_id');
+
+            if (!$customer_id) {
+                abort(400, 'Bad Request');
+            }
+
+            $user_id = session('user_id');
+
+            if (!$this->permissions->has_customer_access($user_id, $customer_id)) {
+                abort(403, 'Forbidden');
+            }
+
+            $notes = $this->appointment_notes_model->get_by_customer($customer_id);
 
             json_response($notes);
         } catch (Throwable $e) {

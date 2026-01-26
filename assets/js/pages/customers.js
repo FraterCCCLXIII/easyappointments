@@ -36,9 +36,29 @@ App.Pages.Customers = (function () {
     const $notes = $('#notes');
     const $formMessage = $('#form-message');
     const $customerAppointments = $('#customer-appointments');
+    const $customerAppointmentsList = $('#customer-appointments-list');
+    const $customerAppointmentDetails = $('#customer-appointment-details');
+    const $customerAppointmentBack = $('#customer-appointment-back');
+    const $customerAppointmentEditLink = $('#customer-appointment-edit-link');
+    const $customerAppointmentId = $('#customer-appointment-id');
+    const $customerAppointmentHash = $('#customer-appointment-hash');
+    const $customerAppointmentService = $('#customer-appointment-service');
+    const $customerAppointmentDate = $('#customer-appointment-date');
+    const $customerAppointmentTime = $('#customer-appointment-time');
+    const $customerAppointmentDuration = $('#customer-appointment-duration');
+    const $customerAppointmentStatus = $('#customer-appointment-status');
+    const $customerAppointmentProvider = $('#customer-appointment-provider');
+    const $customerAppointmentCustomer = $('#customer-appointment-customer');
+    const $customerAppointmentAddress = $('#customer-appointment-address');
+    const $customerAppointmentPaymentStatus = $('#customer-appointment-payment-status');
+    const $customerAppointmentPaymentAmount = $('#customer-appointment-payment-amount');
+    const $customerAppointmentNotes = $('#customer-appointment-notes');
+    const $customerAppointmentSaveNotes = $('#customer-appointment-save-notes');
+    const $customerAppointmentNotesList = $('#customer-appointment-notes-list');
     const $billingHistoryBody = $('#billing-history-body');
     const $customerNoteText = $('#customer-note-text');
     const $customerNotesList = $('#customer-notes-list');
+    const $customerVisitNotesList = $('#customer-visit-notes-list');
     const $addCustomerNote = $('#add-customer-note');
     const $summaryName = $('#customer-summary-name');
     const $summaryEmail = $('#customer-summary-email');
@@ -319,7 +339,60 @@ App.Pages.Customers = (function () {
                 return;
             }
 
-            openAppointmentModal(appointmentsById.get(appointmentId));
+            try {
+                openAppointmentModal(appointmentsById.get(appointmentId));
+            } catch (error) {
+                window.location.href = $link.attr('href');
+            }
+        });
+
+        $customers.on('click', '.customer-appointment-row', (event) => {
+            if ($(event.target).closest('.customer-appointment-edit').length) {
+                return;
+            }
+
+            const appointmentId = $(event.currentTarget).data('id');
+            showAppointmentDetails(appointmentId);
+        });
+
+        $customers.on('click', '#customer-appointment-back', () => {
+            showAppointmentList();
+        });
+
+        $customers.on('click', '.customer-appointment-status', (event) => {
+            const status = $(event.currentTarget).data('status');
+            const appointmentId = $customerAppointmentDetails.data('appointmentId');
+
+            if (!appointmentId || !status) {
+                return;
+            }
+
+        $customerAppointmentNotes.removeClass('is-invalid');
+            updateAppointmentFields(appointmentId, { status: status });
+        });
+
+        $customers.on('click', '#customer-appointment-save-notes', () => {
+            const appointmentId = $customerAppointmentDetails.data('appointmentId');
+
+            if (!appointmentId) {
+                return;
+            }
+
+            const noteText = $customerAppointmentNotes.val().trim();
+
+            if (!noteText) {
+                $customerAppointmentNotes.addClass('is-invalid');
+                return;
+            }
+
+            $customerAppointmentNotes.removeClass('is-invalid');
+            App.Http.Appointments.storeNote({
+                id_appointments: appointmentId,
+                note: noteText,
+            }).then(() => {
+                $customerAppointmentNotes.val('').removeClass('is-invalid');
+                loadAppointmentNotes(appointmentId);
+            });
         });
 
         $customers.on('hidden.bs.modal', '#appointments-modal', () => {
@@ -487,13 +560,15 @@ App.Pages.Customers = (function () {
         $customers.find('.record-details #timezone').val(vars('default_timezone'));
         $customers.find('.record-details #language').val(vars('default_language'));
 
-        $customerAppointments.empty();
+        $customerAppointmentsList.empty();
         $billingHistoryBody.empty();
         $customerNoteText.val('');
         $customerNoteText.removeClass('is-invalid');
         $customerNoteText.prop('disabled', true);
         $addCustomerNote.prop('disabled', true);
         $customerNotesList.empty();
+        $customerVisitNotesList.empty();
+        showAppointmentList();
 
         updateCustomerSummaryFromInputs();
 
@@ -536,13 +611,15 @@ App.Pages.Customers = (function () {
 
         updateCustomerSummaryFromInputs();
 
-        $customerAppointments.empty();
+        $customerAppointmentsList.empty();
         $billingHistoryBody.empty();
         $customerNoteText.val('');
         $customerNoteText.removeClass('is-invalid');
         $customerNoteText.prop('disabled', false);
         $addCustomerNote.prop('disabled', false);
         $customerNotesList.empty();
+        $customerVisitNotesList.empty();
+        showAppointmentList();
 
         $customerAppointments.data('customerInfo', {
             first_name: customer.first_name,
@@ -626,7 +703,7 @@ App.Pages.Customers = (function () {
             const statusClass = 'bg-emerald-50 text-emerald-700';
 
             $('<tr/>', {
-                'class': 'bg-white border-b border-[var(--bs-border-color,#e2e8f0)] last:border-b-0',
+                'class': 'customer-appointment-row cursor-pointer bg-white border-b border-[var(--bs-border-color,#e2e8f0)] last:border-b-0',
                 'data-id': appointment.id,
                 'html': [
                     $('<td/>', {
@@ -692,9 +769,9 @@ App.Pages.Customers = (function () {
             $('<div/>', {
                 'class': 'rounded-xl border border-[var(--bs-border-color,#e2e8f0)] bg-slate-50 px-4 py-6 text-center text-sm text-slate-500',
                 'text': lang('no_records_found'),
-            }).appendTo($customerAppointments);
+            }).appendTo($customerAppointmentsList);
         } else {
-            $appointmentsWrapper.appendTo($customerAppointments);
+            $appointmentsWrapper.appendTo($customerAppointmentsList);
         }
 
         $customerAppointments.data('appointmentsById', appointmentsById);
@@ -706,6 +783,7 @@ App.Pages.Customers = (function () {
         }
 
         loadCustomerNotes(customer.id);
+        loadCustomerVisitNotes(customer.id);
     }
 
     function loadCustomerNotes(customerId) {
@@ -726,6 +804,241 @@ App.Pages.Customers = (function () {
             .fail(() => {
                 renderNotesList([]);
             });
+    }
+
+    function loadCustomerVisitNotes(customerId) {
+        $customerVisitNotesList.empty();
+
+        if (!customerId) {
+            return;
+        }
+
+        fetchCustomerVisitNotes(customerId)
+            .then((notes) => {
+                renderCustomerVisitNotes(notes);
+            })
+            .fail(() => {
+                renderCustomerVisitNotes([]);
+            });
+    }
+
+    function fetchCustomerVisitNotes(customerId) {
+        if (typeof App.Http.Customers.visitNotes === 'function') {
+            return App.Http.Customers.visitNotes(customerId);
+        }
+
+        return App.Utils.Http.request('POST', 'customers/visit_notes', {
+            csrf_token: vars('csrf_token'),
+            customer_id: customerId,
+        });
+    }
+
+    function renderCustomerVisitNotes(notes) {
+        $customerVisitNotesList.empty();
+
+        if (!notes || !notes.length) {
+            $('<div/>', {
+                'class': 'rounded-xl border border-[var(--bs-border-color,#e2e8f0)] bg-slate-50 px-4 py-6 text-center text-sm text-slate-500',
+                'text': lang('no_records_found'),
+            }).appendTo($customerVisitNotesList);
+            return;
+        }
+
+        notes.forEach((note) => {
+            const authorName = `${note.author_first_name || ''} ${note.author_last_name || ''}`.trim();
+            const authorLabel = authorName || note.author_email || '-';
+            const appointmentDate = note.appointment_start_datetime
+                ? App.Utils.Date.format(
+                    moment(note.appointment_start_datetime).toDate(),
+                    vars('date_format'),
+                    vars('time_format'),
+                    true,
+                )
+                : '—';
+            const appointmentLabel = `#${note.id_appointments} • ${note.service_name || '—'} • ${appointmentDate}`;
+            const createdAt = formatNoteDate(note.create_datetime);
+
+            const $noteCard = $('<div/>', {
+                'class': 'rounded-xl border border-[var(--bs-border-color,#e2e8f0)] bg-white p-4',
+            });
+            const $meta = $('<div/>', {
+                'class': 'text-sm text-slate-500',
+                'text': `${authorLabel} • ${createdAt}`,
+            });
+            const $appointmentMeta = $('<div/>', {
+                'class': 'mt-1 text-xs uppercase tracking-wide text-slate-400',
+                'text': appointmentLabel,
+            });
+            const $body = $('<div/>', {
+                'class': 'mt-3 text-slate-700',
+                'text': note.note,
+            });
+
+            $noteCard.append($meta, $appointmentMeta, $body).appendTo($customerVisitNotesList);
+        });
+    }
+
+    function showAppointmentList() {
+        $customerAppointmentDetails.addClass('d-none');
+        $customerAppointmentsList.removeClass('d-none');
+        $customerAppointmentDetails.removeData('appointmentId');
+        $customerAppointmentNotes.prop('disabled', true);
+        $customerAppointmentSaveNotes.prop('disabled', true);
+    }
+
+    function showAppointmentDetails(appointmentId) {
+        const appointmentsById = $customerAppointments.data('appointmentsById');
+
+        if (!appointmentsById || !appointmentsById.has(appointmentId)) {
+            return;
+        }
+
+        const appointment = appointmentsById.get(appointmentId);
+        const customerInfo = $customerAppointments.data('customerInfo') || {};
+        const startMoment = moment(appointment.start_datetime);
+        const endMoment = moment(appointment.end_datetime);
+        const durationMinutes = endMoment.diff(startMoment, 'minutes');
+
+        $customerAppointmentDetails.data('appointmentId', appointmentId);
+        $customerAppointmentEditLink.attr(
+            'href',
+            App.Utils.Url.siteUrl(`calendar/reschedule/${appointment.hash}`),
+        );
+        $customerAppointmentId.text(appointment.id || '—');
+        $customerAppointmentHash.text(appointment.hash || '—');
+        $customerAppointmentService.text(appointment.service?.name || '—');
+        $customerAppointmentDate.text(
+            App.Utils.Date.format(startMoment.toDate(), vars('date_format'), vars('time_format')),
+        );
+        $customerAppointmentTime.text(formatAppointmentTime(startMoment));
+        $customerAppointmentDuration.text(durationMinutes ? `${durationMinutes} min` : '—');
+        $customerAppointmentStatus.empty().append(renderStatusBadge(appointment.status || 'Booked'));
+        $customerAppointmentProvider.text(
+            `${appointment.provider?.first_name || ''} ${appointment.provider?.last_name || ''}`.trim() || '—',
+        );
+        $customerAppointmentCustomer.text(
+            `${customerInfo.first_name || ''} ${customerInfo.last_name || ''}`.trim() || '—',
+        );
+        $customerAppointmentAddress.text(buildAddress(customerInfo));
+        $customerAppointmentPaymentStatus.text(appointment.payment_status || '—');
+        $customerAppointmentPaymentAmount.text(
+            appointment.payment_amount ? Number(appointment.payment_amount).toFixed(2) : '—',
+        );
+        $customerAppointmentNotes.val('').prop('disabled', false);
+        $customerAppointmentSaveNotes.prop('disabled', false);
+        $customerAppointmentNotesList.empty();
+
+        loadAppointmentNotes(appointmentId);
+
+        $customerAppointmentsList.addClass('d-none');
+        $customerAppointmentDetails.removeClass('d-none');
+    }
+
+    function updateAppointmentFields(appointmentId, fields) {
+        const appointmentsById = $customerAppointments.data('appointmentsById');
+
+        if (!appointmentsById || !appointmentsById.has(appointmentId)) {
+            return;
+        }
+
+        const appointment = appointmentsById.get(appointmentId);
+        const payload = {
+            id: appointmentId,
+            start_datetime: appointment.start_datetime,
+            end_datetime: appointment.end_datetime,
+            id_services: appointment.id_services,
+            id_users_provider: appointment.id_users_provider,
+            id_users_customer: appointment.id_users_customer,
+            is_unavailability: appointment.is_unavailability ?? false,
+            location: appointment.location ?? '',
+            color: appointment.color ?? '',
+            status: appointment.status ?? '',
+            notes: appointment.notes ?? '',
+            ...fields,
+        };
+
+        $.post(App.Utils.Url.siteUrl('appointments/update'), {
+            csrf_token: vars('csrf_token'),
+            appointment: JSON.stringify(payload),
+        })
+            .then(() => {
+                Object.assign(appointment, fields);
+                appointmentsById.set(appointmentId, appointment);
+                if (fields.status) {
+                    const $row = $customerAppointmentsList.find(`tr[data-id="${appointmentId}"]`);
+                    $row.find('td').eq(3).find('span').text(fields.status);
+                }
+                showAppointmentDetails(appointmentId);
+            })
+            .fail(() => {
+                App.Layouts.Backend.displayNotification(lang('unexpected_issues'));
+            });
+    }
+
+    function loadAppointmentNotes(appointmentId) {
+        $customerAppointmentNotesList.empty();
+
+        if (!appointmentId || typeof App.Http.Appointments?.notes !== 'function') {
+            return;
+        }
+
+        App.Http.Appointments.notes(appointmentId)
+            .then((notes) => {
+                renderAppointmentNotes(notes);
+            })
+            .fail(() => {
+                renderAppointmentNotes([]);
+            });
+    }
+
+    function renderAppointmentNotes(notes) {
+        $customerAppointmentNotesList.empty();
+
+        if (!notes || !notes.length) {
+            $('<div/>', {
+                'class': 'rounded-xl border border-[var(--bs-border-color,#e2e8f0)] bg-slate-50 px-4 py-6 text-center text-sm text-slate-500',
+                'text': lang('no_records_found'),
+            }).appendTo($customerAppointmentNotesList);
+            return;
+        }
+
+        notes.forEach((note) => {
+            const authorName = `${note.author_first_name || ''} ${note.author_last_name || ''}`.trim();
+            const authorLabel = authorName || note.author_email || '-';
+            const createdAt = formatNoteDate(note.create_datetime);
+
+            const $noteCard = $('<div/>', {
+                'class': 'rounded-xl border border-[var(--bs-border-color,#e2e8f0)] bg-white p-4',
+            });
+            const $header = $('<div/>', {
+                'class': 'text-sm text-slate-500',
+                'text': `${authorLabel} • ${createdAt}`,
+            });
+            const $body = $('<div/>', {
+                'class': 'mt-3 text-slate-700',
+                'text': note.note,
+            });
+
+            $noteCard.append($header, $body).appendTo($customerAppointmentNotesList);
+        });
+    }
+
+    function buildAddress(customerInfo) {
+        const parts = [customerInfo.address, customerInfo.city, customerInfo.zip_code].filter(Boolean);
+
+        return parts.length ? parts.join(', ') : '—';
+    }
+
+    function formatAppointmentTime(startMoment) {
+        const timeFormat = vars('time_format') === 'military' ? 'HH:mm' : 'h:mm a';
+        return startMoment.format(timeFormat);
+    }
+
+    function renderStatusBadge(status) {
+        return $('<span/>', {
+            'class': 'inline-flex rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700',
+            'text': status,
+        });
     }
 
     function renderNotesList(notes) {

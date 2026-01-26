@@ -108,7 +108,7 @@
                         <button class="booking-tab-line" id="customer-billing-tab" data-bs-toggle="pill"
                                 data-bs-target="#customer-billing-panel" type="button" role="tab"
                                 aria-selected="false" tabindex="-1">
-                            <?= lang('billing_history') ?>
+                            Billing History
                         </button>
                     </li>
                     <li class="nav-item" role="presentation">
@@ -116,6 +116,13 @@
                                 data-bs-target="#customer-notes-panel" type="button" role="tab"
                                 aria-selected="false" tabindex="-1">
                             <?= lang('notes') ?>
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="booking-tab-line" id="customer-visit-notes-tab" data-bs-toggle="pill"
+                                data-bs-target="#customer-visit-notes-panel" type="button" role="tab"
+                                aria-selected="false" tabindex="-1">
+                            Visit Notes
                         </button>
                     </li>
                     <li class="nav-item" role="presentation">
@@ -131,7 +138,116 @@
             <div class="tab-content mt-6 w-full" id="customer-tabs-content">
                 <div class="tab-pane fade show active" id="customer-appointments-panel" role="tabpanel"
                      aria-labelledby="customer-appointments-tab">
-                    <div id="customer-appointments" class="w-full"></div>
+                    <div id="customer-appointments" class="w-full">
+                        <div id="customer-appointments-list"></div>
+                        <div id="customer-appointment-details" class="d-none">
+                            <div class="mb-4 d-flex flex-wrap justify-content-between gap-3">
+                                <button type="button" id="customer-appointment-back"
+                                        class="btn btn-outline-secondary">
+                                    <i class="fas fa-arrow-left me-2"></i>
+                                    <?= lang('back') ?> <?= lang('appointments') ?>
+                                </button>
+                                <a id="customer-appointment-edit-link" href="#"
+                                   class="customer-appointment-edit btn btn-primary">
+                                    <?= lang('edit') ?>
+                                </a>
+                            </div>
+                            <div class="rounded-xl border border-[var(--bs-border-color,#e2e8f0)] bg-white p-4">
+                                <div class="text-lg font-semibold text-slate-900">
+                                    <?= lang('appointment_details_title') ?>
+                                </div>
+                                <div class="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2 text-sm text-slate-700">
+                                    <div>
+                                        <div class="text-xs font-semibold uppercase text-slate-400">Booking ID</div>
+                                        <div id="customer-appointment-id">—</div>
+                                    </div>
+                                    <div>
+                                        <div class="text-xs font-semibold uppercase text-slate-400">Booking Code</div>
+                                        <div id="customer-appointment-hash">—</div>
+                                    </div>
+                                    <div>
+                                        <div class="text-xs font-semibold uppercase text-slate-400">
+                                            <?= lang('service') ?>
+                                        </div>
+                                        <div id="customer-appointment-service">—</div>
+                                    </div>
+                                    <div>
+                                        <div class="text-xs font-semibold uppercase text-slate-400">
+                                            <?= lang('date') ?>
+                                        </div>
+                                        <div id="customer-appointment-date">—</div>
+                                    </div>
+                                    <div>
+                                        <div class="text-xs font-semibold uppercase text-slate-400">Time</div>
+                                        <div id="customer-appointment-time">—</div>
+                                    </div>
+                                    <div>
+                                        <div class="text-xs font-semibold uppercase text-slate-400">
+                                            <?= lang('duration') ?>
+                                        </div>
+                                        <div id="customer-appointment-duration">—</div>
+                                    </div>
+                                    <div>
+                                        <div class="text-xs font-semibold uppercase text-slate-400">
+                                            <?= lang('status') ?>
+                                        </div>
+                                        <div id="customer-appointment-status">—</div>
+                                    </div>
+                                    <div>
+                                        <div class="text-xs font-semibold uppercase text-slate-400">
+                                            <?= lang('provider') ?>
+                                        </div>
+                                        <div id="customer-appointment-provider">—</div>
+                                    </div>
+                                    <div>
+                                        <div class="text-xs font-semibold uppercase text-slate-400">
+                                            <?= lang('customer') ?>
+                                        </div>
+                                        <div id="customer-appointment-customer">—</div>
+                                    </div>
+                                    <div class="md:col-span-2">
+                                        <div class="text-xs font-semibold uppercase text-slate-400">
+                                            <?= lang('address') ?>
+                                        </div>
+                                        <div id="customer-appointment-address">—</div>
+                                    </div>
+                                    <div>
+                                        <div class="text-xs font-semibold uppercase text-slate-400">Billing Status</div>
+                                        <div id="customer-appointment-payment-status">—</div>
+                                    </div>
+                                    <div>
+                                        <div class="text-xs font-semibold uppercase text-slate-400">
+                                            <?= lang('amount') ?>
+                                        </div>
+                                        <div id="customer-appointment-payment-amount">—</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mt-4 rounded-xl border border-[var(--bs-border-color,#e2e8f0)] bg-white p-4">
+                                <div class="text-xs font-semibold uppercase text-slate-400">Visit Status</div>
+                                <div class="mt-2 d-flex flex-wrap gap-2">
+                                    <button type="button" class="btn btn-outline-secondary customer-appointment-status"
+                                            data-status="Arrived">Arrived</button>
+                                    <button type="button" class="btn btn-outline-secondary customer-appointment-status"
+                                            data-status="Left">Left</button>
+                                    <button type="button" class="btn btn-outline-secondary customer-appointment-status"
+                                            data-status="No-show">No-show</button>
+                                </div>
+                            </div>
+                            <div class="mt-4 rounded-xl border border-[var(--bs-border-color,#e2e8f0)] bg-white p-4">
+                                <div class="text-xs font-semibold uppercase text-slate-400">Visit Notes</div>
+                                <textarea id="customer-appointment-notes" class="form-control mt-2"
+                                          rows="4"></textarea>
+                                <div class="mt-3 d-flex justify-content-end">
+                                    <button type="button" id="customer-appointment-save-notes"
+                                            class="btn btn-primary">
+                                        <?= lang('save') ?>
+                                    </button>
+                                </div>
+                            </div>
+                            <div id="customer-appointment-notes-list" class="mt-4 d-flex flex-column gap-3"></div>
+                        </div>
+                    </div>
                 </div>
                 <div class="tab-pane fade" id="customer-billing-panel" role="tabpanel"
                      aria-labelledby="customer-billing-tab">
@@ -154,7 +270,7 @@
                 </div>
                 <div class="tab-pane fade" id="customer-notes-panel" role="tabpanel"
                      aria-labelledby="customer-notes-tab">
-                    <div id="customer-notes" class="w-full">
+                    <div id="customer-notes-tab-content" class="w-full">
                         <div class="rounded-xl border border-[var(--bs-border-color,#e2e8f0)] bg-white p-4">
                             <label for="customer-note-text" class="form-label text-slate-700">
                                 <?= lang('notes') ?>
@@ -167,6 +283,12 @@
                             </div>
                         </div>
                         <div id="customer-notes-list" class="mt-4 d-flex flex-column gap-3"></div>
+                    </div>
+                </div>
+                <div class="tab-pane fade" id="customer-visit-notes-panel" role="tabpanel"
+                     aria-labelledby="customer-visit-notes-tab">
+                    <div id="customer-visit-notes" class="w-full">
+                        <div id="customer-visit-notes-list" class="d-flex flex-column gap-3"></div>
                     </div>
                 </div>
                 <div class="tab-pane fade" id="customer-account-panel" role="tabpanel"
@@ -339,6 +461,7 @@
 
 <?php section('scripts'); ?>
 
+<script src="<?= asset_url('assets/js/http/appointments_http_client.js') ?>"></script>
 <script src="<?= asset_url('assets/js/http/customers_http_client.js') ?>"></script>
 <script src="<?= asset_url('assets/js/pages/customers.js') ?>"></script>
 
