@@ -123,6 +123,24 @@ App.Http.Customers = (function () {
     }
 
     /**
+     * Get customer visit notes (appointment notes).
+     *
+     * @param {Number} customerId
+     *
+     * @return {Object}
+     */
+    function visitNotes(customerId) {
+        const url = App.Utils.Url.siteUrl('customers/visit_notes');
+
+        const data = {
+            csrf_token: vars('csrf_token'),
+            customer_id: customerId,
+        };
+
+        return $.post(url, data);
+    }
+
+    /**
      * Get customer notes.
      *
      * @param {Number} customerId
@@ -202,6 +220,7 @@ App.Http.Customers = (function () {
         search,
         find,
         notes,
+        visitNotes,
         storeNote,
         updateNote,
         deleteNote,
