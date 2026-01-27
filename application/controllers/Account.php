@@ -56,6 +56,8 @@ class Account extends EA_Controller
 
         $this->load->model('appointments_model');
         $this->load->model('customers_model');
+        $this->load->model('form_assignments_model');
+        $this->load->model('forms_model');
         $this->load->model('services_model');
         $this->load->model('providers_model');
         $this->load->model('roles_model');
@@ -88,6 +90,7 @@ class Account extends EA_Controller
         }
 
         $account = $this->users_model->find($user_id);
+        $show_forms_nav = $this->has_assigned_forms();
 
         script_vars([
             'account' => $account,
@@ -98,9 +101,85 @@ class Account extends EA_Controller
             'active_menu' => PRIV_SYSTEM_SETTINGS,
             'user_display_name' => $this->accounts->get_user_display_name($user_id),
             'grouped_timezones' => $this->timezones->to_grouped_array(),
+            'show_forms_nav' => $show_forms_nav,
         ]);
 
         $this->load->view('pages/account');
+    }
+
+    public function forms(): void
+    {
+        session(['dest_url' => site_url('account/forms')]);
+
+        $user_id = session('user_id');
+
+        if (cannot('view', PRIV_USER_SETTINGS)) {
+            if ($user_id) {
+                abort(403, 'Forbidden');
+            }
+
+            redirect('login');
+
+            return;
+        }
+
+        $show_forms_nav = $this->has_assigned_forms();
+
+        html_vars([
+            'page_title' => lang('settings'),
+            'active_menu' => PRIV_SYSTEM_SETTINGS,
+            'user_display_name' => $this->accounts->get_user_display_name($user_id),
+            'show_forms_nav' => $show_forms_nav,
+        ]);
+
+        $this->load->view('pages/account_forms');
+    }
+
+    public function form(int $form_id): void
+    {
+        session(['dest_url' => site_url('account/forms/' . $form_id)]);
+
+        $user_id = session('user_id');
+
+        if (cannot('view', PRIV_USER_SETTINGS)) {
+            if ($user_id) {
+                abort(403, 'Forbidden');
+            }
+
+            redirect('login');
+
+            return;
+        }
+
+        $show_forms_nav = $this->has_assigned_forms();
+
+        script_vars([
+            'form_id' => $form_id,
+        ]);
+
+        html_vars([
+            'page_title' => lang('settings'),
+            'active_menu' => PRIV_SYSTEM_SETTINGS,
+            'user_display_name' => $this->accounts->get_user_display_name($user_id),
+            'show_forms_nav' => $show_forms_nav,
+        ]);
+
+        $this->load->view('pages/account_form_view');
+    }
+
+    protected function has_assigned_forms(): bool
+    {
+        $role_slug = (string) session('role_slug');
+        $assigned = $this->form_assignments_model->find_for_role($role_slug);
+
+        if (!$assigned) {
+            return false;
+        }
+
+        $form_ids = array_map(fn ($row) => $row['id_forms'], $assigned);
+        $forms = $this->forms_model->find_by_ids($form_ids, true);
+
+        return !empty($forms);
     }
 
     /**

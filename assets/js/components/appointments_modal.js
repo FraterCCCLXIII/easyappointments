@@ -46,13 +46,22 @@ App.Components.AppointmentsModal = (function () {
     const $insertAppointment = $('#insert-appointment');
     const $existingCustomersList = $appointmentsModal.find('#existing-customers-list');
     const $newCustomer = $appointmentsModal.find('#new-customer');
-    const $customField1 = $appointmentsModal.find('#custom-field-1');
-    const $customField2 = $appointmentsModal.find('#custom-field-2');
-    const $customField3 = $appointmentsModal.find('#custom-field-3');
-    const $customField4 = $appointmentsModal.find('#custom-field-4');
-    const $customField5 = $appointmentsModal.find('#custom-field-5');
+    const $customFieldInputs = $appointmentsModal.find('.custom-field-input');
 
     const moment = window.moment;
+
+    function getCustomFieldValues() {
+        const values = {};
+        $customFieldInputs.each((index, input) => {
+            const $input = $(input);
+            const fieldId = $input.data('custom-field-id');
+            if (!fieldId) {
+                return;
+            }
+            values[fieldId] = $input.val();
+        });
+        return values;
+    }
 
     /**
      * Update the displayed timezone.
@@ -121,11 +130,7 @@ App.Components.AppointmentsModal = (function () {
                 language: $language.val(),
                 timezone: $timezone.val(),
                 notes: $customerNotes.val(),
-                custom_field_1: $customField1.val(),
-                custom_field_2: $customField2.val(),
-                custom_field_3: $customField3.val(),
-                custom_field_4: $customField4.val(),
-                custom_field_5: $customField5.val(),
+                custom_fields: getCustomFieldValues(),
             };
 
             if ($customerId.val() !== '') {
@@ -265,11 +270,15 @@ App.Components.AppointmentsModal = (function () {
                 $language.val(customer.language);
                 $timezone.val(customer.timezone);
                 $customerNotes.val(customer.notes);
-                $customField1.val(customer.custom_field_1);
-                $customField2.val(customer.custom_field_2);
-                $customField3.val(customer.custom_field_3);
-                $customField4.val(customer.custom_field_4);
-                $customField5.val(customer.custom_field_5);
+                $customFieldInputs.each((index, input) => {
+                    const $input = $(input);
+                    const fieldId = $input.data('custom-field-id');
+                    if (!fieldId) {
+                        return;
+                    }
+                    const value = customer.custom_field_values?.[fieldId] ?? '';
+                    $input.val(value);
+                });
             }
 
             $selectCustomer.trigger('click'); // Hide the list.

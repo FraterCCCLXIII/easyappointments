@@ -41,10 +41,12 @@ App.Pages.Secretaries = (function () {
     const $summaryPhone = $('#secretary-summary-phone');
     const $summaryLocation = $('#secretary-summary-location');
     const $secretaryFilesPanel = $('#secretary-files-panel .user-files-panel');
+    const $secretaryFormsPanel = $('#secretary-forms-panel .user-forms-panel');
     let filterResults = [];
     let filterLimit = 20;
     let pendingSlug = null;
     let userFilesManager;
+    let userFormsManager;
 
     function setRecordDetailsVisible(visible) {
         const $recordDetails = $secretaries.find('.record-details');
@@ -411,6 +413,9 @@ App.Pages.Secretaries = (function () {
         if (userFilesManager) {
             userFilesManager.reset();
         }
+        if (userFormsManager) {
+            userFormsManager.reset();
+        }
     }
 
     /**
@@ -449,6 +454,9 @@ App.Pages.Secretaries = (function () {
 
         if (userFilesManager) {
             userFilesManager.refresh();
+        }
+        if (userFormsManager) {
+            userFormsManager.refresh();
         }
 
         $('#secretary-providers input:checkbox').prop('checked', false);
@@ -627,6 +635,13 @@ App.Pages.Secretaries = (function () {
             canUpload: Number($secretaryFilesPanel.data('can-upload')) === 1,
             canDelete: Number($secretaryFilesPanel.data('can-delete')) === 1,
         });
+        if ($secretaryFormsPanel.length) {
+            userFormsManager = App.Components.UserForms.create($secretaryFormsPanel, {
+                userType: 'secretary',
+                getUserId: () => $id.val(),
+                canReset: Number($secretaryFormsPanel.data('can-reset')) === 1,
+            });
+        }
         pendingSlug = vars('selected_record_slug') || null;
         App.Pages.Secretaries.filter('');
         App.Pages.Secretaries.addEventListeners();

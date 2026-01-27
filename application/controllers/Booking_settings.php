@@ -35,6 +35,7 @@ class Booking_settings extends EA_Controller
 
         $this->load->model('appointments_model');
         $this->load->model('customers_model');
+        $this->load->model('custom_fields_model');
         $this->load->model('services_model');
         $this->load->model('providers_model');
         $this->load->model('roles_model');
@@ -72,6 +73,7 @@ class Booking_settings extends EA_Controller
             'user_id' => $user_id,
             'role_slug' => $role_slug,
             'booking_settings' => $this->settings_model->get_batch(),
+            'custom_fields' => $this->custom_fields_model->find_all(false),
         ]);
 
         html_vars([
@@ -94,6 +96,9 @@ class Booking_settings extends EA_Controller
             }
 
             $settings = request('booking_settings', []);
+            $custom_fields = request('custom_fields', []);
+
+            $this->db->trans_start();
 
             foreach ($settings as $setting) {
                 $existing_setting = $this->settings_model
@@ -112,6 +117,12 @@ class Booking_settings extends EA_Controller
 
                 $this->settings_model->save($setting);
             }
+
+            if (is_array($custom_fields)) {
+                $this->custom_fields_model->sync_fields($custom_fields);
+            }
+
+            $this->db->trans_complete();
 
             response();
         } catch (Throwable $e) {

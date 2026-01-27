@@ -10,6 +10,7 @@ $active_route_map = [
     'booking_settings' => 'booking_settings',
     'business_settings' => 'business_settings',
     'legal_settings' => 'legal_settings',
+    'forms_settings' => 'forms_settings',
     'integrations' => 'integrations',
     'api_settings' => 'integrations',
     'ldap_settings' => 'integrations',
@@ -52,6 +53,13 @@ $link_base_class = 'nav-link settings-nav-link';
         <a class="<?= $link_base_class . ($active_route === 'legal_settings' ? ' active' : '') ?>"
            href="<?= site_url('legal_settings') ?>">
             <?= lang('legal_contents') ?>
+        </a>
+    </li>
+
+    <li class="nav-item mb-2">
+        <a class="<?= $link_base_class . ($active_route === 'forms_settings' ? ' active' : '') ?>"
+           href="<?= site_url('forms_settings') ?>">
+            Forms
         </a>
     </li>
 

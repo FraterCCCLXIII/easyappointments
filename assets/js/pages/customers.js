@@ -28,11 +28,7 @@ App.Pages.Customers = (function () {
     const $timezone = $('#timezone');
     const $language = $('#language');
     const $ldapDn = $('#ldap-dn');
-    const $customField1 = $('#custom-field-1');
-    const $customField2 = $('#custom-field-2');
-    const $customField3 = $('#custom-field-3');
-    const $customField4 = $('#custom-field-4');
-    const $customField5 = $('#custom-field-5');
+    const $customFieldInputs = $('.custom-field-input');
     const $notes = $('#notes');
     const $formMessage = $('#form-message');
     const $customerAppointments = $('#customer-appointments');
@@ -60,6 +56,7 @@ App.Pages.Customers = (function () {
     const $customerNotesList = $('#customer-notes-list');
     const $customerVisitNotesList = $('#customer-visit-notes-list');
     const $customerFilesPanel = $('#customer-files-panel .user-files-panel');
+    const $customerFormsPanel = $('#customer-forms-panel .user-forms-panel');
     const $addCustomerNote = $('#add-customer-note');
     const $summaryName = $('#customer-summary-name');
     const $summaryId = $('#customer-summary-id');
@@ -73,6 +70,36 @@ App.Pages.Customers = (function () {
     let filterLimit = 20;
     let pendingSlug = null;
     let userFilesManager;
+    let userFormsManager;
+
+    function getCustomFieldValues($container = $customers) {
+        const values = {};
+        $container.find('.custom-field-input').each((index, input) => {
+            const $input = $(input);
+            const fieldId = $input.data('custom-field-id');
+            if (!fieldId) {
+                return;
+            }
+            values[fieldId] = $input.val();
+        });
+        return values;
+    }
+
+    function applyCustomFieldValues(values, $container = $customers) {
+        if (!values) {
+            return;
+        }
+        $container.find('.custom-field-input').each((index, input) => {
+            const $input = $(input);
+            const fieldId = $input.data('custom-field-id');
+            if (!fieldId) {
+                return;
+            }
+            if (Object.prototype.hasOwnProperty.call(values, fieldId)) {
+                $input.val(values[fieldId]);
+            }
+        });
+    }
 
     function setRecordDetailsVisible(visible) {
         const $recordDetails = $customers.find('.record-details');
@@ -181,13 +208,10 @@ App.Pages.Customers = (function () {
                 notes: $notes.val(),
                 timezone: $timezone.val(),
                 language: $language.val() || 'english',
-                custom_field_1: $customField1.val(),
-                custom_field_2: $customField2.val(),
-                custom_field_3: $customField3.val(),
-                custom_field_4: $customField4.val(),
-                custom_field_5: $customField5.val(),
                 ldap_dn: $ldapDn.val(),
             };
+
+            const custom_fields = getCustomFieldValues($customers);
 
             if ($id.val()) {
                 customer.id = $id.val();
@@ -197,7 +221,7 @@ App.Pages.Customers = (function () {
                 return;
             }
 
-            App.Pages.Customers.save(customer);
+            App.Pages.Customers.save(customer, custom_fields);
         });
 
         /**
@@ -422,8 +446,8 @@ App.Pages.Customers = (function () {
      *
      * @param {Object} customer Contains the customer data.
      */
-    function save(customer) {
-        App.Http.Customers.save(customer).then((response) => {
+    function save(customer, custom_fields) {
+        App.Http.Customers.save(customer, custom_fields).then((response) => {
             App.Layouts.Backend.displayNotification(lang('customer_saved'));
             App.Pages.Customers.resetForm();
             $('#filter-customers .key').val('');
@@ -502,11 +526,7 @@ App.Pages.Customers = (function () {
         $appointmentsModal.find('#appointment-status').val(appointment.status || '');
         $appointmentsModal.find('#appointment-notes').val(appointment.notes || '');
         $appointmentsModal.find('#customer-notes').val(customerInfo.notes || '');
-        $appointmentsModal.find('#custom-field-1').val(customerInfo.custom_field_1 || '');
-        $appointmentsModal.find('#custom-field-2').val(customerInfo.custom_field_2 || '');
-        $appointmentsModal.find('#custom-field-3').val(customerInfo.custom_field_3 || '');
-        $appointmentsModal.find('#custom-field-4').val(customerInfo.custom_field_4 || '');
-        $appointmentsModal.find('#custom-field-5').val(customerInfo.custom_field_5 || '');
+        applyCustomFieldValues(customerInfo.custom_field_values || {}, $appointmentsModal);
 
         App.Components.ColorSelection.setColor($appointmentsModal.find('#appointment-color'), appointment.color);
 
@@ -594,6 +614,9 @@ App.Pages.Customers = (function () {
         if (userFilesManager) {
             userFilesManager.reset();
         }
+        if (userFormsManager) {
+            userFormsManager.reset();
+        }
     }
 
     /**
@@ -614,11 +637,7 @@ App.Pages.Customers = (function () {
         $timezone.val(customer.timezone);
         $language.val(customer.language || 'english');
         $ldapDn.val(customer.ldap_dn);
-        $customField1.val(customer.custom_field_1);
-        $customField2.val(customer.custom_field_2);
-        $customField3.val(customer.custom_field_3);
-        $customField4.val(customer.custom_field_4);
-        $customField5.val(customer.custom_field_5);
+        applyCustomFieldValues(customer.custom_field_values || {});
 
         updateCustomerSummaryFromInputs();
 
@@ -643,15 +662,14 @@ App.Pages.Customers = (function () {
             language: customer.language,
             timezone: customer.timezone,
             notes: customer.notes,
-            custom_field_1: customer.custom_field_1,
-            custom_field_2: customer.custom_field_2,
-            custom_field_3: customer.custom_field_3,
-            custom_field_4: customer.custom_field_4,
-            custom_field_5: customer.custom_field_5,
+            custom_field_values: customer.custom_field_values || {},
         });
 
         if (userFilesManager) {
             userFilesManager.refresh();
+        }
+        if (userFormsManager) {
+            userFormsManager.refresh();
         }
 
         const $appointmentsWrapper = $('<div/>', {
@@ -1319,6 +1337,13 @@ App.Pages.Customers = (function () {
             canUpload: Number($customerFilesPanel.data('can-upload')) === 1,
             canDelete: Number($customerFilesPanel.data('can-delete')) === 1,
         });
+        if ($customerFormsPanel.length) {
+            userFormsManager = App.Components.UserForms.create($customerFormsPanel, {
+                userType: 'customer',
+                getUserId: () => $id.val(),
+                canReset: Number($customerFormsPanel.data('can-reset')) === 1,
+            });
+        }
         pendingSlug = vars('selected_record_slug') || null;
         App.Pages.Customers.filter('');
     }

@@ -237,11 +237,15 @@ App.Utils.CalendarTableView = (function () {
                 $appointmentsModal.find('#appointment-status').val(appointment.status);
                 $appointmentsModal.find('#appointment-notes').val(appointment.notes);
                 $appointmentsModal.find('#customer-notes').val(customer.notes);
-                $appointmentsModal.find('#custom-field-1').val(customer.custom_field_1);
-                $appointmentsModal.find('#custom-field-2').val(customer.custom_field_2);
-                $appointmentsModal.find('#custom-field-3').val(customer.custom_field_3);
-                $appointmentsModal.find('#custom-field-4').val(customer.custom_field_4);
-                $appointmentsModal.find('#custom-field-5').val(customer.custom_field_5);
+                $appointmentsModal.find('.custom-field-input').each((index, input) => {
+                    const $input = $(input);
+                    const fieldId = $input.data('custom-field-id');
+                    if (!fieldId) {
+                        return;
+                    }
+                    const value = customer.custom_field_values?.[fieldId] ?? '';
+                    $input.val(value);
+                });
 
                 App.Components.ColorSelection.setColor(
                     $appointmentsModal.find('#appointment-color'),

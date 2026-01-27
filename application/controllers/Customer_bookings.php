@@ -26,6 +26,8 @@ class Customer_bookings extends EA_Controller
         $this->load->model('services_model');
         $this->load->model('providers_model');
         $this->load->model('customers_model');
+        $this->load->model('form_assignments_model');
+        $this->load->model('forms_model');
     }
 
     public function index(): void
@@ -68,6 +70,7 @@ class Customer_bookings extends EA_Controller
             'appointments' => $rows,
             'date_format' => setting('date_format'),
             'time_format' => setting('time_format'),
+            'show_customer_forms_link' => $this->has_customer_forms(),
         ]);
 
         $this->load->view('pages/customer_bookings');
@@ -90,5 +93,19 @@ class Customer_bookings extends EA_Controller
         }
 
         return $customer;
+    }
+
+    protected function has_customer_forms(): bool
+    {
+        $assigned = $this->form_assignments_model->find_for_role(DB_SLUG_CUSTOMER);
+
+        if (!$assigned) {
+            return false;
+        }
+
+        $form_ids = array_map(fn ($row) => $row['id_forms'], $assigned);
+        $forms = $this->forms_model->find_by_ids($form_ids, true);
+
+        return !empty($forms);
     }
 }

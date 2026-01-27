@@ -59,6 +59,8 @@ class Secretaries extends EA_Controller
     {
         parent::__construct();
 
+        $this->load->model('form_assignments_model');
+        $this->load->model('forms_model');
         $this->load->model('secretaries_model');
         $this->load->model('providers_model');
         $this->load->model('roles_model');
@@ -118,9 +120,24 @@ class Secretaries extends EA_Controller
             'grouped_timezones' => $this->timezones->to_grouped_array(),
             'privileges' => $this->roles_model->get_permissions_by_slug($role_slug),
             'providers' => $this->providers_model->get(),
+            'show_secretary_forms_tab' => $this->has_forms_for_role(DB_SLUG_SECRETARY),
         ]);
 
         $this->load->view('pages/secretaries');
+    }
+
+    protected function has_forms_for_role(string $role_slug): bool
+    {
+        $assigned = $this->form_assignments_model->find_for_role($role_slug);
+
+        if (!$assigned) {
+            return false;
+        }
+
+        $form_ids = array_map(fn ($row) => $row['id_forms'], $assigned);
+        $forms = $this->forms_model->find_by_ids($form_ids, true);
+
+        return !empty($forms);
     }
 
     /**

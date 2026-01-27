@@ -29,7 +29,7 @@
                         </h5>
 
                         <div class="row mb-5 fields-row">
-                            <div class="col-lg-6">
+                            <div class="col-12">
                                 <div class="form-group mb-5">
                                     <label for="first-name" class="form-label">
                                         <?= lang('first_name') ?>
@@ -136,9 +136,6 @@
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-
-                            <div class="col-lg-6">
                                 <div class="form-group mb-5">
                                     <label for="address" class="form-label">
                                         <?= lang('address') ?>
@@ -250,44 +247,11 @@
                             <?= lang('custom_fields') ?>
                         </h5>
 
-                        <div class="row mb-5 fields-row">
-                            <?php for ($i = 1; $i <= 5; $i++): ?>
-                                <div class="col-sm-6">
-                                    <div class="form-group mb-5">
-                                        <label for="first-name" class="form-label">
-                                            <?= lang('custom_field') ?> #<?= $i ?>
-                                            <span class="text-danger">*</span>
-                                        </label>
-
-                                        <input type="text" id="custom-field-<?= $i ?>" class="form-control mb-2"
-                                               placeholder="<?= lang('label') ?>"
-                                               data-field="label_custom_field_<?= $i ?>"
-                                               aria-label="label"
-                                        />
-
-                                        <div class="d-flex">
-                                            <div class="form-check form-switch me-4">
-                                                <input class="form-check-input display-switch" type="checkbox"
-                                                       id="display-custom-field-<?= $i ?>"
-                                                       data-field="display_custom_field_<?= $i ?>">
-                                                <label class="form-check-label" for="display-custom-field-<?= $i ?>">
-                                                    <?= lang('display') ?>
-                                                </label>
-                                            </div>
-
-                                            <div class="form-check form-switch">
-                                                <input class="form-check-input require-switch" type="checkbox"
-                                                       id="require-custom-field-<?= $i ?>"
-                                                       data-field="require_custom_field_<?= $i ?>">
-                                                <label class="form-check-label" for="require-custom-field-<?= $i ?>">
-                                                    <?= lang('require') ?>
-                                                </label>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            <?php endfor; ?>
-                        </div>
+                        <div id="custom-fields-list" class="d-flex flex-column gap-3 mb-3"></div>
+                        <button type="button" id="add-custom-field-setting" class="btn btn-outline-secondary mb-5">
+                            Add Custom Field
+                        </button>
+                        <div id="custom-fields-debug" class="text-xs text-slate-400 mb-5"></div>
 
 
                         <h5 class="text-black-50 mb-3 fw-light">
@@ -434,7 +398,7 @@
 <?php section('scripts'); ?>
 
 <script src="<?= asset_url('assets/js/http/booking_settings_http_client.js') ?>"></script>
-<script src="<?= asset_url('assets/js/pages/booking_settings.js') ?>"></script>
+<script src="<?= asset_url('assets/js/pages/booking_settings.js') ?>?v=<?= time() ?>"></script>
 
 <?php end_section('scripts'); ?>
 

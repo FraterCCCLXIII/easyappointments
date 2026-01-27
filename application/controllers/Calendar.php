@@ -73,6 +73,8 @@ class Calendar extends EA_Controller
         $this->load->model('unavailabilities_model');
         $this->load->model('blocked_periods_model');
         $this->load->model('customers_model');
+        $this->load->model('custom_fields_model');
+        $this->load->model('customer_custom_field_values_model');
         $this->load->model('services_model');
         $this->load->model('providers_model');
         $this->load->model('roles_model');
@@ -174,6 +176,12 @@ class Calendar extends EA_Controller
 
         $appointment_status_options = setting('appointment_status_options');
 
+        $customers = $this->customers_model->get(null, 50, null, 'update_datetime DESC');
+        foreach ($customers as &$customer) {
+            $customer['custom_field_values'] = $this->customer_custom_field_values_model
+                ->find_for_user((int) $customer['id']);
+        }
+
         script_vars([
             'user_id' => $user_id,
             'role_slug' => $role_slug,
@@ -189,7 +197,7 @@ class Calendar extends EA_Controller
             'secretary_providers' => $secretary_providers,
             'edit_appointment' => $edit_appointment,
             'google_sync_feature' => config('google_sync_feature'),
-            'customers' => $this->customers_model->get(null, 50, null, 'update_datetime DESC'),
+            'customers' => $customers,
             'default_language' => setting('default_language'),
             'default_timezone' => setting('default_timezone'),
         ]);
@@ -215,6 +223,7 @@ class Calendar extends EA_Controller
             'require_city' => setting('require_city'),
             'require_zip_code' => setting('require_zip_code'),
             'require_notes' => setting('require_notes'),
+            'custom_fields' => $this->custom_fields_model->find_all(),
         ]);
 
         $this->load->view('pages/calendar');
@@ -235,6 +244,8 @@ class Calendar extends EA_Controller
             // Save customer changes to the database.
             if ($customer_data) {
                 $customer = $customer_data;
+                $custom_fields = $customer['custom_fields'] ?? [];
+                unset($customer['custom_fields']);
 
                 $required_permissions = !empty($customer['id'])
                     ? can('add', PRIV_CUSTOMERS)
@@ -249,6 +260,13 @@ class Calendar extends EA_Controller
                 $this->customers_model->optional($customer, $this->optional_customer_fields);
 
                 $customer['id'] = $this->customers_model->save($customer);
+
+                if (is_array($custom_fields)) {
+                    $this->customer_custom_field_values_model->save_for_user(
+                        (int) $customer['id'],
+                        $custom_fields
+                    );
+                }
             }
 
             // Save appointment changes to the database.
@@ -573,7 +591,12 @@ class Calendar extends EA_Controller
             foreach ($response['appointments'] as &$appointment) {
                 $appointment['provider'] = $this->providers_model->find($appointment['id_users_provider']);
                 $appointment['service'] = $this->services_model->find($appointment['id_services']);
-                $appointment['customer'] = $this->customers_model->find($appointment['id_users_customer']);
+                $customer = $this->customers_model->find($appointment['id_users_customer']);
+                if ($customer) {
+                    $customer['custom_field_values'] = $this->customer_custom_field_values_model
+                        ->find_for_user((int) $customer['id']);
+                }
+                $appointment['customer'] = $customer;
             }
 
             unset($appointment);
@@ -709,7 +732,12 @@ class Calendar extends EA_Controller
             foreach ($response['appointments'] as &$appointment) {
                 $appointment['provider'] = $this->providers_model->find($appointment['id_users_provider']);
                 $appointment['service'] = $this->services_model->find($appointment['id_services']);
-                $appointment['customer'] = $this->customers_model->find($appointment['id_users_customer']);
+                $customer = $this->customers_model->find($appointment['id_users_customer']);
+                if ($customer) {
+                    $customer['custom_field_values'] = $this->customer_custom_field_values_model
+                        ->find_for_user((int) $customer['id']);
+                }
+                $appointment['customer'] = $customer;
             }
 
             unset($appointment);

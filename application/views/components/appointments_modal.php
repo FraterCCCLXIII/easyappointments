@@ -292,7 +292,9 @@
                                     </select>
                                 </div>
 
-                                <?php component('custom_fields'); ?>
+                                <?php component('custom_fields', [
+                                    'fields' => vars('custom_fields') ?? [],
+                                ]); ?>
 
                                 <?php slot('after_primary_customer_custom_fields'); ?>
                             </div>

@@ -173,6 +173,21 @@ $route['customer/account/update'] = 'customer_account/update_profile';
 $route['customer/account/email'] = 'customer_account/update_email';
 $route['customer/account/password'] = 'customer_account/update_password';
 $route['customer/bookings'] = 'customer_bookings/index';
+$route['customer/forms'] = 'customer_forms/index';
+$route['customer/forms/(:num)'] = 'customer_forms/view/$1';
+$route['customer/forms/list'] = 'customer_forms/list';
+$route['customer/forms/find'] = 'customer_forms/find';
+$route['customer/forms/submit'] = 'customer_forms/submit';
+
+$route['forms_settings/create'] = 'forms_settings/create';
+$route['forms_settings/view/(:num)'] = 'forms_settings/view/$1';
+$route['forms/user/(:any)/(:num)/(:num)'] = 'forms/view_user/$1/$2/$3';
+$route['forms/list_for_record'] = 'forms/list_for_record';
+$route['forms/find_for_record'] = 'forms/find_for_record';
+$route['forms/reset_submission'] = 'forms/reset_submission';
+
+$route['account/forms'] = 'account/forms';
+$route['account/forms/(:num)'] = 'account/form/$1';
 
 $route['admins/profile/(:any)'] = 'admins/index/$1';
 $route['providers/profile/(:any)'] = 'providers/index/$1';

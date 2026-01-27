@@ -42,7 +42,11 @@ class Customer_account extends EA_Controller
 
         $this->load->model('customers_model');
         $this->load->model('customer_auth_model');
+        $this->load->model('custom_fields_model');
+        $this->load->model('customer_custom_field_values_model');
         $this->load->model('appointments_model');
+        $this->load->model('form_assignments_model');
+        $this->load->model('forms_model');
         $this->load->library('timezones');
         $this->load->library('stripe_gateway');
     }
@@ -65,6 +69,9 @@ class Customer_account extends EA_Controller
             'payment_status !=' => 'not-paid',
         ]);
 
+        $custom_fields = $this->custom_fields_model->find_displayed();
+        $custom_field_values = $this->customer_custom_field_values_model->find_for_user((int) $customer['id']);
+
         html_vars([
             'page_title' => 'My Account',
             'theme' => $theme,
@@ -79,6 +86,9 @@ class Customer_account extends EA_Controller
             'grouped_timezones' => $this->timezones->to_grouped_array(),
             'appointments' => $appointments,
             'stripe_enabled' => $this->stripe_gateway->is_enabled(),
+            'show_customer_forms_link' => $this->has_customer_forms(),
+            'custom_fields' => $custom_fields,
+            'custom_field_values' => $custom_field_values,
         ]);
 
         $this->load->view('pages/customer_account');
@@ -122,6 +132,14 @@ class Customer_account extends EA_Controller
             $this->customers_model->only($updated, array_merge($this->allowed_customer_fields, ['id', 'email']));
 
             $this->customers_model->save($updated);
+
+            $custom_fields = request('custom_fields', []);
+            if (is_array($custom_fields)) {
+                $this->customer_custom_field_values_model->save_for_user(
+                    (int) $customer['id'],
+                    $custom_fields
+                );
+            }
 
             session([
                 'customer_flash' => [
@@ -268,6 +286,20 @@ class Customer_account extends EA_Controller
         }
 
         return $customer;
+    }
+
+    protected function has_customer_forms(): bool
+    {
+        $assigned = $this->form_assignments_model->find_for_role(DB_SLUG_CUSTOMER);
+
+        if (!$assigned) {
+            return false;
+        }
+
+        $form_ids = array_map(fn ($row) => $row['id_forms'], $assigned);
+        $forms = $this->forms_model->find_by_ids($form_ids, true);
+
+        return !empty($forms);
     }
 
     protected function is_profile_complete(array $customer): bool

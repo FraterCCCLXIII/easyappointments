@@ -70,6 +70,10 @@ class Booking extends EA_Controller
         $this->load->model('service_categories_model');
         $this->load->model('services_model');
         $this->load->model('customers_model');
+        $this->load->model('custom_fields_model');
+        $this->load->model('customer_custom_field_values_model');
+        $this->load->model('form_assignments_model');
+        $this->load->model('forms_model');
         $this->load->model('settings_model');
         $this->load->model('consents_model');
 
@@ -276,6 +280,7 @@ class Booking extends EA_Controller
         $display_login_button = setting('display_login_button');
         $display_delete_personal_information = setting('display_delete_personal_information');
         $book_advance_timeout = setting('book_advance_timeout');
+        $show_customer_forms_link = $this->has_customer_forms();
         $theme = request('theme', setting('theme', 'default'));
 
         if (empty($theme) || !file_exists(__DIR__ . '/../../assets/css/themes/' . $theme . '.min.css')) {
@@ -379,6 +384,10 @@ class Booking extends EA_Controller
 
         $customer_data = $customer;
         $this->customers_model->only($customer_data, $this->allowed_customer_fields);
+        $custom_fields = $this->custom_fields_model->find_displayed();
+        $custom_field_values = $customer
+            ? $this->customer_custom_field_values_model->find_for_user((int) $customer['id'])
+            : [];
 
         script_vars([
             'manage_mode' => $manage_mode,
@@ -394,6 +403,7 @@ class Booking extends EA_Controller
             'provider_data' => $provider,
             'customer_data' => $customer_data,
             'customer_token' => $customer_token,
+            'custom_field_values' => $custom_field_values,
             'default_language' => setting('default_language'),
             'default_timezone' => setting('default_timezone'),
             'customer_logged_in' => true,
@@ -437,12 +447,15 @@ class Booking extends EA_Controller
             'google_analytics_code' => $google_analytics_code,
             'matomo_analytics_url' => $matomo_analytics_url,
             'matomo_analytics_site_id' => $matomo_analytics_site_id,
+            'show_customer_forms_link' => $show_customer_forms_link,
             'timezones' => $timezones,
             'grouped_timezones' => $grouped_timezones,
             'manage_mode' => $manage_mode,
             'appointment_data' => $appointment,
             'provider_data' => $provider,
             'customer_data' => $customer_data,
+            'custom_fields' => $custom_fields,
+            'custom_field_values' => $custom_field_values,
         ]);
 
         $this->load->view('pages/booking');
@@ -478,6 +491,8 @@ class Booking extends EA_Controller
             }
 
             $customer_input = is_array($customer_input) ? $customer_input : [];
+            $custom_fields_input = $customer_input['custom_fields'] ?? [];
+            unset($customer_input['custom_fields']);
             $customer_email = $customer['email'];
             $customer = array_merge($customer, $customer_input);
             $customer['id'] = $customer_id;
@@ -576,6 +591,13 @@ class Booking extends EA_Controller
 
             $customer_id = $this->customers_model->save($customer);
             $customer = $this->customers_model->find($customer_id);
+
+            if (is_array($custom_fields_input)) {
+                $this->customer_custom_field_values_model->save_for_user(
+                    (int) $customer_id,
+                    $custom_fields_input
+                );
+            }
 
             $appointment['id_users_customer'] = $customer_id;
             $appointment['is_unavailability'] = false;
@@ -724,6 +746,20 @@ class Booking extends EA_Controller
         }
 
         return true;
+    }
+
+    protected function has_customer_forms(): bool
+    {
+        $assigned = $this->form_assignments_model->find_for_role(DB_SLUG_CUSTOMER);
+
+        if (!$assigned) {
+            return false;
+        }
+
+        $form_ids = array_map(fn ($row) => $row['id_forms'], $assigned);
+        $forms = $this->forms_model->find_by_ids($form_ids, true);
+
+        return !empty($forms);
     }
 
     /**

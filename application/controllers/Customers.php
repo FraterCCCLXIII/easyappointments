@@ -55,7 +55,11 @@ class Customers extends EA_Controller
         $this->load->model('appointments_model');
         $this->load->model('appointment_notes_model');
         $this->load->model('customers_model');
+        $this->load->model('custom_fields_model');
+        $this->load->model('customer_custom_field_values_model');
         $this->load->model('customer_notes_model');
+        $this->load->model('form_assignments_model');
+        $this->load->model('forms_model');
         $this->load->model('providers_model');
         $this->load->model('secretaries_model');
         $this->load->model('roles_model');
@@ -133,6 +137,12 @@ class Customers extends EA_Controller
 
         $selected_slug = $slug ?: request('slug');
 
+        $customers = $this->customers_model->get(null, 50, null, 'update_datetime DESC');
+        foreach ($customers as &$customer) {
+            $customer['custom_field_values'] = $this->customer_custom_field_values_model
+                ->find_for_user((int) $customer['id']);
+        }
+
         script_vars([
             'user_id' => $user_id,
             'role_slug' => $role_slug,
@@ -144,7 +154,7 @@ class Customers extends EA_Controller
             'default_timezone' => setting('default_timezone'),
             'available_providers' => $available_providers,
             'available_services' => $available_services,
-            'customers' => $this->customers_model->get(null, 50, null, 'update_datetime DESC'),
+            'customers' => $customers,
             'selected_record_slug' => $selected_slug,
         ]);
 
@@ -166,9 +176,25 @@ class Customers extends EA_Controller
             'available_languages' => config('available_languages'),
             'available_services' => $available_services,
             'appointment_status_options' => $appointment_status_options,
+            'show_customer_forms_tab' => $this->has_forms_for_role(DB_SLUG_CUSTOMER),
+            'custom_fields' => $this->custom_fields_model->find_displayed(),
         ]);
 
         $this->load->view('pages/customers');
+    }
+
+    protected function has_forms_for_role(string $role_slug): bool
+    {
+        $assigned = $this->form_assignments_model->find_for_role($role_slug);
+
+        if (!$assigned) {
+            return false;
+        }
+
+        $form_ids = array_map(fn ($row) => $row['id_forms'], $assigned);
+        $forms = $this->forms_model->find_by_ids($form_ids, true);
+
+        return !empty($forms);
     }
 
     /**
@@ -190,6 +216,10 @@ class Customers extends EA_Controller
             }
 
             $customer = $this->customers_model->find($customer_id);
+            if ($customer) {
+                $customer['custom_field_values'] = $this->customer_custom_field_values_model
+                    ->find_for_user((int) $customer['id']);
+            }
 
             json_response($customer);
         } catch (Throwable $e) {
@@ -228,6 +258,8 @@ class Customers extends EA_Controller
             }
 
             $customer['appointments'] = $appointments;
+            $customer['custom_field_values'] = $this->customer_custom_field_values_model
+                ->find_for_user((int) $customer['id']);
 
             json_response($customer);
         } catch (Throwable $e) {
@@ -271,6 +303,8 @@ class Customers extends EA_Controller
                 }
 
                 $customer['appointments'] = $appointments;
+                $customer['custom_field_values'] = $this->customer_custom_field_values_model
+                    ->find_for_user((int) $customer['id']);
             }
 
             json_response(array_values($customers));
@@ -467,12 +501,17 @@ class Customers extends EA_Controller
             }
 
             $customer = request('customer');
+            $custom_fields = request('custom_fields', []);
 
             $this->customers_model->only($customer, $this->allowed_customer_fields);
 
             $this->customers_model->optional($customer, $this->optional_customer_fields);
 
             $customer_id = $this->customers_model->save($customer);
+
+            if (is_array($custom_fields)) {
+                $this->customer_custom_field_values_model->save_for_user((int) $customer_id, $custom_fields);
+            }
 
             $customer = $this->customers_model->find($customer_id);
 
@@ -500,6 +539,7 @@ class Customers extends EA_Controller
             $user_id = session('user_id');
 
             $customer = request('customer');
+            $custom_fields = request('custom_fields', []);
 
             if (!$this->permissions->has_customer_access($user_id, $customer['id'])) {
                 abort(403, 'Forbidden');
@@ -510,6 +550,10 @@ class Customers extends EA_Controller
             $this->customers_model->optional($customer, $this->optional_customer_fields);
 
             $customer_id = $this->customers_model->save($customer);
+
+            if (is_array($custom_fields)) {
+                $this->customer_custom_field_values_model->save_for_user((int) $customer_id, $custom_fields);
+            }
 
             $customer = $this->customers_model->find($customer_id);
 

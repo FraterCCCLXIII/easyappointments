@@ -22,12 +22,13 @@ App.Http.BookingSettings = (function () {
      *
      * @return {Object}
      */
-    function save(bookingSettings) {
+    function save(bookingSettings, customFields = []) {
         const url = App.Utils.Url.siteUrl('booking_settings/save');
 
         const data = {
             csrf_token: vars('csrf_token'),
             booking_settings: bookingSettings,
+            custom_fields: customFields,
         };
 
         return $.post(url, data);

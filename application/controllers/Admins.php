@@ -56,6 +56,8 @@ class Admins extends EA_Controller
         parent::__construct();
 
         $this->load->model('admins_model');
+        $this->load->model('form_assignments_model');
+        $this->load->model('forms_model');
         $this->load->model('roles_model');
 
         $this->load->library('accounts');
@@ -105,9 +107,24 @@ class Admins extends EA_Controller
             'user_display_name' => $this->accounts->get_user_display_name($user_id),
             'grouped_timezones' => $this->timezones->to_grouped_array(),
             'privileges' => $this->roles_model->get_permissions_by_slug($role_slug),
+            'show_admin_forms_tab' => $this->has_forms_for_role(DB_SLUG_ADMIN),
         ]);
 
         $this->load->view('pages/admins');
+    }
+
+    protected function has_forms_for_role(string $role_slug): bool
+    {
+        $assigned = $this->form_assignments_model->find_for_role($role_slug);
+
+        if (!$assigned) {
+            return false;
+        }
+
+        $form_ids = array_map(fn ($row) => $row['id_forms'], $assigned);
+        $forms = $this->forms_model->find_by_ids($form_ids, true);
+
+        return !empty($forms);
     }
 
     /**
