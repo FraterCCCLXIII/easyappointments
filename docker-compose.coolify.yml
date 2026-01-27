@@ -11,12 +11,31 @@ services:
       - DB_PASSWORD=${DB_PASSWORD:-password}
       - DEBUG_MODE=${DEBUG_MODE:-false}
       - LANGUAGE=${LANGUAGE:-english}
-    ports:
-      - "8081:80"
     depends_on:
       - db
     volumes:
       - storage_data:/var/www/html/storage
+    labels:
+      - traefik.enable=true
+      - traefik.http.middlewares.gzip.compress=true
+      - traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https
+      - traefik.http.routers.http-0-cows4gcoc4gkwk88ckw48ckc-app.entryPoints=http
+      - traefik.http.routers.http-0-cows4gcoc4gkwk88ckw48ckc-app.middlewares=redirect-to-https
+      - 'traefik.http.routers.http-0-cows4gcoc4gkwk88ckw48ckc-app.rule=Host(`booking.usegoodness.com`) && PathPrefix(`/`)'
+      - traefik.http.routers.https-0-cows4gcoc4gkwk88ckw48ckc-app.entryPoints=https
+      - traefik.http.routers.https-0-cows4gcoc4gkwk88ckw48ckc-app.middlewares=gzip
+      - 'traefik.http.routers.https-0-cows4gcoc4gkwk88ckw48ckc-app.rule=Host(`booking.usegoodness.com`) && PathPrefix(`/`)'
+      - traefik.http.routers.https-0-cows4gcoc4gkwk88ckw48ckc-app.tls.certresolver=letsencrypt
+      - traefik.http.routers.https-0-cows4gcoc4gkwk88ckw48ckc-app.tls=true
+      - 'caddy_0.encode=zstd gzip'
+      - 'caddy_0.handle_path.0_reverse_proxy={{upstreams}}'
+      - 'caddy_0.handle_path=/*'
+      - caddy_0.header=-Server
+      - 'caddy_0.try_files={path} /index.html /index.php'
+      - 'caddy_0=https://booking.usegoodness.com'
+      - caddy_ingress_network=cows4gcoc4gkwk88ckw48ckc
+    networks:
+      cows4gcoc4gkwk88ckw48ckc:
 
   db:
     image: mysql:8.0
@@ -31,3 +50,7 @@ services:
 volumes:
   storage_data:
   db_data:
+
+networks:
+  cows4gcoc4gkwk88ckw48ckc:
+    external: true
