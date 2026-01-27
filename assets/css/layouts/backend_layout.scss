@@ -222,12 +222,24 @@ body .modal.full-screen .modal-push {
     height: 67px;
 }
 
-body .jspDrag {
-    background: #d3d3d3;
+body .jspVerticalBar,
+body .jspHorizontalBar {
+    background: transparent;
 }
 
 body .jspTrack {
-    background: #ebebeb;
+    background: transparent;
+}
+
+body .jspDrag {
+    background: var(--ea-scrollbar-thumb-color, rgba(0, 0, 0, 0.35));
+    border-radius: 999px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+}
+
+body .jspDrag:hover {
+    background: var(--ea-scrollbar-thumb-hover-color, rgba(0, 0, 0, 0.5));
 }
 
 body legend {
@@ -567,7 +579,7 @@ body legend {
 }
 
 .backend-page .filter-records .results hr {
-    margin: 5px 0;
+    margin: 0;
     border: 0;
     border-top: 1px solid var(--bs-border-color, #e2e8f0);
     opacity: 1;
