@@ -107,6 +107,12 @@
                                     <?php endforeach; ?>
                                 </select>
                             </div>
+                            <?php component('custom_fields', [
+                                'fields' => vars('custom_fields') ?? [],
+                                'values' => vars('custom_field_values') ?? [],
+                                'name_prefix' => 'custom_fields',
+                                'show_all' => false,
+                            ]); ?>
                             <button type="submit" class="btn btn-dark w-100 py-3">
                                 Save Profile
                             </button>
@@ -215,3 +221,33 @@
     </div>
 </div>
 <?php end_section('content'); ?>
+
+<?php section('scripts'); ?>
+
+<script>
+    $(document).ready(() => {
+        const $button = $('#add-custom-field');
+        const $container = $('.custom-field-item');
+
+        if (!$button.length || !$container.length) {
+            return;
+        }
+
+        const updateButton = () => {
+            const hasHidden = $('.custom-field-hidden').length > 0;
+            $button.toggleClass('d-none', !hasHidden);
+        };
+
+        $button.on('click', () => {
+            const $next = $('.custom-field-hidden').first();
+            if ($next.length) {
+                $next.removeClass('d-none custom-field-hidden');
+                updateButton();
+            }
+        });
+
+        updateButton();
+    });
+</script>
+
+<?php end_section('scripts'); ?>

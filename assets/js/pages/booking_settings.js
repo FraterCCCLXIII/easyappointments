@@ -15,10 +15,36 @@
  * This module implements the functionality of the booking settings page.
  */
 App.Pages.BookingSettings = (function () {
-    const $bookingSettings = $('#booking-settings');
-    const $saveSettings = $('#save-settings');
-    const $disableBooking = $('#disable-booking');
-    const $disableBookingMessage = $('#disable-booking-message');
+    let $bookingSettings = $('#booking-settings');
+    let $saveSettings = $('#save-settings');
+    let $disableBooking = $('#disable-booking');
+    let $disableBookingMessage = $('#disable-booking-message');
+    let $customFieldsList = $('#custom-fields-list');
+    let $addCustomField = $('#add-custom-field-setting');
+    let $customFieldsDebug = $('#custom-fields-debug');
+
+    function refreshSelectors() {
+        $bookingSettings = $('#booking-settings');
+        $saveSettings = $('#save-settings');
+        $disableBooking = $('#disable-booking');
+        $disableBookingMessage = $('#disable-booking-message');
+        $customFieldsList = $('#custom-fields-list');
+        $addCustomField = $('#add-custom-field-setting');
+        $customFieldsDebug = $('#custom-fields-debug');
+    }
+
+    function writeDebug(message) {
+        const $debug = $customFieldsDebug.length ? $customFieldsDebug : $('#custom-fields-debug');
+        if (!$debug.length) {
+            return;
+        }
+        const current = $debug.text();
+        $debug.text(current ? `${current} | ${message}` : message);
+    }
+
+    function getCustomFieldsList() {
+        return $customFieldsList.length ? $customFieldsList : $('#custom-fields-list');
+    }
 
     /**
      * Check if the form has invalid values.
@@ -48,13 +74,17 @@ App.Pages.BookingSettings = (function () {
 
             // Ensure there is at least one field displayed.
 
-            if (!$('.display-switch:checked').length) {
+            const hasLegacyDisplayed = $('.display-switch:checked').length > 0;
+            const hasDynamicDisplayed = $('.custom-field-displayed:checked').length > 0;
+            if (!hasLegacyDisplayed && !hasDynamicDisplayed) {
                 throw new Error(lang('at_least_one_field'));
             }
 
             // Ensure there is at least one field required.
 
-            if (!$('.require-switch:checked').length) {
+            const hasLegacyRequired = $('.require-switch:checked').length > 0;
+            const hasDynamicRequired = $('.custom-field-required:checked').length > 0;
+            if (!hasLegacyRequired && !hasDynamicRequired) {
                 throw new Error(lang('at_least_one_field_required'));
             }
 
@@ -112,6 +142,123 @@ App.Pages.BookingSettings = (function () {
         return bookingSettings;
     }
 
+    function createCustomFieldCard(field = {}) {
+        const fieldId = field.id || '';
+        const $card = $('<div/>', {
+            class: 'custom-field-card rounded-xl border border-[var(--bs-border-color,#e2e8f0)] bg-white p-3',
+            'data-field-id': fieldId,
+        });
+
+        const $handle = $('<button/>', {
+            type: 'button',
+            class: 'btn btn-link p-0 text-slate-400 custom-field-handle',
+            html: '<i class="fas fa-grip-vertical"></i>',
+            title: 'Reorder',
+            draggable: true,
+        });
+
+        const $content = $('<div/>', { class: 'flex-grow-1' });
+        const $label = $('<label/>', {
+            class: 'form-label',
+            text: 'Custom Field',
+        });
+        const $input = $('<input/>', {
+            type: 'text',
+            class: 'form-control custom-field-label',
+            placeholder: 'Field label',
+            value: field.label || '',
+        });
+
+        $content.append($label, $input);
+
+        const $top = $('<div/>', { class: 'd-flex gap-3 align-items-start' });
+        $top.append($handle, $content);
+
+        const $actions = $('<div/>', {
+            class: 'mt-3 d-flex align-items-center justify-content-between border-top pt-2',
+        });
+
+        const $leftActions = $('<div/>', { class: 'd-flex align-items-center gap-3' });
+        const $displayWrap = $('<div/>', { class: 'form-check form-switch mb-0' });
+        const $displayInput = $('<input/>', {
+            type: 'checkbox',
+            class: 'form-check-input custom-field-displayed',
+            checked: Boolean(field.is_displayed ?? true),
+        });
+        const $displayLabel = $('<label/>', {
+            class: 'form-check-label text-sm',
+            text: 'Display',
+        });
+        $displayWrap.append($displayInput, $displayLabel);
+
+        const $requireWrap = $('<div/>', { class: 'form-check form-switch mb-0' });
+        const $requireInput = $('<input/>', {
+            type: 'checkbox',
+            class: 'form-check-input custom-field-required',
+            checked: Boolean(field.is_required),
+        });
+        const $requireLabel = $('<label/>', {
+            class: 'form-check-label text-sm',
+            text: 'Require',
+        });
+        $requireWrap.append($requireInput, $requireLabel);
+
+        $leftActions.append($displayWrap, $requireWrap);
+
+        const $rightActions = $('<div/>', { class: 'd-flex align-items-center gap-2' });
+        const $duplicate = $('<button/>', {
+            type: 'button',
+            class: 'btn btn-outline-secondary btn-sm custom-field-duplicate',
+            html: '<i class="fas fa-copy"></i>',
+            title: 'Duplicate',
+        });
+        const $remove = $('<button/>', {
+            type: 'button',
+            class: 'btn btn-outline-danger btn-sm custom-field-remove',
+            html: '<i class="fas fa-trash"></i>',
+            title: 'Delete',
+        });
+        $rightActions.append($duplicate, $remove);
+
+        $actions.append($leftActions, $rightActions);
+
+        $card.append($top, $actions);
+
+        return $card;
+    }
+
+    function renderCustomFields(fields = []) {
+        const $list = getCustomFieldsList();
+        $list.empty();
+        fields.forEach((field) => {
+            $list.append(createCustomFieldCard(field));
+        });
+        writeDebug(`debug: rendered ${fields.length} custom fields`);
+        $list.find('.custom-field-displayed').each((index, el) => {
+            updateDynamicDisplaySwitch($(el));
+        });
+    }
+
+    function serializeCustomFields() {
+        const fields = [];
+        getCustomFieldsList().find('.custom-field-card').each((index, card) => {
+            const $card = $(card);
+            const label = $card.find('.custom-field-label').val()?.trim() || '';
+            if (!label) {
+                return;
+            }
+            fields.push({
+                id: $card.data('field-id') || undefined,
+                label,
+                is_required: $card.find('.custom-field-required').prop('checked') ? 1 : 0,
+                is_displayed: $card.find('.custom-field-displayed').prop('checked') ? 1 : 0,
+                sort_order: index,
+            });
+        });
+
+        return fields;
+    }
+
     /**
      * Update the UI based on the display switch state.
      *
@@ -145,19 +292,37 @@ App.Pages.BookingSettings = (function () {
         $formGroup.find('.text-danger').toggle(isChecked);
     }
 
+    function updateDynamicDisplaySwitch($displaySwitch) {
+        const isChecked = $displaySwitch.prop('checked');
+        const $card = $displaySwitch.closest('.custom-field-card');
+        const $requireSwitch = $card.find('.custom-field-required');
+        $requireSwitch.prop('disabled', !isChecked);
+        if (!isChecked) {
+            $requireSwitch.prop('checked', false);
+        }
+    }
+
+    function updateDynamicRequireSwitch($requireSwitch) {
+        const isChecked = $requireSwitch.prop('checked');
+        const $card = $requireSwitch.closest('.custom-field-card');
+        const $displaySwitch = $card.find('.custom-field-displayed');
+        if (isChecked) {
+            $displaySwitch.prop('checked', true);
+            updateDynamicDisplaySwitch($displaySwitch);
+        }
+    }
+
     /**
      * Update the UI based on the initial values.
      */
     function applyInitialState() {
         $bookingSettings.find('.display-switch').each((index, displaySwitchEl) => {
             const $displaySwitch = $(displaySwitchEl);
-
             updateDisplaySwitch($displaySwitch);
         });
 
         $bookingSettings.find('.require-switch').each((index, requireSwitchEl) => {
             const $requireSwitch = $(requireSwitchEl);
-
             updateRequireSwitch($requireSwitch);
         });
 
@@ -173,10 +338,19 @@ App.Pages.BookingSettings = (function () {
         }
 
         const bookingSettings = serialize();
+        const customFields = serializeCustomFields();
 
-        App.Http.BookingSettings.save(bookingSettings).done(() => {
-            App.Layouts.Backend.displayNotification(lang('settings_saved'));
-        });
+        writeDebug(`debug: saving settings (${bookingSettings.length}) fields (${customFields.length})`);
+
+        App.Http.BookingSettings.save(bookingSettings, customFields)
+            .done(() => {
+                App.Layouts.Backend.displayNotification(lang('settings_saved'));
+                writeDebug('debug: save success');
+            })
+            .fail((xhr) => {
+                const message = xhr?.responseJSON?.message || xhr?.responseText || 'unknown error';
+                writeDebug(`debug: save failed ${message}`);
+            });
     }
 
     /**
@@ -201,6 +375,16 @@ App.Pages.BookingSettings = (function () {
         updateRequireSwitch($requireSwitch);
     }
 
+    function onDynamicDisplaySwitchClick(event) {
+        const $displaySwitch = $(event.target);
+        updateDynamicDisplaySwitch($displaySwitch);
+    }
+
+    function onDynamicRequireSwitchClick(event) {
+        const $requireSwitch = $(event.target);
+        updateDynamicRequireSwitch($requireSwitch);
+    }
+
     /**
      * Toggle the message container.
      */
@@ -208,28 +392,132 @@ App.Pages.BookingSettings = (function () {
         $disableBookingMessage.closest('.form-group').prop('hidden', !$disableBooking.prop('checked'));
     }
 
+    function onAddCustomFieldClick() {
+        const $list = getCustomFieldsList();
+        if (!$list.length) {
+            writeDebug('debug: custom fields list not found');
+            return;
+        }
+        $list.append(createCustomFieldCard());
+        const count = $list.find('.custom-field-card').length;
+        writeDebug(`debug: added custom field, total ${count}`);
+    }
+
+    function enableCustomFieldDragAndDrop() {
+        let dragging = null;
+
+        getCustomFieldsList().on('dragstart', '.custom-field-handle', (event) => {
+            dragging = $(event.currentTarget).closest('.custom-field-card').get(0);
+            $(dragging).addClass('border-primary');
+            event.originalEvent.dataTransfer.effectAllowed = 'move';
+            event.originalEvent.dataTransfer.setData('text/plain', 'reorder');
+        });
+
+        getCustomFieldsList().on('dragend', '.custom-field-handle', () => {
+            if (dragging) {
+                $(dragging).removeClass('border-primary');
+            }
+            dragging = null;
+        });
+
+        getCustomFieldsList().on('dragover', '.custom-field-card', (event) => {
+            event.preventDefault();
+            if (!dragging || dragging === event.currentTarget) {
+                return;
+            }
+            const $target = $(event.currentTarget);
+            const targetRect = event.currentTarget.getBoundingClientRect();
+            const offset = event.originalEvent.clientY - targetRect.top;
+            if (offset > targetRect.height / 2) {
+                $target.after(dragging);
+            } else {
+                $target.before(dragging);
+            }
+        });
+    }
+
+    function addCustomFieldEventListeners() {
+        getCustomFieldsList().on('click', '.custom-field-remove', (event) => {
+            $(event.currentTarget).closest('.custom-field-card').remove();
+        });
+
+        getCustomFieldsList().on('click', '.custom-field-duplicate', (event) => {
+            const $card = $(event.currentTarget).closest('.custom-field-card');
+            const label = $card.find('.custom-field-label').val();
+            const isRequired = $card.find('.custom-field-required').prop('checked');
+            const isDisplayed = $card.find('.custom-field-displayed').prop('checked');
+            $card.after(
+                createCustomFieldCard({
+                    label,
+                    is_required: isRequired,
+                    is_displayed: isDisplayed,
+                }),
+            );
+        });
+    }
+
     /**
      * Initialize the module.
      */
+    let hasInitialized = false;
+
     function initialize() {
+        if (hasInitialized) {
+            return;
+        }
+        hasInitialized = true;
+        refreshSelectors();
         const bookingSettings = vars('booking_settings');
+        writeDebug('debug: booking_settings.js initialize start');
 
-        $saveSettings.on('click', onSaveSettingsClick);
+        $saveSettings.off('click').on('click', onSaveSettingsClick);
 
-        $disableBooking.on('click', onDisableBookingClick);
-
+        $disableBooking.off('click').on('click', onDisableBookingClick);
+        $addCustomField.off('click').on('click', onAddCustomFieldClick);
         $bookingSettings
+            .off('click', '.display-switch', onDisplaySwitchClick)
+            .off('click', '.require-switch', onRequireSwitchClick)
+            .off('click', '.custom-field-displayed', onDynamicDisplaySwitchClick)
+            .off('click', '.custom-field-required', onDynamicRequireSwitchClick)
             .on('click', '.display-switch', onDisplaySwitchClick)
-            .on('click', '.require-switch', onRequireSwitchClick);
+            .on('click', '.require-switch', onRequireSwitchClick)
+            .on('click', '.custom-field-displayed', onDynamicDisplaySwitchClick)
+            .on('click', '.custom-field-required', onDynamicRequireSwitchClick);
 
         $disableBookingMessage.trumbowyg();
 
         deserialize(bookingSettings);
+        const initialFields = vars('custom_fields');
+        renderCustomFields(Array.isArray(initialFields) ? initialFields : []);
+        addCustomFieldEventListeners();
+        enableCustomFieldDragAndDrop();
 
         applyInitialState();
+        const debugCount = Array.isArray(initialFields) ? initialFields.length : 0;
+        writeDebug(`debug: init complete, fields payload ${debugCount}`);
     }
 
-    document.addEventListener('DOMContentLoaded', initialize);
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => {
+            writeDebug('debug: booking_settings.js loaded');
+            try {
+                initialize();
+            } catch (error) {
+                writeDebug(`debug: booking_settings.js error: ${error?.message || error}`);
+                throw error;
+            }
+        });
+    } else {
+        writeDebug('debug: booking_settings.js loaded (late)');
+        try {
+            initialize();
+        } catch (error) {
+            writeDebug(`debug: booking_settings.js error: ${error?.message || error}`);
+            throw error;
+        }
+    }
 
-    return {};
+    return {
+        initialize,
+    };
 })();

@@ -129,6 +129,15 @@
                                 Visit Notes
                             </button>
                         </li>
+                        <?php if (vars('show_customer_forms_tab', false)): ?>
+                            <li class="nav-item" role="presentation">
+                                <button class="booking-tab-line" id="customer-forms-tab" data-bs-toggle="pill"
+                                        data-bs-target="#customer-forms-panel" type="button" role="tab"
+                                        aria-selected="false" tabindex="-1">
+                                    Forms
+                                </button>
+                            </li>
+                        <?php endif; ?>
                         <li class="nav-item" role="presentation">
                             <button class="booking-tab-line" id="customer-files-tab" data-bs-toggle="pill"
                                     data-bs-target="#customer-files-panel" type="button" role="tab"
@@ -303,6 +312,28 @@
                         <div id="customer-visit-notes-list" class="d-flex flex-column gap-3"></div>
                     </div>
                 </div>
+                <?php if (vars('show_customer_forms_tab', false)): ?>
+                    <div class="tab-pane fade" id="customer-forms-panel" role="tabpanel"
+                         aria-labelledby="customer-forms-tab">
+                        <div class="user-forms-panel w-full" data-user-type="customer"
+                             data-can-reset="<?= can('edit', PRIV_CUSTOMERS) ? '1' : '0' ?>">
+                            <div class="w-full overflow-hidden rounded-xl border border-[var(--bs-border-color,#e2e8f0)] bg-white">
+                                <table class="w-full text-left text-sm">
+                                    <thead class="bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                                        <tr>
+                                            <th class="px-4 py-3">Form</th>
+                                            <th class="px-4 py-3">Status</th>
+                                            <th class="px-4 py-3 text-right">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="user-forms-body divide-y divide-[var(--bs-border-color,#e2e8f0)]">
+                                        <!-- JS -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                <?php endif; ?>
                 <div class="tab-pane fade" id="customer-files-panel" role="tabpanel"
                      aria-labelledby="customer-files-tab">
                     <div class="user-files-panel w-full" data-user-type="customer"
@@ -465,7 +496,9 @@
                             <?php endif; ?>
 
                             <?php component('custom_fields', [
+                                'fields' => vars('custom_fields') ?? [],
                                 'disabled' => true,
+                                'show_all' => false,
                             ]); ?>
 
                             <div class="mb-3">
@@ -509,7 +542,9 @@
 
 <script src="<?= asset_url('assets/js/http/appointments_http_client.js') ?>"></script>
 <script src="<?= asset_url('assets/js/http/customers_http_client.js') ?>"></script>
+<script src="<?= asset_url('assets/js/http/forms_http_client.js') ?>"></script>
 <script src="<?= asset_url('assets/js/http/user_files_http_client.js') ?>"></script>
+<script src="<?= asset_url('assets/js/components/user_forms.js') ?>"></script>
 <script src="<?= asset_url('assets/js/components/user_files.js') ?>"></script>
 <script src="<?= asset_url('assets/js/pages/customers.js') ?>"></script>
 

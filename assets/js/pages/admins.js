@@ -41,10 +41,12 @@ App.Pages.Admins = (function () {
     const $summaryPhone = $('#admin-summary-phone');
     const $summaryLocation = $('#admin-summary-location');
     const $adminFilesPanel = $('#admin-files-panel .user-files-panel');
+    const $adminFormsPanel = $('#admin-forms-panel .user-forms-panel');
     let filterResults = {};
     let filterLimit = 20;
     let pendingSlug = null;
     let userFilesManager;
+    let userFormsManager;
 
     function setRecordDetailsVisible(visible) {
         const $recordDetails = $admins.find('.record-details');
@@ -391,6 +393,9 @@ App.Pages.Admins = (function () {
         if (userFilesManager) {
             userFilesManager.reset();
         }
+        if (userFormsManager) {
+            userFormsManager.reset();
+        }
     }
 
     /**
@@ -422,6 +427,9 @@ App.Pages.Admins = (function () {
 
         if (userFilesManager) {
             userFilesManager.refresh();
+        }
+        if (userFormsManager) {
+            userFormsManager.refresh();
         }
     }
 
@@ -583,6 +591,13 @@ App.Pages.Admins = (function () {
             canUpload: Number($adminFilesPanel.data('can-upload')) === 1,
             canDelete: Number($adminFilesPanel.data('can-delete')) === 1,
         });
+        if ($adminFormsPanel.length) {
+            userFormsManager = App.Components.UserForms.create($adminFormsPanel, {
+                userType: 'admin',
+                getUserId: () => $id.val(),
+                canReset: Number($adminFormsPanel.data('can-reset')) === 1,
+            });
+        }
         pendingSlug = vars('selected_record_slug') || null;
         App.Pages.Admins.filter('');
         App.Pages.Admins.addEventListeners();

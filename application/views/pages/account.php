@@ -3,9 +3,15 @@
 <?php section('content'); ?>
 
 <div id="account-page" class="container backend-page">
-    <div id="account">
-        <div class="row">
-            <div class="col-lg-8 offset-lg-2">
+    <div class="row settings-layout">
+        <div class="col-sm-3 settings-nav-panel ps-0">
+            <?php component('account_nav', [
+                'active_nav' => 'account',
+                'show_forms_nav' => vars('show_forms_nav', false),
+            ]); ?>
+        </div>
+        <div class="col-sm-9 settings-content">
+            <div id="account">
                 <form>
                     <fieldset>
                         <div class="d-flex justify-content-between align-items-center border-bottom mb-4 py-2">
@@ -179,7 +185,6 @@
                 </form>
             </div>
         </div>
-
     </div>
 </div>
 

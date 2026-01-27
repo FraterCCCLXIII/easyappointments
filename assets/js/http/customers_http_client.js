@@ -22,8 +22,8 @@ App.Http.Customers = (function () {
      *
      * @return {Object}
      */
-    function save(customer) {
-        return customer.id ? update(customer) : store(customer);
+    function save(customer, customFields = {}) {
+        return customer.id ? update(customer, customFields) : store(customer, customFields);
     }
 
     /**
@@ -33,12 +33,13 @@ App.Http.Customers = (function () {
      *
      * @return {Object}
      */
-    function store(customer) {
+    function store(customer, customFields = {}) {
         const url = App.Utils.Url.siteUrl('customers/store');
 
         const data = {
             csrf_token: vars('csrf_token'),
             customer: customer,
+            custom_fields: customFields,
         };
 
         return $.post(url, data);
@@ -51,12 +52,13 @@ App.Http.Customers = (function () {
      *
      * @return {Object}
      */
-    function update(customer) {
+    function update(customer, customFields = {}) {
         const url = App.Utils.Url.siteUrl('customers/update');
 
         const data = {
             csrf_token: vars('csrf_token'),
             customer: customer,
+            custom_fields: customFields,
         };
 
         return $.post(url, data);

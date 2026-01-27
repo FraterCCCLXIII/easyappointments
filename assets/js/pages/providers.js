@@ -44,11 +44,13 @@ App.Pages.Providers = (function () {
     const $bookingsPanel = $('#provider-bookings');
     const $bookingsTableBody = $bookingsPanel.find('tbody');
     const $providerFilesPanel = $('#provider-files-panel .user-files-panel');
+    const $providerFormsPanel = $('#provider-forms-panel .user-forms-panel');
     let filterResults = {};
     let filterLimit = 20;
     let pendingSlug = null;
     let workingPlanManager;
     let userFilesManager;
+    let userFormsManager;
 
     function setRecordDetailsVisible(visible) {
         const $recordDetails = $providers.find('.record-details');
@@ -536,6 +538,9 @@ App.Pages.Providers = (function () {
         if (userFilesManager) {
             userFilesManager.reset();
         }
+        if (userFormsManager) {
+            userFormsManager.reset();
+        }
     }
 
     /**
@@ -567,6 +572,9 @@ App.Pages.Providers = (function () {
 
         if (userFilesManager) {
             userFilesManager.refresh();
+        }
+        if (userFormsManager) {
+            userFormsManager.refresh();
         }
 
         // Add dedicated provider link.
@@ -794,6 +802,13 @@ App.Pages.Providers = (function () {
             canUpload: Number($providerFilesPanel.data('can-upload')) === 1,
             canDelete: Number($providerFilesPanel.data('can-delete')) === 1,
         });
+        if ($providerFormsPanel.length) {
+            userFormsManager = App.Components.UserForms.create($providerFormsPanel, {
+                userType: 'provider',
+                getUserId: () => $id.val(),
+                canReset: Number($providerFormsPanel.data('can-reset')) === 1,
+            });
+        }
         pendingSlug = vars('selected_record_slug') || null;
         App.Pages.Providers.filter('');
         App.Pages.Providers.addEventListeners();
