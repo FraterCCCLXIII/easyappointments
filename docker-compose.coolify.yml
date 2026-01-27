@@ -12,7 +12,7 @@ services:
       - DEBUG_MODE=${DEBUG_MODE:-false}
       - LANGUAGE=${LANGUAGE:-english}
     ports:
-      - "80:80"
+      - "8080:80"
     depends_on:
       - db
     volumes:
