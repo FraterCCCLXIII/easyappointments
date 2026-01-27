@@ -35,6 +35,7 @@ services:
       - 'caddy_0=https://booking.usegoodness.com'
       - caddy_ingress_network=cows4gcoc4gkwk88ckw48ckc
     networks:
+      internal:
       cows4gcoc4gkwk88ckw48ckc:
 
   db:
@@ -46,11 +47,14 @@ services:
       - MYSQL_PASSWORD=${DB_PASSWORD:-password}
     volumes:
       - db_data:/var/lib/mysql
+    networks:
+      internal:
 
 volumes:
   storage_data:
   db_data:
 
 networks:
+  internal:
   cows4gcoc4gkwk88ckw48ckc:
     external: true
