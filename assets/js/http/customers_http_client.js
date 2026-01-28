@@ -179,6 +179,24 @@ App.Http.Customers = (function () {
     }
 
     /**
+     * Get customer alerts.
+     *
+     * @param {Number} customerId
+     *
+     * @return {Object}
+     */
+    function alerts(customerId) {
+        const url = App.Utils.Url.siteUrl('customers/alerts');
+
+        const data = {
+            csrf_token: vars('csrf_token'),
+            customer_id: customerId,
+        };
+
+        return $.post(url, data);
+    }
+
+    /**
      * Create a customer note.
      *
      * @param {Object} note
@@ -191,6 +209,24 @@ App.Http.Customers = (function () {
         const data = {
             csrf_token: vars('csrf_token'),
             note,
+        };
+
+        return $.post(url, data);
+    }
+
+    /**
+     * Create a customer alert.
+     *
+     * @param {Object} alert
+     *
+     * @return {Object}
+     */
+    function storeAlert(alert) {
+        const url = App.Utils.Url.siteUrl('customers/store_alert');
+
+        const data = {
+            csrf_token: vars('csrf_token'),
+            alert,
         };
 
         return $.post(url, data);
@@ -215,6 +251,24 @@ App.Http.Customers = (function () {
     }
 
     /**
+     * Update a customer alert.
+     *
+     * @param {Object} alert
+     *
+     * @return {Object}
+     */
+    function updateAlert(alert) {
+        const url = App.Utils.Url.siteUrl('customers/update_alert');
+
+        const data = {
+            csrf_token: vars('csrf_token'),
+            alert,
+        };
+
+        return $.post(url, data);
+    }
+
+    /**
      * Delete a customer note.
      *
      * @param {Number} noteId
@@ -232,6 +286,24 @@ App.Http.Customers = (function () {
         return $.post(url, data);
     }
 
+    /**
+     * Delete a customer alert.
+     *
+     * @param {Number} alertId
+     *
+     * @return {Object}
+     */
+    function deleteAlert(alertId) {
+        const url = App.Utils.Url.siteUrl('customers/delete_alert');
+
+        const data = {
+            csrf_token: vars('csrf_token'),
+            alert_id: alertId,
+        };
+
+        return $.post(url, data);
+    }
+
     return {
         save,
         store,
@@ -241,9 +313,13 @@ App.Http.Customers = (function () {
         find,
         findBySlug,
         notes,
+        alerts,
         visitNotes,
         storeNote,
+        storeAlert,
         updateNote,
+        updateAlert,
         deleteNote,
+        deleteAlert,
     };
 })();

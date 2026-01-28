@@ -98,6 +98,9 @@
                         </span>
                     </div>
                 </div>
+                <div id="customer-alert-banner" class="customer-alert-banner" role="status" aria-live="polite">
+                    <!-- JS -->
+                </div>
                 <div class="border-t border-[var(--bs-border-color,#e2e8f0)]">
                     <ul class="booking-tab-line-list border-0 bg-transparent shadow-none rounded-none px-4"
                         id="customer-tabs" role="tablist">
@@ -120,6 +123,13 @@
                                     data-bs-target="#customer-notes-panel" type="button" role="tab"
                                     aria-selected="false" tabindex="-1">
                                 <?= lang('notes') ?>
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="booking-tab-line" id="customer-alerts-tab" data-bs-toggle="pill"
+                                    data-bs-target="#customer-alerts-panel" type="button" role="tab"
+                                    aria-selected="false" tabindex="-1">
+                                Alerts
                             </button>
                         </li>
                         <li class="nav-item" role="presentation">
@@ -304,6 +314,23 @@
                             </div>
                         </div>
                         <div id="customer-notes-list" class="mt-4 d-flex flex-column gap-3"></div>
+                    </div>
+                </div>
+                <div class="tab-pane fade" id="customer-alerts-panel" role="tabpanel"
+                     aria-labelledby="customer-alerts-tab">
+                    <div id="customer-alerts-tab-content" class="w-full">
+                        <div class="rounded-xl border border-[var(--bs-border-color,#e2e8f0)] bg-white p-4">
+                            <label for="customer-alert-text" class="form-label text-slate-700">
+                                Alert
+                            </label>
+                            <textarea id="customer-alert-text" class="form-control" rows="4"></textarea>
+                            <div class="mt-3 d-flex justify-content-end">
+                                <button id="add-customer-alert" class="btn btn-primary">
+                                    Add Alert
+                                </button>
+                            </div>
+                        </div>
+                        <div id="customer-alerts-list" class="mt-4 d-flex flex-column gap-3"></div>
                     </div>
                 </div>
                 <div class="tab-pane fade" id="customer-visit-notes-panel" role="tabpanel"

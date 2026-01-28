@@ -57,6 +57,7 @@ class Customers extends EA_Controller
         $this->load->model('customers_model');
         $this->load->model('custom_fields_model');
         $this->load->model('customer_custom_field_values_model');
+        $this->load->model('customer_alerts_model');
         $this->load->model('customer_notes_model');
         $this->load->model('form_assignments_model');
         $this->load->model('forms_model');
@@ -314,6 +315,36 @@ class Customers extends EA_Controller
     }
 
     /**
+     * Get customer alerts.
+     */
+    public function alerts(): void
+    {
+        try {
+            if (cannot('view', PRIV_CUSTOMERS)) {
+                abort(403, 'Forbidden');
+            }
+
+            $customer_id = (int) request('customer_id');
+
+            if (!$customer_id) {
+                abort(400, 'Bad Request');
+            }
+
+            $user_id = session('user_id');
+
+            if (!$this->permissions->has_customer_access($user_id, $customer_id)) {
+                abort(403, 'Forbidden');
+            }
+
+            $alerts = $this->customer_alerts_model->get_by_customer($customer_id);
+
+            json_response($alerts);
+        } catch (Throwable $e) {
+            json_exception($e);
+        }
+    }
+
+    /**
      * Get customer notes.
      */
     public function notes(): void
@@ -374,6 +405,47 @@ class Customers extends EA_Controller
     }
 
     /**
+     * Store a new customer alert.
+     */
+    public function store_alert(): void
+    {
+        try {
+            if (cannot('view', PRIV_CUSTOMERS)) {
+                abort(403, 'Forbidden');
+            }
+
+            $alert = request('alert');
+
+            if (!$alert || empty($alert['id_users_customer'])) {
+                abort(400, 'Bad Request');
+            }
+
+            $customer_id = (int) $alert['id_users_customer'];
+            $user_id = session('user_id');
+
+            if (!$this->permissions->has_customer_access($user_id, $customer_id)) {
+                abort(403, 'Forbidden');
+            }
+
+            $alert_payload = [
+                'id_users_customer' => $customer_id,
+                'id_users_author' => $user_id,
+                'alert' => $alert['alert'] ?? '',
+                'show_in_banner' => array_key_exists('show_in_banner', $alert)
+                    ? (int) (bool) $alert['show_in_banner']
+                    : 1,
+            ];
+
+            $alert_id = $this->customer_alerts_model->save($alert_payload);
+            $alert_response = $this->customer_alerts_model->find_with_author($alert_id);
+
+            json_response($alert_response);
+        } catch (Throwable $e) {
+            json_exception($e);
+        }
+    }
+
+    /**
      * Store a new customer note.
      */
     public function store_note(): void
@@ -406,6 +478,53 @@ class Customers extends EA_Controller
             $note_response = $this->customer_notes_model->find_with_author($note_id);
 
             json_response($note_response);
+        } catch (Throwable $e) {
+            json_exception($e);
+        }
+    }
+
+    /**
+     * Update an existing customer alert.
+     */
+    public function update_alert(): void
+    {
+        try {
+            if (cannot('view', PRIV_CUSTOMERS)) {
+                abort(403, 'Forbidden');
+            }
+
+            $alert = request('alert');
+
+            if (!$alert || empty($alert['id'])) {
+                abort(400, 'Bad Request');
+            }
+
+            $alert_id = (int) $alert['id'];
+            $existing_alert = $this->customer_alerts_model->find($alert_id);
+            $user_id = session('user_id');
+
+            if (!$this->permissions->has_customer_access($user_id, (int) $existing_alert['id_users_customer'])) {
+                abort(403, 'Forbidden');
+            }
+
+            if ((int) $existing_alert['id_users_author'] !== (int) $user_id) {
+                abort(403, 'Forbidden');
+            }
+
+            $alert_payload = [
+                'id' => $alert_id,
+                'id_users_customer' => (int) $existing_alert['id_users_customer'],
+                'id_users_author' => (int) $existing_alert['id_users_author'],
+                'alert' => $alert['alert'] ?? $existing_alert['alert'],
+                'show_in_banner' => array_key_exists('show_in_banner', $alert)
+                    ? (int) (bool) $alert['show_in_banner']
+                    : (int) $existing_alert['show_in_banner'],
+            ];
+
+            $this->customer_alerts_model->save($alert_payload);
+            $alert_response = $this->customer_alerts_model->find_with_author($alert_id);
+
+            json_response($alert_response);
         } catch (Throwable $e) {
             json_exception($e);
         }
@@ -450,6 +569,37 @@ class Customers extends EA_Controller
             $note_response = $this->customer_notes_model->find_with_author($note_id);
 
             json_response($note_response);
+        } catch (Throwable $e) {
+            json_exception($e);
+        }
+    }
+
+    /**
+     * Delete an existing customer alert.
+     */
+    public function delete_alert(): void
+    {
+        try {
+            if (cannot('view', PRIV_CUSTOMERS)) {
+                abort(403, 'Forbidden');
+            }
+
+            $alert_id = (int) request('alert_id');
+
+            if (!$alert_id) {
+                abort(400, 'Bad Request');
+            }
+
+            $existing_alert = $this->customer_alerts_model->find($alert_id);
+            $user_id = session('user_id');
+
+            if (!$this->permissions->has_customer_access($user_id, (int) $existing_alert['id_users_customer'])) {
+                abort(403, 'Forbidden');
+            }
+
+            $this->customer_alerts_model->delete($alert_id);
+
+            json_response(['deleted' => true]);
         } catch (Throwable $e) {
             json_exception($e);
         }
