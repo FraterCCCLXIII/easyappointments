@@ -19,7 +19,7 @@
             <div class="inline-flex items-center gap-2 rounded-xl border border-[var(--bs-border-color,#e2e8f0)] bg-white p-1 shadow-sm ms-auto">
                 <?php if (can('add', PRIV_APPOINTMENTS)): ?>
                     <div class="dropdown d-sm-inline-block">
-                        <button class="inline-flex h-10 items-center justify-center rounded-lg border border-[var(--bs-border-color,#e2e8f0)] bg-white px-3 text-sm font-semibold text-slate-700 transition hover:border-[var(--bs-border-color,#e2e8f0)] hover:text-slate-900"
+                        <button class="inline-flex h-10 items-center justify-center rounded-lg border border-[var(--bs-border-color,#e2e8f0)] bg-white px-3 text-sm font-medium text-slate-700 transition hover:border-[var(--bs-border-color,#e2e8f0)] hover:text-slate-900"
                                 type="button"
                                 data-bs-toggle="dropdown"
                                 aria-label="<?= lang('add') ?>">
@@ -55,20 +55,20 @@
 
                 <button id="reload-appointments"
                         type="button"
-                        class="inline-flex h-10 items-center justify-center rounded-lg border border-[var(--bs-border-color,#e2e8f0)] bg-white px-3 text-sm font-semibold text-slate-700 transition hover:border-[var(--bs-border-color,#e2e8f0)] hover:text-slate-900"
+                        class="inline-flex h-10 items-center justify-center rounded-lg border border-[var(--bs-border-color,#e2e8f0)] bg-white px-3 text-sm font-medium text-slate-700 transition hover:border-[var(--bs-border-color,#e2e8f0)] hover:text-slate-900"
                         data-tippy-content="<?= lang('reload_appointments_hint') ?>"
                         aria-label="<?= lang('reload') ?>">
                     <i class="fas fa-rotate" style="width: 14px; height: 14px; font-size: 14px; display: inline-flex; align-items: center; justify-content: center;"></i>
                 </button>
                 <?php if (vars('calendar_view') === CALENDAR_VIEW_DEFAULT): ?>
-                    <a class="inline-flex h-10 items-center justify-center rounded-lg border border-[var(--bs-border-color,#e2e8f0)] bg-white px-3 text-sm font-semibold text-slate-700 transition hover:border-[var(--bs-border-color,#e2e8f0)] hover:text-slate-900"
+                    <a class="inline-flex h-10 items-center justify-center rounded-lg border border-[var(--bs-border-color,#e2e8f0)] bg-white px-3 text-sm font-medium text-slate-700 transition hover:border-[var(--bs-border-color,#e2e8f0)] hover:text-slate-900"
                        href="<?= site_url('calendar?view=table') ?>"
                        aria-label="<?= lang('table') ?>">
                         <i class="fas fa-table" style="width: 14px; height: 14px; font-size: 14px; display: inline-flex; align-items: center; justify-content: center;"></i>
                     </a>
                 <?php endif; ?>
                 <?php if (vars('calendar_view') === CALENDAR_VIEW_TABLE): ?>
-                    <a class="inline-flex h-10 items-center justify-center rounded-lg border border-[var(--bs-border-color,#e2e8f0)] bg-white px-3 text-sm font-semibold text-slate-700 transition hover:border-[var(--bs-border-color,#e2e8f0)] hover:text-slate-900"
+                    <a class="inline-flex h-10 items-center justify-center rounded-lg border border-[var(--bs-border-color,#e2e8f0)] bg-white px-3 text-sm font-medium text-slate-700 transition hover:border-[var(--bs-border-color,#e2e8f0)] hover:text-slate-900"
                        href="<?= site_url('calendar?view=default') ?>"
                        aria-label="<?= lang('default') ?>">
                         <i class="fas fa-calendar-days" style="width: 14px; height: 14px; font-size: 14px; display: inline-flex; align-items: center; justify-content: center;"></i>
@@ -76,7 +76,7 @@
                 <?php endif; ?>
                 <?php if (vars('calendar_view') === CALENDAR_VIEW_DEFAULT): ?>
                     <div class="dropdown d-sm-inline-block ms-auto">
-                        <button class="inline-flex h-10 items-center justify-center rounded-lg border border-[var(--bs-border-color,#e2e8f0)] bg-white px-3 text-sm font-semibold text-slate-700 transition hover:border-[var(--bs-border-color,#e2e8f0)] hover:text-slate-900"
+                        <button class="inline-flex h-10 items-center justify-center rounded-lg border border-[var(--bs-border-color,#e2e8f0)] bg-white px-3 text-sm font-medium text-slate-700 transition hover:border-[var(--bs-border-color,#e2e8f0)] hover:text-slate-900"
                                 type="button"
                                 data-bs-toggle="dropdown"
                                 aria-label="<?= lang('synchronize') ?>">

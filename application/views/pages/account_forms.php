@@ -16,7 +16,7 @@
             </div>
             <div class="rounded-xl border border-[var(--bs-border-color,#e2e8f0)] bg-white p-3">
                 <table class="w-full text-left text-sm" id="account-forms-table">
-                    <thead class="bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    <thead class="bg-slate-50 text-xs font-medium uppercase tracking-wide text-slate-500">
                     <tr>
                         <th class="px-4 py-3">Form</th>
                         <th class="px-4 py-3">Status</th>

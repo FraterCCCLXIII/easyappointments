@@ -5,7 +5,7 @@
 <div class="container-fluid backend-page" id="services-page">
     <div class="row" id="services">
         <div id="filter-services" class="filter-records column col-12 col-md-5 backend-sticky-panel">
-            <h2 class="mb-6 text-left text-2xl font-semibold text-slate-900">
+            <h2 class="mb-6 text-left text-2xl font-medium text-slate-900">
                 <?= lang('services') ?>
             </h2>
 

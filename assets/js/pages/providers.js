@@ -104,7 +104,7 @@ App.Pages.Providers = (function () {
         }
 
         return $('<span/>', {
-            'class': `inline-flex rounded-full px-3 py-1 text-xs font-semibold ${badgeClass}`,
+            'class': `inline-flex rounded-full px-3 py-1 text-xs font-medium ${badgeClass}`,
             'text': status ? status.charAt(0).toUpperCase() + status.slice(1) : '—',
         });
     }
@@ -132,7 +132,7 @@ App.Pages.Providers = (function () {
             });
 
             $('<td/>', {
-                'class': 'px-4 py-3 font-semibold text-slate-900',
+                'class': 'px-4 py-3 font-medium text-slate-900',
                 'text': booking.service_name || '—',
             }).appendTo($row);
 
@@ -162,7 +162,7 @@ App.Pages.Providers = (function () {
                     ? $('<a/>', {
                           'href': editUrl,
                           'class':
-                              'customer-appointment-edit inline-flex items-center rounded-xl border border-[var(--bs-border-color,#e2e8f0)] px-3 py-2 text-sm font-semibold text-slate-700 hover:border-[var(--bs-border-color,#e2e8f0)] hover:text-slate-900',
+                              'customer-appointment-edit inline-flex items-center rounded-xl border border-[var(--bs-border-color,#e2e8f0)] px-3 py-2 text-sm font-medium text-slate-700 hover:border-[var(--bs-border-color,#e2e8f0)] hover:text-slate-900',
                           'text': lang('edit'),
                       })
                     : '',

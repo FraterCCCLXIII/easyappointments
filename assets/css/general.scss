@@ -585,3 +585,25 @@ body .clearfix {
 .cc-window {
     z-index: 999 !important;
 }
+
+/* Normalize bold/semibold to medium weight */
+b,
+strong,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+.h1,
+.h2,
+.h3,
+.h4,
+.h5,
+.h6,
+.fw-bold,
+.fw-semibold,
+.font-bold,
+.font-semibold {
+    font-weight: 500 !important;
+}

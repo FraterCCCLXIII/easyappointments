@@ -246,6 +246,33 @@ body legend {
     color: #666;
 }
 
+/* Normalize bold/semibold to medium weight */
+b,
+strong,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+.h1,
+.h2,
+.h3,
+.h4,
+.h5,
+.h6,
+.fw-bold,
+.fw-semibold,
+.font-bold,
+.font-semibold,
+[style*='font-weight: bold'],
+[style*='font-weight:600'],
+[style*='font-weight: 600'],
+[style*='font-weight:700'],
+[style*='font-weight: 700'] {
+    font-weight: 500 !important;
+}
+
 .backend-page .form-control:disabled,
 .backend-page .form-control[readonly],
 .backend-page .form-select:disabled,
@@ -587,6 +614,11 @@ body legend {
 
 .booking-tab-line-list {
     border-color: var(--bs-border-color);
+}
+
+.booking-tab-line,
+.booking-tab-line.active {
+    font-weight: 500 !important;
 }
 
 .booking-tab-line-list.customer-tabs-inline {

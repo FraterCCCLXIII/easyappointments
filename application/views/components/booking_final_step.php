@@ -29,7 +29,7 @@
         <?php if (setting('require_captcha')): ?>
             <div class="frame-content mt-6">
                 <div class="booking-frame-content">
-                    <label class="captcha-title inline-flex items-center gap-2 text-sm font-semibold text-slate-700"
+                    <label class="captcha-title inline-flex items-center gap-2 text-sm font-medium text-slate-700"
                            for="captcha-text">
                         CAPTCHA
                         <button class="booking-link text-sm" type="button">

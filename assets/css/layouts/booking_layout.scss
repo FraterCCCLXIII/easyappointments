@@ -26,6 +26,11 @@ body {
     border-color: var(--bs-border-color);
 }
 
+.booking-tab-line,
+.booking-tab-line.active {
+    font-weight: 500 !important;
+}
+
 /* BOOK APPOINTMENT WIZARD
  ------------------------------------------------------------------------------ */
 

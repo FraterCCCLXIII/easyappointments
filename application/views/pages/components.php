@@ -9,8 +9,8 @@
     <div class="grid gap-6 lg:grid-cols-2">
         <section class="rounded-xl border border-[var(--bs-border-color,#e2e8f0)] bg-white p-5">
             <div class="mb-4 flex items-center justify-between">
-                <h3 class="text-lg font-semibold text-slate-900">Buttons</h3>
-                <span class="text-xs font-semibold uppercase text-slate-400">Actions</span>
+                <h3 class="text-lg font-medium text-slate-900">Buttons</h3>
+                <span class="text-xs font-medium uppercase text-slate-400">Actions</span>
             </div>
             <div class="flex flex-wrap gap-3">
                 <button class="btn btn-primary" type="button">Primary</button>
@@ -28,8 +28,8 @@
 
         <section class="rounded-xl border border-[var(--bs-border-color,#e2e8f0)] bg-white p-5">
             <div class="mb-4 flex items-center justify-between">
-                <h3 class="text-lg font-semibold text-slate-900">Form Controls</h3>
-                <span class="text-xs font-semibold uppercase text-slate-400">Inputs</span>
+                <h3 class="text-lg font-medium text-slate-900">Form Controls</h3>
+                <span class="text-xs font-medium uppercase text-slate-400">Inputs</span>
             </div>
             <div class="grid gap-4 md:grid-cols-2">
                 <div>
@@ -62,8 +62,8 @@
 
         <section class="rounded-xl border border-[var(--bs-border-color,#e2e8f0)] bg-white p-5">
             <div class="mb-4 flex items-center justify-between">
-                <h3 class="text-lg font-semibold text-slate-900">Selections</h3>
-                <span class="text-xs font-semibold uppercase text-slate-400">Toggles</span>
+                <h3 class="text-lg font-medium text-slate-900">Selections</h3>
+                <span class="text-xs font-medium uppercase text-slate-400">Toggles</span>
             </div>
             <div class="space-y-4">
                 <div class="form-check">
@@ -88,8 +88,8 @@
 
         <section class="rounded-xl border border-[var(--bs-border-color,#e2e8f0)] bg-white p-5">
             <div class="mb-4 flex items-center justify-between">
-                <h3 class="text-lg font-semibold text-slate-900">Badges & Alerts</h3>
-                <span class="text-xs font-semibold uppercase text-slate-400">Status</span>
+                <h3 class="text-lg font-medium text-slate-900">Badges & Alerts</h3>
+                <span class="text-xs font-medium uppercase text-slate-400">Status</span>
             </div>
             <div class="flex flex-wrap items-center gap-3">
                 <span class="badge bg-success">Success</span>
@@ -107,8 +107,8 @@
 
         <section class="rounded-xl border border-[var(--bs-border-color,#e2e8f0)] bg-white p-5">
             <div class="mb-4 flex items-center justify-between">
-                <h3 class="text-lg font-semibold text-slate-900">Navigation</h3>
-                <span class="text-xs font-semibold uppercase text-slate-400">Tabs</span>
+                <h3 class="text-lg font-medium text-slate-900">Navigation</h3>
+                <span class="text-xs font-medium uppercase text-slate-400">Tabs</span>
             </div>
             <div class="mb-4">
                 <ul class="booking-tab-line-list" role="tablist">
@@ -139,28 +139,28 @@
 
         <section class="rounded-xl border border-[var(--bs-border-color,#e2e8f0)] bg-white p-5 lg:col-span-2">
             <div class="mb-4 flex items-center justify-between">
-                <h3 class="text-lg font-semibold text-slate-900">Cards & Tables</h3>
-                <span class="text-xs font-semibold uppercase text-slate-400">Layouts</span>
+                <h3 class="text-lg font-medium text-slate-900">Cards & Tables</h3>
+                <span class="text-xs font-medium uppercase text-slate-400">Layouts</span>
             </div>
             <div class="grid gap-4 lg:grid-cols-3">
                 <div class="card border bg-white">
                     <div class="card-body">
                         <div class="text-sm text-slate-500">Card title</div>
-                        <div class="text-lg font-semibold text-slate-900">Primary metric</div>
+                        <div class="text-lg font-medium text-slate-900">Primary metric</div>
                         <div class="mt-2 text-sm text-slate-600">Supporting description text.</div>
                     </div>
                 </div>
                 <div class="card border bg-white">
                     <div class="card-body">
                         <div class="text-sm text-slate-500">Card title</div>
-                        <div class="text-lg font-semibold text-slate-900">Secondary metric</div>
+                        <div class="text-lg font-medium text-slate-900">Secondary metric</div>
                         <div class="mt-2 text-sm text-slate-600">Supporting description text.</div>
                     </div>
                 </div>
                 <div class="card border bg-white">
                     <div class="card-body">
                         <div class="text-sm text-slate-500">Card title</div>
-                        <div class="text-lg font-semibold text-slate-900">Tertiary metric</div>
+                        <div class="text-lg font-medium text-slate-900">Tertiary metric</div>
                         <div class="mt-2 text-sm text-slate-600">Supporting description text.</div>
                     </div>
                 </div>
