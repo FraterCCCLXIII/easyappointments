@@ -56,7 +56,7 @@
     <?php component('backend_sidebar', ['active_menu' => vars('active_menu')]); ?>
 
     <main class="backend-shell-content">
-        <div class="mx-auto w-full max-w-6xl px-4 py-6">
+        <div class="mx-auto w-full px-4 py-6">
             <?php
             $hide_page_title = in_array(vars('active_menu'), [
                 PRIV_APPOINTMENTS,
@@ -182,6 +182,12 @@
         const applyMobileNav = (isMobile, shouldAnimate) => {
             document.documentElement.classList.toggle('backend-sidebar-mobile-nav', isMobile);
             document.body.classList.toggle('backend-sidebar-mobile-nav', isMobile);
+
+            if (isMobile) {
+                setSidebarCollapsed(false);
+            } else {
+                setSidebarCollapsed(storedCollapsed);
+            }
 
             if (shouldAnimate && !mobileNavReady) {
                 document.documentElement.classList.add('backend-sidebar-mobile-nav-ready');
