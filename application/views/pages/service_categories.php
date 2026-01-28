@@ -6,7 +6,7 @@
 
     <div class="row" id="service-categories">
         <div id="filter-service-categories" class="filter-records column col-12 col-md-5 backend-sticky-panel">
-            <h2 class="mb-6 text-left text-2xl font-semibold text-slate-900">
+            <h2 class="mb-6 text-left text-2xl font-medium text-slate-900">
                 <?= lang('service_categories') ?>
             </h2>
 

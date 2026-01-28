@@ -679,7 +679,7 @@ App.Pages.Customers = (function () {
             'class': 'w-full text-left text-sm',
         });
         const $appointmentsHead = $('<thead/>', {
-            'class': 'bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-500',
+            'class': 'bg-slate-50 text-xs font-medium uppercase tracking-wide text-slate-500',
         });
         const $appointmentsBody = $('<tbody/>', {
             'class': 'divide-y divide-[var(--bs-border-color,#e2e8f0)]',
@@ -740,7 +740,7 @@ App.Pages.Customers = (function () {
                 'data-id': appointment.id,
                 'html': [
                     $('<td/>', {
-                        'class': 'px-4 py-3 font-semibold text-slate-900',
+                        'class': 'px-4 py-3 font-medium text-slate-900',
                         'text': appointment.service.name || '-',
                     }),
                     $('<td/>', {
@@ -754,7 +754,7 @@ App.Pages.Customers = (function () {
                     $('<td/>', {
                         'class': 'px-4 py-3',
                         'html': $('<span/>', {
-                            'class': `inline-flex rounded-full px-3 py-1 text-xs font-semibold ${statusClass}`,
+                            'class': `inline-flex rounded-full px-3 py-1 text-xs font-medium ${statusClass}`,
                             'text': statusLabel,
                         }),
                     }),
@@ -763,7 +763,7 @@ App.Pages.Customers = (function () {
                         'html': $('<a/>', {
                             'href': App.Utils.Url.siteUrl(`calendar/reschedule/${appointment.hash}`),
                             'class':
-                                'customer-appointment-edit inline-flex items-center rounded-xl border border-[var(--bs-border-color,#e2e8f0)] px-3 py-2 text-sm font-semibold text-slate-700 hover:border-[var(--bs-border-color,#e2e8f0)] hover:text-slate-900',
+                                'customer-appointment-edit inline-flex items-center rounded-xl border border-[var(--bs-border-color,#e2e8f0)] px-3 py-2 text-sm font-medium text-slate-700 hover:border-[var(--bs-border-color,#e2e8f0)] hover:text-slate-900',
                             'text': lang('edit'),
                         }),
                     }),
@@ -789,7 +789,7 @@ App.Pages.Customers = (function () {
                         $('<td/>', {
                             'class': 'px-4 py-3',
                             'html': $('<span/>', {
-                                'class': `inline-flex rounded-full px-3 py-1 text-xs font-semibold ${paymentBadgeClass}`,
+                                'class': `inline-flex rounded-full px-3 py-1 text-xs font-medium ${paymentBadgeClass}`,
                                 'text': paymentStatus.charAt(0).toUpperCase() + paymentStatus.slice(1),
                             }),
                         }),
@@ -1069,7 +1069,7 @@ App.Pages.Customers = (function () {
 
     function renderStatusBadge(status) {
         return $('<span/>', {
-            'class': 'inline-flex rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700',
+            'class': 'inline-flex rounded-full bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700',
             'text': status,
         });
     }

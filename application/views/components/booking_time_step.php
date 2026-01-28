@@ -21,7 +21,7 @@
                 </div>
 
                 <div class="date-time-summary mb-4 mt-4 flex items-center justify-between gap-3">
-                    <p id="selected-date" class="mb-0 text-sm font-semibold text-slate-900">
+                    <p id="selected-date" class="mb-0 text-sm font-medium text-slate-900">
                         <?= lang('select_time') ?>
                     </p>
                     <div id="select-time" class="flex flex-none items-center">

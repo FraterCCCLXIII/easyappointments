@@ -95,6 +95,7 @@ window.App.Layouts.Backend = (function () {
         tippy('[data-tippy-content]');
 
         App.Utils.Lang.enableLanguageSelection($selectLanguage);
+
     }
 
     document.addEventListener('DOMContentLoaded', initialize);

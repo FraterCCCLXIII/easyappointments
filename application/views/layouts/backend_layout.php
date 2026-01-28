@@ -11,6 +11,20 @@
 
     <title><?= vars('page_title') ?? lang('backend_section') ?> | Easy!Appointments</title>
 
+    <script>
+        (function () {
+            const storageKey = 'ea_backend_sidebar_collapsed';
+            try {
+                if (window.localStorage.getItem(storageKey) === 'true') {
+                    document.documentElement.classList.add('backend-sidebar-collapsed');
+                    document.body?.classList.add('backend-sidebar-collapsed');
+                }
+            } catch (error) {
+                // Storage unavailable, keep default.
+            }
+        })();
+    </script>
+
     <link rel="icon" type="image/x-icon" href="<?= asset_url('assets/img/favicon.ico') ?>">
     <link rel="icon" sizes="192x192" href="<?= asset_url('assets/img/logo.png') ?>">
 
@@ -25,6 +39,7 @@
     <link rel="stylesheet" type="text/css" href="<?= asset_url('assets/css/tailwind/booking.css') ?>">
     <link rel="stylesheet" type="text/css" href="<?= asset_url('assets/css/layouts/backend_layout.css') ?>">
     <link rel="stylesheet" type="text/css" href="<?= asset_url('assets/css/components/backend_list.css') ?>">
+    <link rel="stylesheet" type="text/css" href="<?= asset_url('assets/css/components/backend_sidebar.css') ?>">
     <style>
         body .modal .btn-close::before {
             content: none;
@@ -37,23 +52,31 @@
 </head>
 <body class="min-h-screen bg-slate-50 text-slate-900">
 
-<main class="min-h-screen">
+<div class="backend-shell">
+    <?php component('backend_sidebar', ['active_menu' => vars('active_menu')]); ?>
 
-    <?php component('backend_header', ['active_menu' => vars('active_menu')]); ?>
+    <main class="backend-shell-content">
+        <div class="mx-auto w-full max-w-6xl px-4 py-6">
+            <?php
+            $hide_page_title = in_array(vars('active_menu'), [PRIV_CUSTOMERS, PRIV_USERS, PRIV_SERVICES], true);
+            ?>
+            <?php if (vars('active_menu') !== PRIV_SYSTEM_SETTINGS && !$hide_page_title): ?>
+                <h2 class="mb-6 text-left text-2xl font-medium text-slate-900">
+                    <?= e(vars('page_title') ?? lang('backend_section')) ?>
+                </h2>
+            <?php endif; ?>
+            <?php slot('content'); ?>
+        </div>
+    </main>
+</div>
 
-    <div class="mx-auto w-full max-w-6xl px-4 py-6">
-        <?php
-        $hide_page_title = in_array(vars('active_menu'), [PRIV_CUSTOMERS, PRIV_USERS, PRIV_SERVICES], true);
-        ?>
-        <?php if (vars('active_menu') !== PRIV_SYSTEM_SETTINGS && !$hide_page_title): ?>
-            <h2 class="mb-6 text-left text-2xl font-semibold text-slate-900">
-                <?= e(vars('page_title') ?? lang('backend_section')) ?>
-            </h2>
-        <?php endif; ?>
-        <?php slot('content'); ?>
+<div id="notification" style="display: none;"></div>
+
+<div id="loading" style="display: none;">
+    <div class="any-element animation is-loading">
+        &nbsp;
     </div>
-
-</main>
+</div>
 
 <script src="<?= asset_url('assets/vendor/jquery/jquery.min.js') ?>"></script>
 <script src="<?= asset_url('assets/vendor/moment/moment.min.js') ?>"></script>
@@ -86,6 +109,86 @@
 <?php component('js_lang_script'); ?>
 
 <?php slot('scripts'); ?>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const storageKey = 'ea_backend_sidebar_collapsed';
+        const toggleButtons = document.querySelectorAll('[data-sidebar-toggle]');
+
+        if (!toggleButtons.length) {
+            return;
+        }
+
+        const setSidebarCollapsed = (isCollapsed) => {
+            document.documentElement.classList.toggle('backend-sidebar-collapsed', isCollapsed);
+            document.body.classList.toggle('backend-sidebar-collapsed', isCollapsed);
+            toggleButtons.forEach((button) => {
+                button.setAttribute('aria-expanded', (!isCollapsed).toString());
+            });
+        };
+
+        let storedCollapsed = false;
+
+        try {
+            storedCollapsed = window.localStorage.getItem(storageKey) === 'true';
+        } catch (error) {
+            storedCollapsed = false;
+        }
+
+        setSidebarCollapsed(storedCollapsed);
+
+        toggleButtons.forEach((button) => {
+            button.addEventListener('click', () => {
+                const isCollapsed = !document.body.classList.contains('backend-sidebar-collapsed');
+                setSidebarCollapsed(isCollapsed);
+
+                try {
+                    window.localStorage.setItem(storageKey, isCollapsed.toString());
+                } catch (error) {
+                    // Storage unavailable, still toggle.
+                }
+            });
+        });
+
+        document.querySelectorAll('[data-sidebar-expand]').forEach((button) => {
+            button.addEventListener('click', (event) => {
+                if (!document.body.classList.contains('backend-sidebar-collapsed')) {
+                    return;
+                }
+
+                event.preventDefault();
+                setSidebarCollapsed(false);
+
+                try {
+                    window.localStorage.setItem(storageKey, 'false');
+                } catch (error) {
+                    // Storage unavailable, still toggle.
+                }
+            });
+        });
+
+        const mobileQuery = window.matchMedia('(max-width: 1024px)');
+        let mobileNavReady = false;
+        const applyMobileNav = (isMobile, shouldAnimate) => {
+            document.documentElement.classList.toggle('backend-sidebar-mobile-nav', isMobile);
+            document.body.classList.toggle('backend-sidebar-mobile-nav', isMobile);
+
+            if (shouldAnimate && !mobileNavReady) {
+                document.documentElement.classList.add('backend-sidebar-mobile-nav-ready');
+                document.body.classList.add('backend-sidebar-mobile-nav-ready');
+                mobileNavReady = true;
+            }
+        };
+
+        applyMobileNav(mobileQuery.matches, false);
+        const handleMobileChange = (event) => applyMobileNav(event.matches, true);
+        if (mobileQuery.addEventListener) {
+            mobileQuery.addEventListener('change', handleMobileChange);
+        } else {
+            mobileQuery.addListener(handleMobileChange);
+        }
+    });
+</script>
 
 </body>
 </html>

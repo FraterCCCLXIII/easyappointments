@@ -49,7 +49,7 @@
                     }
                     ?>
 
-                    <div id="service-card-list-label" class="mb-2 text-sm font-semibold text-slate-700">
+                    <div id="service-card-list-label" class="mb-2 text-sm font-medium text-slate-700">
                         <strong>Select a Service</strong>
                     </div>
                     <div id="service-card-list"
@@ -58,7 +58,7 @@
                          aria-labelledby="service-card-list-label">
                         <?php foreach ($grouped_services as $key => $group) { ?>
                             <?php if ($has_category && $key !== 'uncategorized' && count($group) > 0) { ?>
-                                <div class="mt-3 text-sm font-semibold text-slate-500">
+                                <div class="mt-3 text-sm font-medium text-slate-500">
                                     <?= e($group[0]['service_category_name']) ?>
                                 </div>
                             <?php } ?>
@@ -68,7 +68,7 @@
                                         data-service-id="<?= e($service['id']) ?>"
                                         role="radio"
                                         aria-checked="false">
-                                    <div class="font-semibold">
+                                    <div class="font-medium">
                                         <?= e($service['name']) ?>
                                     </div>
                                     <?php if (!empty($service['duration'])) { ?>
@@ -110,7 +110,7 @@
                 <?php slot('after_select_service'); ?>
 
                 <div id="provider-card-container" class="mb-6 hidden" aria-hidden="true">
-                    <div id="provider-card-list-label" class="mb-2 text-sm font-semibold text-slate-700">
+                    <div id="provider-card-list-label" class="mb-2 text-sm font-medium text-slate-700">
                         <strong><?= lang('select_provider') ?></strong>
                     </div>
                     <div id="provider-card-list"

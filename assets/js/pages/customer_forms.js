@@ -47,7 +47,7 @@ App.Pages.CustomerForms = (function () {
                     $('<td/>', {
                         class: 'px-4 py-3',
                         html: $('<span/>', {
-                            class: `inline-flex rounded-full px-3 py-1 text-xs font-semibold ${badgeClass}`,
+                            class: `inline-flex rounded-full px-3 py-1 text-xs font-medium ${badgeClass}`,
                             text: status,
                         }),
                     }),

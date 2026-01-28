@@ -117,7 +117,7 @@
     }
 
     .booking-tab-line {
-        @apply inline-flex flex-1 items-center justify-center border-b-2 border-transparent px-2 pb-3 pt-2 text-sm font-semibold text-slate-500 transition;
+        @apply inline-flex flex-1 items-center justify-center border-b-2 border-transparent px-2 pb-3 pt-2 text-sm font-medium text-slate-500 transition;
     }
 
     .booking-tab-line:hover {
