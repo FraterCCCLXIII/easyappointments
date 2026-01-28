@@ -58,7 +58,12 @@
     <main class="backend-shell-content">
         <div class="mx-auto w-full max-w-6xl px-4 py-6">
             <?php
-            $hide_page_title = in_array(vars('active_menu'), [PRIV_CUSTOMERS, PRIV_USERS, PRIV_SERVICES], true);
+            $hide_page_title = in_array(vars('active_menu'), [
+                PRIV_APPOINTMENTS,
+                PRIV_CUSTOMERS,
+                PRIV_USERS,
+                PRIV_SERVICES,
+            ], true);
             ?>
             <?php if (vars('active_menu') !== PRIV_SYSTEM_SETTINGS && !$hide_page_title): ?>
                 <h2 class="mb-6 text-left text-2xl font-medium text-slate-900">
@@ -83,6 +88,7 @@
 <script src="<?= asset_url('assets/vendor/moment-timezone/moment-timezone-with-data.min.js') ?>"></script>
 <script src="<?= asset_url('assets/vendor/@fortawesome-fontawesome-free/fontawesome.min.js') ?>"></script>
 <script src="<?= asset_url('assets/vendor/@fortawesome-fontawesome-free/solid.min.js') ?>"></script>
+<script src="<?= asset_url('assets/vendor/lucide/lucide.min.js') ?>"></script>
 <script src="<?= asset_url('assets/vendor/@popperjs-core/popper.min.js') ?>"></script>
 <script src="<?= asset_url('assets/vendor/tippy.js/tippy-bundle.umd.min.js') ?>"></script>
 <script src="<?= asset_url('assets/vendor/trumbowyg/trumbowyg.min.js') ?>"></script>
@@ -112,6 +118,10 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', () => {
+        if (window.lucide) {
+            window.lucide.createIcons();
+        }
+
         const storageKey = 'ea_backend_sidebar_collapsed';
         const toggleButtons = document.querySelectorAll('[data-sidebar-toggle]');
 

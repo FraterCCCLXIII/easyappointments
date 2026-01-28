@@ -3,7 +3,12 @@
 <?php section('content'); ?>
 
 <div class="container-fluid backend-page" id="calendar-page">
-    <div class="row g-3" id="calendar-toolbar" style="background: transparent; color: inherit; padding: 0;">
+    <div class="row g-3 align-items-center" id="calendar-toolbar" style="background: transparent; color: inherit; padding: 0;">
+        <div class="col-12 col-md-auto">
+            <h2 class="mb-0 text-left text-2xl font-medium text-slate-900">
+                <?= lang('calendar') ?>
+            </h2>
+        </div>
         <div id="calendar-filter" class="col-12 col-md-4 col-xl-3">
             <div class="calendar-filter-items">
                 <select id="select-filter-item"

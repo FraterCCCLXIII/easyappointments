@@ -59,7 +59,7 @@ $dropdown_menu_class = 'backend-sidebar-dropdown dropdown-menu absolute z-50 mt-
                        class="<?= $active ? $nav_link_active : $nav_link_inactive ?>"
                        aria-label="<?= lang('calendar') ?>"
                        data-tippy-content="<?= lang('manage_appointment_record_hint') ?>">
-                        <i class="fas fa-calendar-alt backend-sidebar-icon"></i>
+                        <i class="backend-sidebar-icon" data-lucide="calendar"></i>
                         <span class="backend-sidebar-label"><?= lang('calendar') ?></span>
                     </a>
                 </li>
@@ -71,7 +71,7 @@ $dropdown_menu_class = 'backend-sidebar-dropdown dropdown-menu absolute z-50 mt-
                        class="<?= $active ? $nav_link_active : $nav_link_inactive ?>"
                        aria-label="<?= lang('customers') ?>"
                        data-tippy-content="<?= lang('manage_customers_hint') ?>">
-                        <i class="fas fa-user-friends backend-sidebar-icon"></i>
+                        <i class="backend-sidebar-icon" data-lucide="user"></i>
                         <span class="backend-sidebar-label"><?= lang('customers') ?></span>
                     </a>
                 </li>
@@ -83,7 +83,7 @@ $dropdown_menu_class = 'backend-sidebar-dropdown dropdown-menu absolute z-50 mt-
                        class="<?= $active ? $nav_link_active : $nav_link_inactive ?>"
                        aria-label="Billing"
                        data-tippy-content="View all billing transactions">
-                        <i class="fas fa-file-invoice-dollar backend-sidebar-icon"></i>
+                        <i class="backend-sidebar-icon" data-lucide="file-text"></i>
                         <span class="backend-sidebar-label">Billing</span>
                     </a>
                 </li>
@@ -96,9 +96,9 @@ $dropdown_menu_class = 'backend-sidebar-dropdown dropdown-menu absolute z-50 mt-
                             data-bs-toggle="dropdown"
                             aria-label="<?= lang('services') ?>"
                             data-tippy-content="<?= lang('manage_services_hint') ?>">
-                        <i class="fas fa-business-time backend-sidebar-icon"></i>
+                        <i class="backend-sidebar-icon" data-lucide="briefcase"></i>
                         <span class="backend-sidebar-label"><?= lang('services') ?></span>
-                        <i class="fas fa-chevron-down backend-sidebar-chevron"></i>
+                        <i class="backend-sidebar-chevron" data-lucide="chevron-down"></i>
                     </button>
                     <div class="<?= $dropdown_menu_class ?>">
                         <a class="<?= $dropdown_item_class ?>" href="<?= site_url('services') ?>">
@@ -118,9 +118,9 @@ $dropdown_menu_class = 'backend-sidebar-dropdown dropdown-menu absolute z-50 mt-
                             data-bs-toggle="dropdown"
                             aria-label="<?= lang('users') ?>"
                             data-tippy-content="<?= lang('manage_users_hint') ?>">
-                        <i class="fas fa-users backend-sidebar-icon"></i>
+                        <i class="backend-sidebar-icon" data-lucide="users"></i>
                         <span class="backend-sidebar-label"><?= lang('users') ?></span>
-                        <i class="fas fa-chevron-down backend-sidebar-chevron"></i>
+                        <i class="backend-sidebar-chevron" data-lucide="chevron-down"></i>
                     </button>
                     <div class="<?= $dropdown_menu_class ?>">
                         <a class="<?= $dropdown_item_class ?>" href="<?= site_url('providers') ?>">
@@ -150,9 +150,9 @@ $dropdown_menu_class = 'backend-sidebar-dropdown dropdown-menu absolute z-50 mt-
                             data-bs-toggle="dropdown"
                             aria-label="<?= e(vars('user_display_name')) ?>"
                             data-tippy-content="<?= lang('settings_hint') ?>">
-                        <i class="fas fa-user backend-sidebar-icon"></i>
+                        <i class="backend-sidebar-icon" data-lucide="user"></i>
                         <span class="backend-sidebar-label"><?= e(vars('user_display_name')) ?></span>
-                        <i class="fas fa-chevron-down backend-sidebar-chevron"></i>
+                        <i class="backend-sidebar-chevron" data-lucide="chevron-down"></i>
                     </button>
                     <div class="<?= $dropdown_menu_class ?>">
                         <?php if (can('view', PRIV_SYSTEM_SETTINGS)): ?>
@@ -182,7 +182,7 @@ $dropdown_menu_class = 'backend-sidebar-dropdown dropdown-menu absolute z-50 mt-
                             <button id="select-language" type="button"
                                     class="inline-flex w-full items-center justify-between rounded-lg border border-[var(--bs-border-color,#e2e8f0)] px-3 py-2 text-sm text-slate-600 hover:border-[var(--bs-border-color,#e2e8f0)] hover:text-slate-900">
                                 <?= ucfirst(config('language')) ?>
-                                <i class="fas fa-chevron-down backend-sidebar-chevron"></i>
+                                <i class="backend-sidebar-chevron" data-lucide="chevron-down"></i>
                             </button>
                         </div>
                         <div class="my-2 border-t border-[var(--bs-border-color,#e2e8f0)]"></div>
