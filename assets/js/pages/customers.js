@@ -55,14 +55,18 @@ App.Pages.Customers = (function () {
     const $customerNoteText = $('#customer-note-text');
     const $customerNotesList = $('#customer-notes-list');
     const $customerVisitNotesList = $('#customer-visit-notes-list');
+    const $customerAlertText = $('#customer-alert-text');
+    const $customerAlertsList = $('#customer-alerts-list');
     const $customerFilesPanel = $('#customer-files-panel .user-files-panel');
     const $customerFormsPanel = $('#customer-forms-panel .user-forms-panel');
     const $addCustomerNote = $('#add-customer-note');
+    const $addCustomerAlert = $('#add-customer-alert');
     const $summaryName = $('#customer-summary-name');
     const $summaryId = $('#customer-summary-id');
     const $summaryEmail = $('#customer-summary-email');
     const $summaryPhone = $('#customer-summary-phone');
     const $summaryLocation = $('#customer-summary-location');
+    const $customerAlertBanner = $('#customer-alert-banner');
 
     const moment = window.moment;
 
@@ -108,6 +112,22 @@ App.Pages.Customers = (function () {
             $recordDetails.show();
         } else {
             $recordDetails.hide();
+        }
+
+        const hasCustomer = Number($id.val()) > 0;
+        setAlertInputsEnabled(visible && hasCustomer);
+    }
+
+    function setAlertInputsEnabled(enabled) {
+        const $text = $('#customer-alert-text');
+        const $button = $('#add-customer-alert');
+
+        $text.prop('disabled', !enabled);
+        $button.prop('disabled', !enabled);
+
+        if (enabled) {
+            $text.removeAttr('disabled');
+            $button.removeAttr('disabled');
         }
     }
 
@@ -248,7 +268,24 @@ App.Pages.Customers = (function () {
             App.Utils.Message.show(lang('delete_customer'), lang('delete_record_prompt'), buttons);
         });
 
+        $customers.on('shown.bs.tab', '#customer-alerts-tab', () => {
+            const customerId = Number($id.val());
+
+            if (!customerId) {
+                setAlertInputsEnabled(false);
+                return;
+            }
+
+            setAlertInputsEnabled(true);
+        });
+
         $customers.on('input', '#customer-note-text', (event) => {
+            if ($(event.currentTarget).val().trim() !== '') {
+                $(event.currentTarget).removeClass('is-invalid');
+            }
+        });
+
+        $customers.on('input', '#customer-alert-text', (event) => {
             if ($(event.currentTarget).val().trim() !== '') {
                 $(event.currentTarget).removeClass('is-invalid');
             }
@@ -276,6 +313,28 @@ App.Pages.Customers = (function () {
             });
         });
 
+        $customers.on('click', '#add-customer-alert', () => {
+            const customerId = Number($id.val());
+            const alertText = $customerAlertText.val().trim();
+
+            if (!customerId) {
+                return;
+            }
+
+            if (!alertText) {
+                $customerAlertText.addClass('is-invalid');
+                return;
+            }
+
+            App.Http.Customers.storeAlert({
+                id_users_customer: customerId,
+                alert: alertText,
+            }).then(() => {
+                $customerAlertText.val('');
+                loadCustomerAlerts(customerId);
+            });
+        });
+
         $customers.on('click', '.customer-note-edit', (event) => {
             const $noteCard = $(event.currentTarget).closest('[data-note-id]');
             const note = $noteCard.data('note');
@@ -285,6 +344,17 @@ App.Pages.Customers = (function () {
             }
 
             enterNoteEditMode($noteCard, note);
+        });
+
+        $customers.on('click', '.customer-alert-edit', (event) => {
+            const $alertCard = $(event.currentTarget).closest('[data-alert-id]');
+            const alert = $alertCard.data('alert');
+
+            if (!alert) {
+                return;
+            }
+
+            enterAlertEditMode($alertCard, alert);
         });
 
         $customers.on('click', '.customer-note-save', (event) => {
@@ -311,6 +381,30 @@ App.Pages.Customers = (function () {
             });
         });
 
+        $customers.on('click', '.customer-alert-save', (event) => {
+            const $alertCard = $(event.currentTarget).closest('[data-alert-id]');
+            const alert = $alertCard.data('alert');
+            const $textarea = $alertCard.find('.customer-alert-input');
+
+            if (!alert || !$textarea.length) {
+                return;
+            }
+
+            const updatedText = $textarea.val().trim();
+
+            if (!updatedText) {
+                $textarea.addClass('is-invalid');
+                return;
+            }
+
+            App.Http.Customers.updateAlert({
+                id: alert.id,
+                alert: updatedText,
+            }).then(() => {
+                loadCustomerAlerts(Number($id.val()));
+            });
+        });
+
         $customers.on('click', '.customer-note-cancel', (event) => {
             const $noteCard = $(event.currentTarget).closest('[data-note-id]');
             const note = $noteCard.data('note');
@@ -320,6 +414,17 @@ App.Pages.Customers = (function () {
             }
 
             renderNoteCard($noteCard, note);
+        });
+
+        $customers.on('click', '.customer-alert-cancel', (event) => {
+            const $alertCard = $(event.currentTarget).closest('[data-alert-id]');
+            const alert = $alertCard.data('alert');
+
+            if (!alert) {
+                return;
+            }
+
+            renderAlertCard($alertCard, alert);
         });
 
         $customers.on('click', '.customer-note-delete', (event) => {
@@ -349,6 +454,59 @@ App.Pages.Customers = (function () {
             ];
 
             App.Utils.Message.show(lang('delete'), lang('delete_record_prompt'), buttons);
+        });
+
+        $customers.on('click', '.customer-alert-delete', (event) => {
+            const $alertCard = $(event.currentTarget).closest('[data-alert-id]');
+            const alert = $alertCard.data('alert');
+
+            if (!alert) {
+                return;
+            }
+
+            const buttons = [
+                {
+                    text: lang('cancel'),
+                    click: (event, messageModal) => {
+                        messageModal.hide();
+                    },
+                },
+                {
+                    text: lang('delete'),
+                    click: (event, messageModal) => {
+                        App.Http.Customers.deleteAlert(alert.id).then(() => {
+                            loadCustomerAlerts(Number($id.val()));
+                        });
+                        messageModal.hide();
+                    },
+                },
+            ];
+
+            App.Utils.Message.show(lang('delete'), lang('delete_record_prompt'), buttons);
+        });
+
+        $customers.on('change', '.customer-alert-toggle', (event) => {
+            const $toggle = $(event.currentTarget);
+            const $alertCard = $toggle.closest('[data-alert-id]');
+            const alert = $alertCard.data('alert');
+
+            if (!alert) {
+                return;
+            }
+
+            const customerId = Number($id.val());
+            if (!customerId) {
+                return;
+            }
+
+            const nextValue = $toggle.is(':checked') ? 1 : 0;
+
+            App.Http.Customers.updateAlert({
+                id: alert.id,
+                show_in_banner: nextValue,
+            }).then(() => {
+                loadCustomerAlerts(customerId);
+            });
         });
 
         $customers.on('click', '.customer-appointment-edit', (event) => {
@@ -594,6 +752,10 @@ App.Pages.Customers = (function () {
         $customerNoteText.prop('disabled', true);
         $addCustomerNote.prop('disabled', true);
         $customerNotesList.empty();
+        $customerAlertText.val('');
+        $customerAlertText.removeClass('is-invalid');
+        setAlertInputsEnabled(false);
+        $customerAlertsList.empty();
         $customerVisitNotesList.empty();
         showAppointmentList();
 
@@ -648,6 +810,10 @@ App.Pages.Customers = (function () {
         $customerNoteText.prop('disabled', false);
         $addCustomerNote.prop('disabled', false);
         $customerNotesList.empty();
+        $customerAlertText.val('');
+        $customerAlertText.removeClass('is-invalid');
+        setAlertInputsEnabled(true);
+        $customerAlertsList.empty();
         $customerVisitNotesList.empty();
         showAppointmentList();
 
@@ -816,6 +982,7 @@ App.Pages.Customers = (function () {
         }
 
         loadCustomerNotes(customer.id);
+        loadCustomerAlerts(customer.id);
         loadCustomerVisitNotes(customer.id);
     }
 
@@ -836,6 +1003,26 @@ App.Pages.Customers = (function () {
             })
             .fail(() => {
                 renderNotesList([]);
+            });
+    }
+
+    function loadCustomerAlerts(customerId) {
+        $customerAlertsList.empty();
+
+        if (!customerId) {
+            return;
+        }
+
+        if (typeof App.Http.Customers.alerts !== 'function') {
+            return;
+        }
+
+        App.Http.Customers.alerts(customerId)
+            .then((alerts) => {
+                renderAlertsList(alerts);
+            })
+            .fail(() => {
+                renderAlertsList([]);
             });
     }
 
@@ -1096,6 +1283,30 @@ App.Pages.Customers = (function () {
         });
     }
 
+    function renderAlertsList(alerts) {
+        $customerAlertsList.empty();
+
+        if (!alerts || !alerts.length) {
+            $('<div/>', {
+                'class': 'rounded-xl border border-[var(--bs-border-color,#e2e8f0)] bg-slate-50 px-4 py-6 text-center text-sm text-slate-500',
+                'text': lang('no_records_found'),
+            }).appendTo($customerAlertsList);
+            renderAlertBanner([]);
+            return;
+        }
+
+        renderAlertBanner(alerts);
+        alerts.forEach((alert) => {
+            const $alertCard = $('<div/>', {
+                'class': 'rounded-xl border border-[var(--bs-border-color,#e2e8f0)] bg-white p-4',
+                'data-alert-id': alert.id,
+            });
+
+            renderAlertCard($alertCard, alert);
+            $alertCard.appendTo($customerAlertsList);
+        });
+    }
+
     function renderNoteCard($noteCard, note) {
         const authorName = `${note.author_first_name || ''} ${note.author_last_name || ''}`.trim();
         const authorLabel = authorName || note.author_email || '-';
@@ -1142,6 +1353,115 @@ App.Pages.Customers = (function () {
         $noteCard.append($header, $body);
     }
 
+    function renderAlertCard($alertCard, alert) {
+        const authorName = `${alert.author_first_name || ''} ${alert.author_last_name || ''}`.trim();
+        const authorLabel = authorName || alert.author_email || '-';
+        const createdAt = formatNoteDate(alert.create_datetime);
+        const isAuthor = Number(alert.id_users_author) === Number(vars('user_id'));
+        const isVisible = Number(alert.show_in_banner) === 1;
+
+        $alertCard
+            .data('alert', alert)
+            .removeData('editing')
+            .empty();
+
+        const $header = $('<div/>', {
+            'class': 'd-flex align-items-start justify-content-between gap-3',
+        });
+        const $meta = $('<div/>', {
+            'class': 'text-sm text-slate-500',
+            'text': `${authorLabel} • ${createdAt}`,
+        });
+        const $actions = $('<div/>', {
+            'class': 'd-flex gap-2',
+        });
+
+        const toggleId = `customer-alert-display-${alert.id}`;
+        const $displayToggle = $('<div/>', {
+            'class': 'form-check form-switch customer-alert-display',
+        });
+        const $displayInput = $('<input/>', {
+            'type': 'checkbox',
+            'class': 'form-check-input customer-alert-toggle',
+            'id': toggleId,
+            'checked': isVisible,
+        });
+        const $displayLabel = $('<label/>', {
+            'class': 'form-check-label',
+            'for': toggleId,
+            'text': 'Display',
+        });
+        $displayToggle.append($displayInput, $displayLabel).appendTo($actions);
+
+        if (isAuthor) {
+            $('<button/>', {
+                'type': 'button',
+                'class': 'btn btn-outline-secondary btn-sm customer-alert-edit',
+                'text': lang('edit'),
+            }).appendTo($actions);
+        }
+
+        $('<button/>', {
+            'type': 'button',
+            'class': 'btn btn-outline-secondary btn-sm customer-alert-delete',
+            'text': lang('delete'),
+        }).appendTo($actions);
+
+        $header.append($meta, $actions);
+
+        const $body = $('<div/>', {
+            'class': 'mt-3 text-slate-700 customer-alert-body',
+            'text': alert.alert,
+        });
+
+        $alertCard.append($header, $body);
+    }
+
+    function renderAlertBanner(alerts) {
+        $customerAlertBanner.empty();
+
+        if (!alerts || !alerts.length) {
+            $customerAlertBanner.removeClass('is-visible');
+            return;
+        }
+
+        const visibleAlerts = alerts.filter((alert) => Number(alert.show_in_banner) === 1);
+        if (!visibleAlerts.length) {
+            $customerAlertBanner.removeClass('is-visible');
+            return;
+        }
+
+        $customerAlertBanner.addClass('is-visible');
+
+        const $list = $('<div/>', {
+            'class': 'customer-alert-banner-list',
+        }).appendTo($customerAlertBanner);
+
+        visibleAlerts.forEach((alert) => {
+            if (!alert?.alert) {
+                return;
+            }
+
+            const $item = $('<div/>', {
+                'class': 'customer-alert-banner-content',
+            });
+            const $icon = $('<span/>', {
+                'class': 'customer-alert-banner-icon',
+                'html': '<i data-lucide="alert-triangle"></i>',
+            });
+            const $text = $('<div/>', {
+                'class': 'customer-alert-banner-text',
+                'text': alert.alert,
+            });
+
+            $item.append($icon, $text).appendTo($list);
+        });
+
+        if (window.lucide && typeof window.lucide.createIcons === 'function') {
+            window.lucide.createIcons();
+        }
+    }
+
     function enterNoteEditMode($noteCard, note) {
         const $textarea = $('<textarea/>', {
             'class': 'form-control customer-note-input',
@@ -1166,6 +1486,32 @@ App.Pages.Customers = (function () {
         }).appendTo($actions);
 
         $noteCard.empty().append($textarea, $actions);
+    }
+
+    function enterAlertEditMode($alertCard, alert) {
+        const $textarea = $('<textarea/>', {
+            'class': 'form-control customer-alert-input',
+            'rows': 4,
+            'text': alert.alert,
+        });
+
+        const $actions = $('<div/>', {
+            'class': 'mt-3 d-flex justify-content-end gap-2',
+        });
+
+        $('<button/>', {
+            'type': 'button',
+            'class': 'btn btn-secondary customer-alert-cancel',
+            'text': lang('cancel'),
+        }).appendTo($actions);
+
+        $('<button/>', {
+            'type': 'button',
+            'class': 'btn btn-primary customer-alert-save',
+            'text': lang('save'),
+        }).appendTo($actions);
+
+        $alertCard.empty().append($textarea, $actions);
     }
 
     function formatNoteDate(value) {
