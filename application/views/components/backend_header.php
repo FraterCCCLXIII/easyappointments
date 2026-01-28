@@ -36,8 +36,7 @@ $dropdown_menu_class = 'dropdown-menu dropdown-menu-end absolute right-0 top-ful
                         ) ?>"
                            class="<?= $active ? $nav_link_active : $nav_link_inactive ?>"
                            data-tippy-content="<?= lang('manage_appointment_record_hint') ?>">
-                            <i class="fas fa-calendar-alt mr-2"
-                               style="width: 14px; height: 14px; font-size: 14px; display: inline-flex; align-items: center; justify-content: center;"></i>
+                            <i class="backend-header-icon mr-2" data-lucide="calendar"></i>
                             <?= lang('calendar') ?>
                         </a>
                     </li>
@@ -47,8 +46,7 @@ $dropdown_menu_class = 'dropdown-menu dropdown-menu-end absolute right-0 top-ful
                     <li class="<?= $hidden ?>">
                         <a href="<?= site_url('customers') ?>" class="<?= $active ? $nav_link_active : $nav_link_inactive ?>"
                            data-tippy-content="<?= lang('manage_customers_hint') ?>">
-                            <i class="fas fa-user-friends mr-2"
-                               style="width: 14px; height: 14px; font-size: 14px; display: inline-flex; align-items: center; justify-content: center;"></i>
+                            <i class="backend-header-icon mr-2" data-lucide="user"></i>
                             <?= lang('customers') ?>
                         </a>
                     </li>
@@ -58,8 +56,7 @@ $dropdown_menu_class = 'dropdown-menu dropdown-menu-end absolute right-0 top-ful
                     <li class="<?= $hidden ?>">
                         <a href="<?= site_url('billing') ?>" class="<?= $active ? $nav_link_active : $nav_link_inactive ?>"
                            data-tippy-content="View all billing transactions">
-                            <i class="fas fa-file-invoice-dollar mr-2"
-                               style="width: 14px; height: 14px; font-size: 14px; display: inline-flex; align-items: center; justify-content: center;"></i>
+                            <i class="backend-header-icon mr-2" data-lucide="file-text"></i>
                             Billing
                         </a>
                     </li>
@@ -71,11 +68,9 @@ $dropdown_menu_class = 'dropdown-menu dropdown-menu-end absolute right-0 top-ful
                                 type="button"
                                 data-bs-toggle="dropdown"
                            data-tippy-content="<?= lang('manage_services_hint') ?>">
-                            <i class="fas fa-business-time"
-                               style="width: 14px; height: 14px; font-size: 14px; display: inline-flex; align-items: center; justify-content: center;"></i>
+                            <i class="backend-header-icon" data-lucide="briefcase"></i>
                             <?= lang('services') ?>
-                            <i class="fas fa-chevron-down"
-                               style="width: 10px; height: 10px; font-size: 10px; display: inline-flex; align-items: center; justify-content: center;"></i>
+                            <i class="backend-header-chevron" data-lucide="chevron-down"></i>
                         </button>
                         <div class="<?= $dropdown_menu_class ?>">
                             <a class="<?= $dropdown_item_class ?>" href="<?= site_url('services') ?>">
@@ -94,11 +89,9 @@ $dropdown_menu_class = 'dropdown-menu dropdown-menu-end absolute right-0 top-ful
                                 type="button"
                                 data-bs-toggle="dropdown"
                            data-tippy-content="<?= lang('manage_users_hint') ?>">
-                            <i class="fas fa-users"
-                               style="width: 14px; height: 14px; font-size: 14px; display: inline-flex; align-items: center; justify-content: center;"></i>
+                            <i class="backend-header-icon" data-lucide="users"></i>
                             <?= lang('users') ?>
-                            <i class="fas fa-chevron-down"
-                               style="width: 10px; height: 10px; font-size: 10px; display: inline-flex; align-items: center; justify-content: center;"></i>
+                            <i class="backend-header-chevron" data-lucide="chevron-down"></i>
                         </button>
                         <div class="<?= $dropdown_menu_class ?>">
                             <a class="<?= $dropdown_item_class ?>" href="<?= site_url('providers') ?>">
@@ -126,11 +119,9 @@ $dropdown_menu_class = 'dropdown-menu dropdown-menu-end absolute right-0 top-ful
                                 type="button"
                                 data-bs-toggle="dropdown"
                            data-tippy-content="<?= lang('settings_hint') ?>">
-                            <i class="fas fa-user"
-                               style="width: 14px; height: 14px; font-size: 14px; display: inline-flex; align-items: center; justify-content: center;"></i>
+                            <i class="backend-header-icon" data-lucide="user"></i>
                             <?= e(vars('user_display_name')) ?>
-                            <i class="fas fa-chevron-down"
-                               style="width: 10px; height: 10px; font-size: 10px; display: inline-flex; align-items: center; justify-content: center;"></i>
+                            <i class="backend-header-chevron" data-lucide="chevron-down"></i>
                         </button>
                         <div class="<?= $dropdown_menu_class ?>">
                             <?php if (can('view', PRIV_SYSTEM_SETTINGS)): ?>
@@ -160,8 +151,7 @@ $dropdown_menu_class = 'dropdown-menu dropdown-menu-end absolute right-0 top-ful
                                 <button id="select-language" type="button"
                                         class="inline-flex w-full items-center justify-between rounded-lg border border-[var(--bs-border-color,#e2e8f0)] px-3 py-2 text-sm text-slate-600 hover:border-[var(--bs-border-color,#e2e8f0)] hover:text-slate-900">
                                     <?= ucfirst(config('language')) ?>
-                                    <i class="fas fa-chevron-down"
-                                       style="width: 10px; height: 10px; font-size: 10px; display: inline-flex; align-items: center; justify-content: center;"></i>
+                                    <i class="backend-header-chevron" data-lucide="chevron-down"></i>
                                 </button>
                             </div>
                             <div class="my-2 border-t border-[var(--bs-border-color,#e2e8f0)]"></div>

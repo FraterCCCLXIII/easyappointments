@@ -150,6 +150,9 @@ function vendor(done) {
         'node_modules/@fortawesome/fontawesome-free/js/solid.min.js',
     ]).pipe(gulp.dest('assets/vendor/@fortawesome-fontawesome-free'));
 
+    // lucide
+    gulp.src(['node_modules/lucide/dist/umd/lucide.min.js']).pipe(gulp.dest('assets/vendor/lucide'));
+
     // cookieconsent
     gulp.src([
         'node_modules/cookieconsent/build/cookieconsent.min.js',
