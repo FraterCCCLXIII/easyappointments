@@ -45,7 +45,13 @@ App.Pages.AccountForms = (function () {
 
             const $row = $('<tr/>', {
                 'html': [
-                    $('<td/>', { class: 'px-4 py-3 text-slate-900', text: form.name }),
+                    $('<td/>', {
+                        class: 'px-4 py-3 text-slate-900',
+                        html: $('<span/>', { class: 'inline-flex items-center gap-2' }).append(
+                            $('<i/>', { class: 'me-2 inline-block size-4 shrink-0 text-slate-500', 'data-lucide': 'file-text' }),
+                            document.createTextNode(form.name)
+                        ),
+                    }),
                     $('<td/>', {
                         class: 'px-4 py-3',
                         html: $('<span/>', {
@@ -66,6 +72,10 @@ App.Pages.AccountForms = (function () {
 
             $formsBody.append($row);
         });
+
+        if (window.lucide && typeof window.lucide.createIcons === 'function') {
+            window.lucide.createIcons();
+        }
     }
 
     function initialize() {

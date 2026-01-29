@@ -139,10 +139,10 @@ $dropdown_menu_class = 'dropdown-menu dropdown-menu-end absolute right-0 top-ful
                                 <a class="<?= $dropdown_item_class ?>" href="<?= site_url('components') ?>">
                                     Components
                                 </a>
+                                <a class="<?= $dropdown_item_class ?>" href="<?= site_url('about') ?>">
+                                    <?= lang('about') ?>
+                                </a>
                             <?php endif; ?>
-                            <a class="<?= $dropdown_item_class ?>" href="<?= site_url('about') ?>">
-                                <?= lang('about') ?>
-                            </a>
                             <a class="<?= $dropdown_item_class ?>" href="<?= site_url('appointments') ?>">
                                 <?= lang('go_to_booking_page') ?>
                             </a>

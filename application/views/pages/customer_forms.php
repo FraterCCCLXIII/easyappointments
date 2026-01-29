@@ -8,7 +8,7 @@
 
         <div class="mt-6 w-full overflow-hidden rounded-xl border border-[var(--bs-border-color,#e2e8f0)] bg-white">
             <table class="w-full text-left text-sm" id="customer-forms-table">
-                <thead class="bg-slate-50 text-xs font-medium uppercase tracking-wide text-slate-500">
+                <thead class="bg-slate-50 text-xs font-medium uppercase tracking-wide text-slate-500 border-b border-[var(--bs-border-color,#e2e8f0)]">
                 <tr>
                     <th class="px-4 py-3">Form</th>
                     <th class="px-4 py-3">Status</th>

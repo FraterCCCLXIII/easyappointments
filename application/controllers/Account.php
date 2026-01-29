@@ -126,7 +126,7 @@ class Account extends EA_Controller
         $show_forms_nav = $this->has_assigned_forms();
 
         html_vars([
-            'page_title' => lang('settings'),
+            'page_title' => lang('forms'),
             'active_menu' => PRIV_SYSTEM_SETTINGS,
             'user_display_name' => $this->accounts->get_user_display_name($user_id),
             'show_forms_nav' => $show_forms_nav,

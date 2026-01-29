@@ -157,7 +157,7 @@ $dropdown_menu_class = 'backend-sidebar-dropdown dropdown-menu absolute z-50 mt-
                     <div class="<?= $dropdown_menu_class ?>">
                         <?php if (can('view', PRIV_SYSTEM_SETTINGS)): ?>
                             <a class="<?= $dropdown_item_class ?>" href="<?= site_url('general_settings') ?>">
-                                <?= lang('settings') ?>
+                                Admin Settings
                             </a>
                         <?php endif; ?>
 
@@ -165,14 +165,6 @@ $dropdown_menu_class = 'backend-sidebar-dropdown dropdown-menu absolute z-50 mt-
 
                         <a class="<?= $dropdown_item_class ?>" href="<?= site_url('account') ?>">
                             <?= lang('account') ?>
-                        </a>
-                        <?php if (can('view', PRIV_SYSTEM_SETTINGS)): ?>
-                            <a class="<?= $dropdown_item_class ?>" href="<?= site_url('components') ?>">
-                                Components
-                            </a>
-                        <?php endif; ?>
-                        <a class="<?= $dropdown_item_class ?>" href="<?= site_url('about') ?>">
-                            <?= lang('about') ?>
                         </a>
                         <a class="<?= $dropdown_item_class ?>" href="<?= site_url('appointments') ?>">
                             <?= lang('go_to_booking_page') ?>

@@ -137,7 +137,7 @@
     }
 
     .form-label {
-        @apply mb-2 block text-sm font-semibold text-slate-700;
+        @apply mb-2 block text-sm font-medium text-slate-700;
     }
 
     .form-check-input {

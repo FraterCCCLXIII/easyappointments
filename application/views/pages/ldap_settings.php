@@ -11,9 +11,7 @@
             <form>
                 <fieldset>
                     <div class="d-flex justify-content-between align-items-center border-bottom mb-4 py-2">
-                        <h4 class="text-black-50 mb-0 fw-light">
-                            <?= lang('ldap') ?>
-                        </h4>
+                        <h4 class="text-slate-900 mb-3 text-lg font-medium"><?= lang('ldap') ?></h4>
 
                         <div>
                             <a href="<?= site_url('integrations') ?>" class="btn btn-outline-primary me-2">
@@ -121,7 +119,7 @@
             </form>
 
             <div class="d-flex justify-content-between align-items-center border-bottom mb-4 py-2">
-                <h4 class="text-black-50 mb-0 fw-light">
+                <h4 class="text-slate-900 mb-3 text-lg font-medium">
                     <?= lang('search') ?>
                 </h4>
             </div>

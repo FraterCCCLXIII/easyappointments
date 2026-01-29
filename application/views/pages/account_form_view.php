@@ -12,7 +12,7 @@
         </div>
         <div class="col-sm-9 settings-content">
             <div class="d-flex justify-content-between align-items-center border-bottom mb-4 py-2">
-                <h4 class="text-black-50 mb-0 fw-light" id="account-form-title">Form</h4>
+                <h4 class="text-dark mb-0 fw-medium fs-3" id="account-form-title">Form</h4>
                 <a href="<?= site_url('account/forms') ?>" class="btn btn-outline-secondary">
                     <i class="fas fa-arrow-left me-2"></i>
                     Back to Forms

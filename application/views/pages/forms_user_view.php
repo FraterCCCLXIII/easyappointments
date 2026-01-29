@@ -6,7 +6,7 @@
     <div class="row settings-layout">
         <div class="col-sm-12 settings-content">
             <div class="d-flex justify-content-between align-items-center border-bottom mb-4 py-2">
-                <h4 class="text-black-50 mb-0 fw-light" id="forms-user-title">Form</h4>
+                <h4 class="text-dark mb-0 fw-medium fs-3" id="forms-user-title">Form</h4>
                 <a href="javascript:history.back()" class="btn btn-outline-secondary">
                     <i class="fas fa-arrow-left me-2"></i>
                     Back

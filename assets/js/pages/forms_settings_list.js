@@ -29,20 +29,61 @@ App.Pages.FormsSettingsList = (function () {
         }
 
         list.forEach((form) => {
-            const $item = $('<div/>', {
-                class: 'd-flex align-items-center justify-content-between gap-2',
+            let lastEditedText = 'Last edited —';
+
+            if (form.update_datetime) {
+                try {
+                    const formatted = App.Utils.Date.format(
+                        form.update_datetime,
+                        vars('date_format'),
+                        vars('time_format'),
+                        false,
+                    );
+                    lastEditedText = `Last edited ${formatted}`;
+                } catch (error) {
+                    lastEditedText = 'Last edited —';
+                }
+            }
+
+            const $meta = $('<div/>', {
+                class: 'd-flex flex-column min-w-0',
                 html: [
-                    $('<span/>', { class: 'text-slate-800', text: form.name }),
-                    $('<a/>', {
-                        class: 'btn btn-outline-secondary btn-sm',
-                        href: App.Utils.Url.siteUrl(`forms_settings/view/${form.id}`),
-                        text: 'View',
-                    }),
+                    $('<span/>', { class: 'forms-list-title text-truncate', text: form.name }),
+                    $('<span/>', { class: 'forms-list-date text-truncate', text: lastEditedText }),
                 ],
             });
+            const $icon = $('<span/>', {
+                class: 'forms-list-icon',
+                html: $('<i/>', { 'data-lucide': 'file-text', 'aria-hidden': 'true' }),
+            });
+            const $left = $('<div/>', {
+                class: 'd-flex align-items-center gap-2 min-w-0',
+                html: [$icon, $meta],
+            });
+            const $link = $('<a/>', {
+                class: 'forms-list-link',
+                href: App.Utils.Url.siteUrl(`forms_settings/view/${form.id}`),
+                'aria-label': 'View form',
+                html: $('<i/>', { 'data-lucide': 'chevron-right', 'aria-hidden': 'true' }),
+            });
+            const $itemContent = $('<div/>', {
+                class: 'd-flex align-items-center justify-content-between gap-2',
+                html: [$left, $link],
+            });
 
-            $formsList.append($('<div/>', { class: 'border rounded-md px-3 py-2', html: $item }));
+            $formsList.append(
+                $('<a/>', {
+                    class: 'forms-list-item',
+                    href: App.Utils.Url.siteUrl(`forms_settings/view/${form.id}`),
+                    'aria-label': `Open form ${form.name}`,
+                    html: $itemContent,
+                }),
+            );
         });
+
+        if (window.lucide && typeof window.lucide.createIcons === 'function') {
+            window.lucide.createIcons();
+        }
     }
 
     function onSearch() {

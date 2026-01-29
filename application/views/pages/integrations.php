@@ -8,9 +8,7 @@
             <?php component('settings_nav'); ?>
         </div>
         <div id="integrations" class="col-sm-9 settings-content">
-            <h4 class="text-black-50 border-bottom py-3 mb-3 fw-light">
-                <?= lang('integrations') ?>
-            </h4>
+            <h4 class="text-slate-900 mb-3 text-lg font-medium"><?= lang('integrations') ?></h4>
 
             <p class="form-text text-muted mb-4">
                 <?= lang('integrations_info') ?>
@@ -18,120 +16,110 @@
 
             <div class="row">
                 <div class="col-sm-6 mb-4">
-                    <div class="card h-100 rounded-xl overflow-hidden">
-                        <div class="card-header">
-                            <h5 class="fw-light text-black-50 mb-0">
+                    <section class="rounded-xl border border-[var(--bs-border-color,#e2e8f0)] bg-white p-5 h-100 d-flex flex-column">
+                        <div class="mb-4 flex items-center justify-between">
+                            <h3 class="text-lg font-medium text-slate-900">
                                 <?= lang('webhooks') ?>
-                            </h5>
+                            </h3>
                         </div>
-                        <div class="card-body">
-                            <div class="mb-3 integration-info">
-                                <small>
-                                    <?= lang('webhooks_info') ?>
-                                </small>
-                            </div>
+                        <div class="mb-4 integration-info">
+                            <small class="form-text text-muted mb-0">
+                                <?= lang('webhooks_info') ?>
+                            </small>
                         </div>
-                        <div class="card-footer bg-white border-0">
-                            <a href="<?= site_url('webhooks') ?>" class="btn btn-outline-primary w-100">
-                                <i class="fas fa-cogs me-2"></i>
+                        <div class="mt-auto">
+                            <a href="<?= site_url('webhooks') ?>" class="btn btn-outline-secondary">
+                                <i class="fas fa-cog me-2"></i>
                                 <?= lang('configure') ?>
                             </a>
                         </div>
-                    </div>
+                    </section>
                 </div>
 
                 <div class="col-sm-6 mb-4">
-                    <div class="card h-100 rounded-xl overflow-hidden">
-                        <div class="card-header">
-                            <h5 class="fw-light text-black-50 mb-0">
+                    <section class="rounded-xl border border-[var(--bs-border-color,#e2e8f0)] bg-white p-5 h-100 d-flex flex-column">
+                        <div class="mb-4 flex items-center justify-between">
+                            <h3 class="text-lg font-medium text-slate-900">
                                 <?= lang('google_analytics') ?>
-                            </h5>
+                            </h3>
                         </div>
-                        <div class="card-body">
-                            <div class="mb-3 integration-info">
-                                <small>
-                                    <?= lang('google_analytics_info') ?>
-                                </small>
-                            </div>
+                        <div class="mb-4 integration-info">
+                            <small class="form-text text-muted mb-0">
+                                <?= lang('google_analytics_info') ?>
+                            </small>
                         </div>
-                        <div class="card-footer bg-white border-0">
+                        <div class="mt-auto">
                             <a href="<?= site_url('google_analytics_settings') ?>"
-                               class="btn btn-outline-primary w-100">
-                                <i class="fas fa-cogs me-2"></i>
+                               class="btn btn-outline-secondary">
+                                <i class="fas fa-cog me-2"></i>
                                 <?= lang('configure') ?>
                             </a>
                         </div>
-                    </div>
+                    </section>
                 </div>
 
                 <div class="col-sm-6 mb-4">
-                    <div class="card h-100 rounded-xl overflow-hidden">
-                        <div class="card-header">
-                            <h5 class="fw-light text-black-50 mb-0">
+                    <section class="rounded-xl border border-[var(--bs-border-color,#e2e8f0)] bg-white p-5 h-100 d-flex flex-column">
+                        <div class="mb-4 flex items-center justify-between">
+                            <h3 class="text-lg font-medium text-slate-900">
                                 <?= lang('matomo_analytics') ?>
-                            </h5>
+                            </h3>
                         </div>
-                        <div class="card-body">
-                            <div class="mb-3 integration-info">
-                                <small>
-                                    <?= lang('matomo_analytics_info') ?>
-                                </small>
-                            </div>
+                        <div class="mb-4 integration-info">
+                            <small class="form-text text-muted mb-0">
+                                <?= lang('matomo_analytics_info') ?>
+                            </small>
                         </div>
-                        <div class="card-footer bg-white border-0">
+                        <div class="mt-auto">
                             <a href="<?= site_url('matomo_analytics_settings') ?>"
-                               class="btn btn-outline-primary w-100">
-                                <i class="fas fa-cogs me-2"></i>
+                               class="btn btn-outline-secondary">
+                                <i class="fas fa-cog me-2"></i>
                                 <?= lang('configure') ?>
                             </a>
                         </div>
-                    </div>
+                    </section>
                 </div>
 
                 <div class="col-sm-6 mb-4">
-                    <div class="card h-100 rounded-xl overflow-hidden">
-                        <div class="card-header">
-                            <h5 class="fw-light text-black-50 mb-0">
+                    <section class="rounded-xl border border-[var(--bs-border-color,#e2e8f0)] bg-white p-5 h-100 d-flex flex-column">
+                        <div class="mb-4 flex items-center justify-between">
+                            <h3 class="text-lg font-medium text-slate-900">
                                 <?= lang('api') ?>
-                            </h5>
+                            </h3>
                         </div>
-                        <div class="card-body">
-                            <div class="mb-3 integration-info">
-                                <small>
-                                    <?= lang('api_info') ?>
-                                </small>
-                            </div>
+                        <div class="mb-4 integration-info">
+                            <small class="form-text text-muted mb-0">
+                                <?= lang('api_info') ?>
+                            </small>
                         </div>
-                        <div class="card-footer bg-white border-0">
-                            <a href="<?= site_url('api_settings') ?>" class="btn btn-outline-primary w-100">
-                                <i class="fas fa-cogs me-2"></i>
+                        <div class="mt-auto">
+                            <a href="<?= site_url('api_settings') ?>" class="btn btn-outline-secondary">
+                                <i class="fas fa-cog me-2"></i>
                                 <?= lang('configure') ?>
                             </a>
                         </div>
-                    </div>
+                    </section>
                 </div>
 
                 <div class="col-sm-6 mb-4">
-                    <div class="card h-100 rounded-xl overflow-hidden">
-                        <div class="card-header">
-                            <h5 class="fw-light text-black-50 mb-0">
+                    <section class="rounded-xl border border-[var(--bs-border-color,#e2e8f0)] bg-white p-5 h-100 d-flex flex-column">
+                        <div class="mb-4 flex items-center justify-between">
+                            <h3 class="text-lg font-medium text-slate-900">
                                 <?= lang('ldap') ?>
-                            </h5>
+                            </h3>
                         </div>
-                        <div class="card-body">
-                            <div class="mb-3 integration-info">
-                                <small>
-                                    <?= lang('ldap_info') ?>
-                                </small>
-                            </div>
+                        <div class="mb-4 integration-info">
+                            <small class="form-text text-muted mb-0">
+                                <?= lang('ldap_info') ?>
+                            </small>
                         </div>
-                        <div class="card-footer bg-white border-0">
-                            <a href="<?= site_url('ldap_settings') ?>" class="btn btn-outline-primary w-100">
-                                <i class="fas fa-cogs me-2"></i>
+                        <div class="mt-auto">
+                            <a href="<?= site_url('ldap_settings') ?>" class="btn btn-outline-secondary">
+                                <i class="fas fa-cog me-2"></i>
                                 <?= lang('configure') ?>
                             </a>
                         </div>
-                    </div>
+                    </section>
                 </div>
 
                 <?php slot('after_integration_cards'); ?>

@@ -8,14 +8,12 @@
             <?php component('settings_nav'); ?>
         </div>
         <div class="col-sm-9 settings-content">
-            <div class="d-flex flex-wrap align-items-center justify-content-between border-bottom mb-4 pb-2">
+            <div class="d-flex flex-wrap align-items-center justify-content-between mb-4 pb-2">
                 <div class="d-flex align-items-center gap-2">
                     <a href="<?= site_url('forms_settings') ?>" class="btn btn-outline-secondary btn-sm">
                         <i class="fas fa-arrow-left"></i>
                     </a>
-                    <h4 class="text-black-50 mb-0 fw-light">
-                        Form Details
-                    </h4>
+                    <h4 class="text-slate-900 mb-3 text-lg font-medium">Form Details</h4>
                 </div>
                 <div class="d-flex gap-2">
                     <button type="button" id="preview-form" class="btn btn-outline-secondary">
@@ -47,7 +45,10 @@
                 </div>
             </div>
 
-            <div class="rounded-xl border border-[var(--bs-border-color,#e2e8f0)] bg-white p-4">
+            <section class="rounded-xl border border-[var(--bs-border-color,#e2e8f0)] bg-white p-5">
+                <div class="mb-4 flex items-center justify-between">
+                    <h3 class="text-lg font-medium text-slate-900">Form Details</h3>
+                </div>
                 <input type="hidden" id="form-id" value="<?= vars('form_id') ?>">
                 <div class="mb-3">
                     <label class="form-label" for="form-name">Form name</label>
@@ -105,7 +106,7 @@
                         </button>
                     </div>
                 </div>
-            </div>
+            </section>
             <div id="forms-message" class="alert mt-3 d-none"></div>
         </div>
     </div>
