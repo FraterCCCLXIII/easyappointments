@@ -211,6 +211,38 @@ class Email_messages
     }
 
     /**
+     * Send a customer login OTP email.
+     *
+     * @param string $code
+     * @param string $recipient_email
+     * @param array $settings
+     *
+     * @throws Exception
+     */
+    public function send_customer_login_otp(string $code, string $recipient_email, array $settings): void
+    {
+        $subject = lang('customer_login_otp_subject');
+        $message = strtr(lang('customer_login_otp_message'), [
+            '{$code}' => '<strong>' . e($code) . '</strong>',
+            '{$minutes}' => '5',
+        ]);
+
+        $html = $this->CI->load->view(
+            'emails/customer_login_otp_email',
+            [
+                'subject' => $subject,
+                'message' => $message,
+                'settings' => $settings,
+            ],
+            true,
+        );
+
+        $php_mailer = $this->get_php_mailer($recipient_email, $subject, $html);
+
+        $php_mailer->send();
+    }
+
+    /**
      * Create PHP Mailer instance based on the email configuration.
      *
      * @param string|null $recipient_email

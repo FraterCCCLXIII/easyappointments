@@ -11,6 +11,7 @@ $active_route_map = [
     'business_settings' => 'business_settings',
     'legal_settings' => 'legal_settings',
     'forms_settings' => 'forms_settings',
+    'customer_login_settings' => 'customer_login_settings',
     'integrations' => 'integrations',
     'api_settings' => 'integrations',
     'ldap_settings' => 'integrations',
@@ -76,6 +77,16 @@ $active_route = $active_route_map[$current_route] ?? $current_route;
                         <i data-lucide="clipboard-list" class="backend-sidebar-icon" aria-hidden="true"></i>
                     </span>
                     <span class="settings-nav-label backend-sidebar-label text-truncate">Forms</span>
+                </a>
+            </div>
+            <div>
+                <a class="settings-nav-item-link backend-sidebar-link <?= $active_route === 'customer_login_settings' ? 'active' : '' ?>"
+                   href="<?= site_url('customer_login_settings') ?>"
+                   title="<?= e(lang('customer_login_settings')) ?>">
+                    <span class="settings-nav-icon backend-sidebar-icon">
+                        <i data-lucide="log-in" class="backend-sidebar-icon" aria-hidden="true"></i>
+                    </span>
+                    <span class="settings-nav-label backend-sidebar-label text-truncate"><?= lang('customer_login_settings') ?></span>
                 </a>
             </div>
             <div class="settings-nav-divider my-2 border-top opacity-50"></div>

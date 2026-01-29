@@ -117,7 +117,7 @@ class Customer_auth_model extends EA_Model
             throw new InvalidArgumentException('Invalid email address provided: ' . $record['email']);
         }
 
-        if (empty($record['id']) && empty($record['password_hash'])) {
+        if (empty($record['id']) && !array_key_exists('password_hash', $record)) {
             throw new InvalidArgumentException('Password hash is required.');
         }
 

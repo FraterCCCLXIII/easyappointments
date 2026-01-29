@@ -26,6 +26,7 @@ class Customer_bookings extends EA_Controller
         $this->load->model('services_model');
         $this->load->model('providers_model');
         $this->load->model('customers_model');
+        $this->load->model('customer_auth_model');
         $this->load->model('form_assignments_model');
         $this->load->model('forms_model');
     }
@@ -90,6 +91,15 @@ class Customer_bookings extends EA_Controller
             $this->session->unset_userdata(['customer_id', 'customer_email']);
             redirect('customer/login');
             exit;
+        }
+
+        if (customer_login_mode() === 'password') {
+            $auth = $this->customer_auth_model->find_by_customer_id((int) $customer['id']);
+            if (empty($auth) || empty($auth['password_hash'])) {
+                session(['customer_return_url' => current_url()]);
+                redirect('customer/create_password');
+                exit;
+            }
         }
 
         return $customer;

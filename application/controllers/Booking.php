@@ -70,6 +70,7 @@ class Booking extends EA_Controller
         $this->load->model('service_categories_model');
         $this->load->model('services_model');
         $this->load->model('customers_model');
+        $this->load->model('customer_auth_model');
         $this->load->model('custom_fields_model');
         $this->load->model('customer_custom_field_values_model');
         $this->load->model('form_assignments_model');
@@ -236,7 +237,17 @@ class Booking extends EA_Controller
             return;
         }
 
-        if (!customer_logged_in()) {
+        $appointment_hash = html_vars('appointment_hash');
+        $login_mode = customer_login_mode();
+        $requires_login = $login_mode !== 'none';
+
+        if ($requires_login && !customer_logged_in()) {
+            session(['customer_return_url' => current_url()]);
+            redirect('customer/login');
+            return;
+        }
+
+        if (!$requires_login && !empty($appointment_hash) && !customer_logged_in()) {
             session(['customer_return_url' => current_url()]);
             redirect('customer/login');
             return;
@@ -290,17 +301,24 @@ class Booking extends EA_Controller
         $timezones = $this->timezones->to_array();
         $grouped_timezones = $this->timezones->to_grouped_array();
 
-        $appointment_hash = html_vars('appointment_hash');
+        $customer = customer_logged_in() ? $this->customers_model->find(customer_id()) : null;
 
-        $customer = $this->customers_model->find(customer_id());
-
-        if (empty($customer)) {
+        if (customer_logged_in() && empty($customer)) {
             $this->session->unset_userdata(['customer_id', 'customer_email']);
             redirect('customer/login');
             return;
         }
 
-        if (!$this->is_customer_profile_complete($customer)) {
+        if (customer_logged_in() && customer_login_mode() === 'password') {
+            $auth = $this->customer_auth_model->find_by_customer_id((int) $customer['id']);
+            if (empty($auth) || empty($auth['password_hash'])) {
+                session(['customer_return_url' => current_url()]);
+                redirect('customer/create_password');
+                return;
+            }
+        }
+
+        if (customer_logged_in() && !$this->is_customer_profile_complete($customer)) {
             session([
                 'customer_flash' => [
                     'type' => 'warning',
@@ -366,7 +384,7 @@ class Booking extends EA_Controller
 
             $appointment = $results[0];
 
-            if ((int) $appointment['id_users_customer'] !== (int) $customer['id']) {
+            if (empty($customer) || (int) $appointment['id_users_customer'] !== (int) $customer['id']) {
                 abort(403, 'Forbidden');
             }
             $provider = $this->providers_model->find($appointment['id_users_provider']);
@@ -382,8 +400,10 @@ class Booking extends EA_Controller
             $provider = null;
         }
 
-        $customer_data = $customer;
-        $this->customers_model->only($customer_data, $this->allowed_customer_fields);
+        $customer_data = $customer ?: [];
+        if (!empty($customer_data)) {
+            $this->customers_model->only($customer_data, $this->allowed_customer_fields);
+        }
         $custom_fields = $this->custom_fields_model->find_displayed();
         $custom_field_values = $customer
             ? $this->customer_custom_field_values_model->find_for_user((int) $customer['id'])
@@ -406,7 +426,7 @@ class Booking extends EA_Controller
             'custom_field_values' => $custom_field_values,
             'default_language' => setting('default_language'),
             'default_timezone' => setting('default_timezone'),
-            'customer_logged_in' => true,
+            'customer_logged_in' => customer_logged_in(),
         ]);
 
         html_vars([
@@ -473,7 +493,10 @@ class Booking extends EA_Controller
                 abort(403);
             }
 
-            if (!customer_logged_in()) {
+            $login_mode = customer_login_mode();
+            $requires_login = $login_mode !== 'none';
+
+            if ($requires_login && !customer_logged_in()) {
                 abort(403, 'Forbidden');
             }
 
@@ -483,11 +506,52 @@ class Booking extends EA_Controller
             $customer_input = $post_data['customer'];
             $manage_mode = filter_var($post_data['manage_mode'], FILTER_VALIDATE_BOOLEAN);
 
-            $customer_id = customer_id();
-            $customer = $this->customers_model->find($customer_id);
+            $customer_id = customer_logged_in() ? customer_id() : null;
+            $customer = $customer_id ? $this->customers_model->find($customer_id) : null;
 
-            if (empty($customer)) {
+            if (customer_logged_in() && empty($customer)) {
                 abort(403, 'Forbidden');
+            }
+
+            if (customer_logged_in() && customer_login_mode() === 'password') {
+                $auth = $this->customer_auth_model->find_by_customer_id((int) $customer_id);
+                if (empty($auth) || empty($auth['password_hash'])) {
+                    abort(403, 'Forbidden');
+                }
+            }
+
+            if (!$customer_logged_in()) {
+                $customer_email = trim((string) ($customer_input['email'] ?? ''));
+
+                if (empty($customer_email) || !filter_var($customer_email, FILTER_VALIDATE_EMAIL)) {
+                    throw new InvalidArgumentException('Valid email address is required.');
+                }
+
+                $customer_data = [
+                    'email' => $customer_email,
+                ];
+
+                if ($this->customers_model->exists($customer_data)) {
+                    $customer_id = $this->customers_model->find_record_id($customer_data);
+                } else {
+                    $customer_id = $this->customers_model->create_shell($customer_data);
+                }
+
+                $customer = $this->customers_model->find($customer_id);
+
+                if (empty($customer)) {
+                    abort(403, 'Forbidden');
+                }
+
+                $auth = $this->customer_auth_model->find_by_email($customer_email);
+                if (empty($auth)) {
+                    $this->customer_auth_model->save([
+                        'customer_id' => $customer_id,
+                        'email' => $customer_email,
+                        'password_hash' => '',
+                        'status' => 'active',
+                    ]);
+                }
             }
 
             $customer_input = is_array($customer_input) ? $customer_input : [];

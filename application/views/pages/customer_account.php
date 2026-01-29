@@ -132,34 +132,42 @@
                                 <input type="email" id="customer-email" name="email" class="form-control"
                                        value="<?= e(vars('customer')['email'] ?? '') ?>" required>
                             </div>
-                            <div class="mb-3">
-                                <label for="customer-email-password" class="form-label">Current Password</label>
-                                <input type="password" id="customer-email-password" name="password" class="form-control" required>
-                            </div>
+                            <?php if (vars('customer_login_mode') !== 'otp'): ?>
+                                <div class="mb-3">
+                                    <label for="customer-email-password" class="form-label">Current Password</label>
+                                    <input type="password" id="customer-email-password" name="password" class="form-control"
+                                           required>
+                                </div>
+                            <?php endif; ?>
                             <button type="submit" class="btn btn-outline-dark w-100 py-3">
                                 Update Email
                             </button>
                         </form>
 
-                        <h5 class="mb-3">Update Password</h5>
-                        <form method="post" action="<?= site_url('customer/account/password') ?>">
-                            <input type="hidden" name="csrf_token" value="<?= e(vars('csrf_token')) ?>">
-                            <div class="mb-3">
-                                <label for="customer-current-password" class="form-label">Current Password</label>
-                                <input type="password" id="customer-current-password" name="current_password" class="form-control" required>
-                            </div>
-                            <div class="mb-3">
-                                <label for="customer-new-password" class="form-label">New Password</label>
-                                <input type="password" id="customer-new-password" name="new_password" class="form-control" required>
-                            </div>
-                            <div class="mb-4">
-                                <label for="customer-confirm-password" class="form-label">Confirm New Password</label>
-                                <input type="password" id="customer-confirm-password" name="confirm_password" class="form-control" required>
-                            </div>
-                            <button type="submit" class="btn btn-outline-dark w-100 py-3">
-                                Update Password
-                            </button>
-                        </form>
+                        <?php if (vars('customer_login_mode') !== 'otp'): ?>
+                            <h5 class="mb-3">Update Password</h5>
+                            <form method="post" action="<?= site_url('customer/account/password') ?>">
+                                <input type="hidden" name="csrf_token" value="<?= e(vars('csrf_token')) ?>">
+                                <div class="mb-3">
+                                    <label for="customer-current-password" class="form-label">Current Password</label>
+                                    <input type="password" id="customer-current-password" name="current_password"
+                                           class="form-control" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="customer-new-password" class="form-label">New Password</label>
+                                    <input type="password" id="customer-new-password" name="new_password"
+                                           class="form-control" required>
+                                </div>
+                                <div class="mb-4">
+                                    <label for="customer-confirm-password" class="form-label">Confirm New Password</label>
+                                    <input type="password" id="customer-confirm-password" name="confirm_password"
+                                           class="form-control" required>
+                                </div>
+                                <button type="submit" class="btn btn-outline-dark w-100 py-3">
+                                    Update Password
+                                </button>
+                            </form>
+                        <?php endif; ?>
                     </div>
                 </div>
             </div>
