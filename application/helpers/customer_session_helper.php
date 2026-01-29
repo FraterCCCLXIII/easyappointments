@@ -42,3 +42,15 @@ if (!function_exists('customer_email')) {
         return session('customer_email') ?: null;
     }
 }
+
+if (!function_exists('customer_login_mode')) {
+    /**
+     * Get current customer login mode.
+     */
+    function customer_login_mode(): string
+    {
+        $mode = setting('customer_login_mode', 'password');
+
+        return in_array($mode, ['none', 'password', 'otp'], true) ? $mode : 'password';
+    }
+}

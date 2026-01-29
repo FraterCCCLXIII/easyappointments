@@ -89,6 +89,7 @@ class Customer_account extends EA_Controller
             'show_customer_forms_link' => $this->has_customer_forms(),
             'custom_fields' => $custom_fields,
             'custom_field_values' => $custom_field_values,
+            'customer_login_mode' => customer_login_mode(),
         ]);
 
         $this->load->view('pages/customer_account');
@@ -174,12 +175,18 @@ class Customer_account extends EA_Controller
             $new_email = trim((string) request('email'));
             $password = (string) request('password');
 
-            if (empty($new_email) || empty($password)) {
-                throw new InvalidArgumentException('Email and password are required.');
+            if (empty($new_email)) {
+                throw new InvalidArgumentException('Email is required.');
             }
 
-            if (!password_verify($password, $auth['password_hash'])) {
-                throw new InvalidArgumentException('Current password is invalid.');
+            if (!empty($auth['password_hash'])) {
+                if (empty($password)) {
+                    throw new InvalidArgumentException('Password is required.');
+                }
+
+                if (!password_verify($password, $auth['password_hash'])) {
+                    throw new InvalidArgumentException('Current password is invalid.');
+                }
             }
 
             $customer['email'] = $new_email;
@@ -225,12 +232,18 @@ class Customer_account extends EA_Controller
             $new_password = (string) request('new_password');
             $confirm_password = (string) request('confirm_password');
 
-            if (empty($current_password) || empty($new_password) || empty($confirm_password)) {
-                throw new InvalidArgumentException('All password fields are required.');
+            if (empty($new_password) || empty($confirm_password)) {
+                throw new InvalidArgumentException('New password and confirmation are required.');
             }
 
-            if (!password_verify($current_password, $auth['password_hash'])) {
-                throw new InvalidArgumentException('Current password is invalid.');
+            if (!empty($auth['password_hash'])) {
+                if (empty($current_password)) {
+                    throw new InvalidArgumentException('Current password is required.');
+                }
+
+                if (!password_verify($current_password, $auth['password_hash'])) {
+                    throw new InvalidArgumentException('Current password is invalid.');
+                }
             }
 
             if ($new_password !== $confirm_password) {
@@ -283,6 +296,15 @@ class Customer_account extends EA_Controller
             $this->session->unset_userdata(['customer_id', 'customer_email']);
             redirect('customer/login');
             exit;
+        }
+
+        if (customer_login_mode() === 'password') {
+            $auth = $this->customer_auth_model->find_by_customer_id((int) $customer['id']);
+            if (empty($auth) || empty($auth['password_hash'])) {
+                session(['customer_return_url' => current_url()]);
+                redirect('customer/create_password');
+                exit;
+            }
         }
 
         return $customer;
