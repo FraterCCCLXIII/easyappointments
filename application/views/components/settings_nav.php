@@ -18,62 +18,108 @@ $active_route_map = [
     'matomo_analytics_settings' => 'integrations',
     'stripe_settings' => 'stripe_settings',
     'stripe' => 'stripe_settings',
+    'components' => 'components',
+    'about' => 'about',
 ];
 $active_route = $active_route_map[$current_route] ?? $current_route;
-$link_base_class = 'nav-link settings-nav-link';
 ?>
 
-<h4 class="settings-nav-title text-black-50 mb-4 border-bottom fw-light">
-    <?= lang('settings') ?>
-</h4>
-
-<ul id="settings-nav" class="nav flex-column settings-nav">
-    <li class="nav-item mb-2">
-        <a class="<?= $link_base_class . ($active_route === 'general_settings' ? ' active' : '') ?>"
-           href="<?= site_url('general_settings') ?>">
-            <?= lang('general_settings') ?>
-        </a>
-    </li>
-
-    <li class="nav-item mb-2">
-        <a class="<?= $link_base_class . ($active_route === 'booking_settings' ? ' active' : '') ?>"
-           href="<?= site_url('booking_settings') ?>">
-            <?= lang('booking_settings') ?>
-        </a>
-    </li>
-
-    <li class="nav-item mb-2">
-        <a class="<?= $link_base_class . ($active_route === 'business_settings' ? ' active' : '') ?>"
-           href="<?= site_url('business_settings') ?>">
-            <?= lang('business_logic') ?>
-        </a>
-    </li>
-
-    <li class="nav-item mb-2">
-        <a class="<?= $link_base_class . ($active_route === 'legal_settings' ? ' active' : '') ?>"
-           href="<?= site_url('legal_settings') ?>">
-            <?= lang('legal_contents') ?>
-        </a>
-    </li>
-
-    <li class="nav-item mb-2">
-        <a class="<?= $link_base_class . ($active_route === 'forms_settings' ? ' active' : '') ?>"
-           href="<?= site_url('forms_settings') ?>">
-            Forms
-        </a>
-    </li>
-
-    <li class="nav-item mb-2">
-        <a class="<?= $link_base_class . ($active_route === 'integrations' ? ' active' : '') ?>"
-           href="<?= site_url('integrations') ?>">
-            <?= lang('integrations') ?>
-        </a>
-    </li>
-
-    <li class="nav-item mb-2">
-        <a class="<?= $link_base_class . ($active_route === 'stripe_settings' ? ' active' : '') ?>"
-           href="<?= site_url('stripe_settings') ?>">
-            Stripe
-        </a>
-    </li>
-</ul>
+<div class="settings-nav-panel-inner d-flex flex-column">
+    <div class="settings-nav-section flex-column border-0 p-0">
+        <div class="settings-nav-heading">Settings</div>
+        <nav id="settings-nav" class="settings-nav-list d-flex flex-column gap-px">
+            <div>
+                <a class="settings-nav-item-link backend-sidebar-link <?= $active_route === 'general_settings' ? 'active' : '' ?>"
+                   href="<?= site_url('general_settings') ?>"
+                   title="<?= e(lang('general_settings')) ?>">
+                    <span class="settings-nav-icon backend-sidebar-icon">
+                        <i data-lucide="settings" class="backend-sidebar-icon" aria-hidden="true"></i>
+                    </span>
+                    <span class="settings-nav-label backend-sidebar-label text-truncate"><?= lang('general_settings') ?></span>
+                </a>
+            </div>
+            <div>
+                <a class="settings-nav-item-link backend-sidebar-link <?= $active_route === 'booking_settings' ? 'active' : '' ?>"
+                   href="<?= site_url('booking_settings') ?>"
+                   title="<?= e(lang('booking_settings')) ?>">
+                    <span class="settings-nav-icon backend-sidebar-icon">
+                        <i data-lucide="calendar" class="backend-sidebar-icon" aria-hidden="true"></i>
+                    </span>
+                    <span class="settings-nav-label backend-sidebar-label text-truncate"><?= lang('booking_settings') ?></span>
+                </a>
+            </div>
+            <div>
+                <a class="settings-nav-item-link backend-sidebar-link <?= $active_route === 'business_settings' ? 'active' : '' ?>"
+                   href="<?= site_url('business_settings') ?>"
+                   title="<?= e(lang('business_logic')) ?>">
+                    <span class="settings-nav-icon backend-sidebar-icon">
+                        <i data-lucide="briefcase" class="backend-sidebar-icon" aria-hidden="true"></i>
+                    </span>
+                    <span class="settings-nav-label backend-sidebar-label text-truncate"><?= lang('business_logic') ?></span>
+                </a>
+            </div>
+            <div>
+                <a class="settings-nav-item-link backend-sidebar-link <?= $active_route === 'legal_settings' ? 'active' : '' ?>"
+                   href="<?= site_url('legal_settings') ?>"
+                   title="<?= e(lang('legal_contents')) ?>">
+                    <span class="settings-nav-icon backend-sidebar-icon">
+                        <i data-lucide="scale" class="backend-sidebar-icon" aria-hidden="true"></i>
+                    </span>
+                    <span class="settings-nav-label backend-sidebar-label text-truncate"><?= lang('legal_contents') ?></span>
+                </a>
+            </div>
+            <div>
+                <a class="settings-nav-item-link backend-sidebar-link <?= $active_route === 'forms_settings' ? 'active' : '' ?>"
+                   href="<?= site_url('forms_settings') ?>"
+                   title="Forms">
+                    <span class="settings-nav-icon backend-sidebar-icon">
+                        <i data-lucide="clipboard-list" class="backend-sidebar-icon" aria-hidden="true"></i>
+                    </span>
+                    <span class="settings-nav-label backend-sidebar-label text-truncate">Forms</span>
+                </a>
+            </div>
+            <div class="settings-nav-divider my-2 border-top opacity-50"></div>
+            <div>
+                <a class="settings-nav-item-link backend-sidebar-link <?= $active_route === 'integrations' ? 'active' : '' ?>"
+                   href="<?= site_url('integrations') ?>"
+                   title="<?= e(lang('integrations')) ?>">
+                    <span class="settings-nav-icon backend-sidebar-icon">
+                        <i data-lucide="puzzle" class="backend-sidebar-icon" aria-hidden="true"></i>
+                    </span>
+                    <span class="settings-nav-label backend-sidebar-label text-truncate"><?= lang('integrations') ?></span>
+                </a>
+            </div>
+            <div>
+                <a class="settings-nav-item-link backend-sidebar-link <?= $active_route === 'stripe_settings' ? 'active' : '' ?>"
+                   href="<?= site_url('stripe_settings') ?>"
+                   title="Stripe">
+                    <span class="settings-nav-icon backend-sidebar-icon">
+                        <i data-lucide="credit-card" class="backend-sidebar-icon" aria-hidden="true"></i>
+                    </span>
+                    <span class="settings-nav-label backend-sidebar-label text-truncate">Stripe</span>
+                </a>
+            </div>
+            <div class="settings-nav-divider my-2 border-top opacity-50"></div>
+            <div>
+                <a class="settings-nav-item-link backend-sidebar-link <?= $active_route === 'components' ? 'active' : '' ?>"
+                   href="<?= site_url('components') ?>"
+                   title="Components">
+                    <span class="settings-nav-icon backend-sidebar-icon">
+                        <i data-lucide="layout-grid" class="backend-sidebar-icon" aria-hidden="true"></i>
+                    </span>
+                    <span class="settings-nav-label backend-sidebar-label text-truncate">Components</span>
+                </a>
+            </div>
+            <div>
+                <a class="settings-nav-item-link backend-sidebar-link <?= $active_route === 'about' ? 'active' : '' ?>"
+                   href="<?= site_url('about') ?>"
+                   title="<?= e(lang('about')) ?>">
+                    <span class="settings-nav-icon backend-sidebar-icon">
+                        <i data-lucide="info" class="backend-sidebar-icon" aria-hidden="true"></i>
+                    </span>
+                    <span class="settings-nav-label backend-sidebar-label text-truncate"><?= lang('about') ?></span>
+                </a>
+            </div>
+        </nav>
+    </div>
+</div>

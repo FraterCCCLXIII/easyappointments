@@ -61,7 +61,7 @@
                 <?php slot('after_page_actions'); ?>
             </div>
 
-            <h4 class="text-black-50 mb-3 fw-light">
+            <h4 class="text-dark mb-3 fw-medium fs-4">
                 <?= lang('details') ?>
             </h4>
 

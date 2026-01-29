@@ -5,10 +5,6 @@
 <div class="container-fluid backend-page" id="customers-page">
     <div class="row" id="customers">
         <div id="filter-customers" class="filter-records column col-12 col-md-5 backend-sticky-panel">
-            <h2 class="mb-6 text-left text-2xl font-medium text-slate-900">
-                <?= lang('customers') ?>
-            </h2>
-
             <?php slot('after_page_title'); ?>
 
             <form class="mb-4">
@@ -41,22 +37,6 @@
 
         <div class="record-details col-12 col-md-7">
             <div class="mb-4 d-flex w-100 justify-content-end">
-                <div id="add-edit-delete-group" class="btn-group">
-                    <?php if (can('edit', PRIV_CUSTOMERS)): ?>
-                        <button id="edit-customer" class="btn btn-outline-secondary" disabled="disabled">
-                            <i class="fas fa-edit me-2"></i>
-                            <?= lang('edit') ?>
-                        </button>
-                    <?php endif; ?>
-
-                    <?php if (can('delete', PRIV_CUSTOMERS)): ?>
-                        <button id="delete-customer" class="btn btn-outline-secondary" disabled="disabled">
-                            <i class="fas fa-trash-alt me-2"></i>
-                            <?= lang('delete') ?>
-                        </button>
-                    <?php endif; ?>
-                </div>
-
                 <div id="save-cancel-group" style="display:none;">
                     <button id="save-customer" class="btn btn-primary">
                         <i class="fas fa-check-square me-2"></i>
@@ -74,11 +54,51 @@
 
             <div class="mb-4 rounded-xl border border-[var(--bs-border-color,#e2e8f0)] overflow-hidden bg-white">
                 <div class="p-4">
-                    <div class="text-lg font-medium text-slate-900" id="customer-summary-name">
-                        —
-                    </div>
-                    <div class="mt-1 text-sm text-slate-500" id="customer-summary-id">
-                        ID: —
+                    <div class="d-flex w-100 justify-content-between gap-3">
+                        <div>
+                            <div class="text-lg font-medium text-slate-900" id="customer-summary-name">
+                                —
+                            </div>
+                            <div class="mt-1 text-sm text-slate-500" id="customer-summary-id">
+                                ID: —
+                            </div>
+                        </div>
+                        <?php if (can('edit', PRIV_CUSTOMERS) || can('delete', PRIV_CUSTOMERS)): ?>
+                            <div class="dropdown">
+                                <button class="btn btn-outline-secondary btn-sm"
+                                        type="button"
+                                        id="customer-actions-menu"
+                                        data-bs-toggle="dropdown"
+                                        aria-expanded="false"
+                                        aria-label="<?= lang('actions') ?>">
+                                    <i class="fas fa-ellipsis-vertical"></i>
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end mt-0" style="top: calc(100% - 6px);">
+                                    <?php if (can('edit', PRIV_CUSTOMERS)): ?>
+                                        <li>
+                                            <button id="edit-customer"
+                                                    class="dropdown-item"
+                                                    type="button"
+                                                    disabled="disabled">
+                                                <i class="fas fa-edit me-2"></i>
+                                                <?= lang('edit') ?>
+                                            </button>
+                                        </li>
+                                    <?php endif; ?>
+                                    <?php if (can('delete', PRIV_CUSTOMERS)): ?>
+                                        <li>
+                                            <button id="delete-customer"
+                                                    class="dropdown-item"
+                                                    type="button"
+                                                    disabled="disabled">
+                                                <i class="fas fa-trash-alt me-2"></i>
+                                                <?= lang('delete') ?>
+                                            </button>
+                                        </li>
+                                    <?php endif; ?>
+                                </ul>
+                            </div>
+                        <?php endif; ?>
                     </div>
                     <div class="mt-3 flex flex-wrap items-center gap-3 text-sm text-slate-700">
                         <span class="inline-flex items-center gap-2" id="customer-summary-email">

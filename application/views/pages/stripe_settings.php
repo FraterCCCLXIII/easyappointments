@@ -11,9 +11,7 @@
                 <form id="stripe-settings-form">
                     <fieldset>
                         <div class="d-flex justify-content-between align-items-center border-bottom mb-4 py-2">
-                            <h4 class="text-black-50 mb-0 fw-light">
-                                <?= lang('stripe') ?>
-                            </h4>
+                        <h4 class="text-slate-900 mb-3 text-lg font-medium"><?= ucfirst(lang('stripe')) ?></h4>
 
                             <button type="submit" class="btn btn-primary">
                                 <i class="fas fa-check-square me-2"></i>
@@ -21,37 +19,39 @@
                             </button>
                         </div>
 
-                        <div class="form-check form-switch mb-4">
-                            <input class="form-check-input" type="checkbox" id="stripe_enabled" 
-                                   <?= $stripe_enabled ? 'checked' : '' ?>>
-                            <label class="form-check-label" for="stripe_enabled">
-                                <?= lang('enable_stripe') ?>
-                            </label>
-                        </div>
+                        <section class="rounded-xl border border-[var(--bs-border-color,#e2e8f0)] bg-white p-5">
+                            <div class="form-check form-switch mb-4">
+                                <input class="form-check-input" type="checkbox" id="stripe_enabled" 
+                                       <?= $stripe_enabled ? 'checked' : '' ?>>
+                                <label class="form-check-label" for="stripe_enabled">
+                                    <?= lang('enable_stripe') ?>
+                                </label>
+                            </div>
 
-                        <div class="mb-3">
-                            <label for="stripe_publishable_key" class="form-label">Publishable Key</label>
-                            <input type="text" class="form-control" id="stripe_publishable_key" 
-                                   value="<?= e($stripe_publishable_key) ?>">
-                        </div>
+                            <div class="mb-3">
+                                <label for="stripe_publishable_key" class="form-label">Publishable Key</label>
+                                <input type="text" class="form-control" id="stripe_publishable_key" 
+                                       value="<?= e($stripe_publishable_key) ?>">
+                            </div>
 
-                        <div class="mb-3">
-                            <label for="stripe_secret_key" class="form-label">Secret Key</label>
-                            <input type="password" class="form-control" id="stripe_secret_key" 
-                                   value="<?= e($stripe_secret_key) ?>">
-                        </div>
+                            <div class="mb-3">
+                                <label for="stripe_secret_key" class="form-label">Secret Key</label>
+                                <input type="password" class="form-control" id="stripe_secret_key" 
+                                       value="<?= e($stripe_secret_key) ?>">
+                            </div>
 
-                        <div class="mb-3">
-                            <label for="stripe_webhook_secret" class="form-label">Webhook Secret</label>
-                            <input type="password" class="form-control" id="stripe_webhook_secret" 
-                                   value="<?= e($stripe_webhook_secret) ?>">
-                        </div>
+                            <div class="mb-3">
+                                <label for="stripe_webhook_secret" class="form-label">Webhook Secret</label>
+                                <input type="password" class="form-control" id="stripe_webhook_secret" 
+                                       value="<?= e($stripe_webhook_secret) ?>">
+                            </div>
 
-                        <div class="mb-4">
-                            <label for="stripe_currency" class="form-label">Currency (ISO 4217)</label>
-                            <input type="text" class="form-control" id="stripe_currency" 
-                                   value="<?= e($stripe_currency) ?>" placeholder="USD">
-                        </div>
+                            <div class="mb-4">
+                                <label for="stripe_currency" class="form-label">Currency (ISO 4217)</label>
+                                <input type="text" class="form-control" id="stripe_currency" 
+                                       value="<?= e($stripe_currency) ?>" placeholder="USD">
+                            </div>
+                        </section>
                     </fieldset>
                 </form>
             </div>

@@ -11,12 +11,12 @@
             ]); ?>
         </div>
         <div class="col-sm-9 settings-content">
-            <div class="d-flex justify-content-between align-items-center border-bottom mb-4 py-2">
-                <h4 class="text-black-50 mb-0 fw-light">Forms</h4>
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h4 class="text-dark mb-0 fw-medium fs-3"><?= lang('forms') ?></h4>
             </div>
-            <div class="rounded-xl border border-[var(--bs-border-color,#e2e8f0)] bg-white p-3">
+            <div class="rounded-xl border border-[var(--bs-border-color,#e2e8f0)] bg-white overflow-hidden">
                 <table class="w-full text-left text-sm" id="account-forms-table">
-                    <thead class="bg-slate-50 text-xs font-medium uppercase tracking-wide text-slate-500">
+                    <thead class="bg-slate-50 text-xs font-medium uppercase tracking-wide text-slate-500 border-b border-[var(--bs-border-color,#e2e8f0)]">
                     <tr>
                         <th class="px-4 py-3">Form</th>
                         <th class="px-4 py-3">Status</th>

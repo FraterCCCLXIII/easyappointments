@@ -1,3 +1,24 @@
+.backend-page-header {
+    display: flex;
+    align-items: center;
+    height: 60px;
+    min-height: 60px;
+    box-sizing: border-box;
+    background-color: #fff;
+    border-bottom: 1px solid var(--bs-border-color, #e2e8f0);
+}
+
+.backend-page-header .mx-auto {
+    display: flex;
+    align-items: center;
+}
+
+.backend-page-title {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 500;
+    color: #0f172a;
+}
 /* ----------------------------------------------------------------------------
  * Easy!Appointments - Online Appointment Scheduler
  *
@@ -90,6 +111,44 @@ root {
 
 #header .header-account {
     justify-self: end;
+}
+
+@keyframes ea-dropdown-fade {
+    from {
+        opacity: 0;
+        transform: translateY(-4px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.dropdown-menu.show {
+    animation: ea-dropdown-fade 0.12s ease-out;
+    transform-origin: top right;
+}
+
+.backend-page-header {
+    display: flex;
+    align-items: center;
+    height: 60px;
+    min-height: 60px;
+    box-sizing: border-box;
+    background-color: #fff;
+    border-bottom: 1px solid var(--bs-border-color, #e2e8f0);
+}
+
+.backend-page-header .mx-auto {
+    display: flex;
+    align-items: center;
+}
+
+.backend-page-title {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 500;
+    color: #0f172a;
 }
 
 .fc .fc-toolbar {
@@ -331,31 +390,128 @@ h6,
     margin-top: 0;
 }
 
-.backend-page .settings-nav-title {
-    padding: 0.5rem 0.75rem;
+/* Settings/account left nav - align with backend sidebar styles */
+.backend-page .settings-nav-panel-inner {
+    gap: 0.75rem;
 }
 
-.backend-page .settings-nav {
+.backend-page .settings-nav-section {
+    background: none !important;
+    padding: 0 !important;
+    border: 0 !important;
+}
+
+.backend-page .settings-nav-heading {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #475569;
+    padding: 0 0.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.backend-page .settings-nav-list {
     margin: 0;
-    padding: 0 0.5rem 0.5rem;
+    padding: 0;
+    display: grid;
+    gap: 0.25rem;
 }
 
-.backend-page .settings-nav .settings-nav-link {
-    padding: 0.5rem 0.75rem;
-    border-radius: 0.5rem;
-    color: inherit;
-}
-
-.backend-page .settings-nav .settings-nav-link:hover,
-.backend-page .settings-nav .settings-nav-link:focus-visible {
-    background-color: var(--bs-secondary-bg);
+.backend-page .settings-nav-item-link:hover,
+.backend-page .settings-nav-item-link:focus-visible {
+    background-color: var(--bs-secondary-bg, #f1f5f9);
+    color: #0f172a;
     text-decoration: none;
 }
 
-.backend-page .settings-nav .settings-nav-link.active {
-    background-color: var(--bs-secondary-bg);
-    color: var(--bs-body-color);
-    font-weight: 600;
+.backend-page .settings-nav-item-link.active {
+    background-color: var(--bs-secondary-bg, #f1f5f9);
+    color: #0f172a;
+}
+
+.backend-page .settings-nav-item-link .settings-nav-icon {
+    color: inherit;
+}
+
+.backend-page .settings-nav-label {
+    min-width: 0;
+}
+
+.backend-page .settings-nav-divider {
+    margin: 0.375rem 0;
+    border-color: var(--bs-border-color-translucent, rgba(0, 0, 0, 0.08));
+    opacity: 0.8;
+}
+
+.backend-page .forms-list-item {
+    display: block;
+    border: 1px solid var(--bs-border-color, #e2e8f0);
+    border-radius: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    text-decoration: none;
+    color: inherit;
+    transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.backend-page .forms-list-item:hover,
+.backend-page .forms-list-item:focus-visible {
+    background-color: var(--bs-secondary-bg, #f1f5f9);
+    border-color: var(--bs-border-color, #e2e8f0);
+    text-decoration: none;
+}
+
+.backend-page .forms-list-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 0.5rem;
+    border: 1px solid var(--bs-border-color, #e2e8f0);
+    color: var(--bs-secondary-color, #64748b);
+    flex-shrink: 0;
+}
+
+.backend-page .forms-list-icon svg,
+.backend-page .forms-list-icon i[data-lucide] {
+    width: 14px;
+    height: 14px;
+    stroke-width: 1.6;
+}
+
+.backend-page .forms-list-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 0.5rem;
+    color: var(--bs-secondary-color, #64748b);
+    text-decoration: none;
+}
+
+.backend-page .forms-list-link:hover,
+.backend-page .forms-list-link:focus-visible {
+    background-color: var(--bs-secondary-bg, #f1f5f9);
+    color: #0f172a;
+    text-decoration: none;
+}
+
+.backend-page .forms-list-link svg,
+.backend-page .forms-list-link i[data-lucide] {
+    width: 12px;
+    height: 12px;
+    stroke-width: 1.6;
+}
+
+.backend-page .forms-list-title {
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: #0f172a;
+}
+
+.backend-page .forms-list-date {
+    font-size: 0.75rem;
+    color: var(--bs-secondary-color, #64748b);
 }
 
 .backend-page .form-check.form-switch {
@@ -705,10 +861,12 @@ body.bg-slate-50 .dropdown-menu {
 }
 
 #calendar-page #calendar-toolbar {
-    margin-bottom: 15px;
-    color: inherit !important;
-    background: transparent !important;
-    padding: 0 !important;
+    margin: -1.5rem -1rem 1.5rem;
+    padding: 0 1rem;
+    min-height: 60px;
+    color: inherit;
+    background: #fff;
+    border-bottom: 1px solid var(--bs-border-color, #e2e8f0);
 }
 
 #calendar-page #calendar-filter .form-group {

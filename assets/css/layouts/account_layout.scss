@@ -20,7 +20,13 @@ body {
     width: 630px;
     margin: auto;
     border: 1px solid var(--bs-border-color, #e2e8f0);
+    border-radius: var(--bs-border-radius-lg, 0.75rem);
     padding: 70px;
+
+    .forgot-password {
+        text-decoration: none;
+        font-size: 0.875rem;
+    }
 }
 
 @media (max-width: 640px) {

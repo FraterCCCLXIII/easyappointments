@@ -51,6 +51,7 @@ class Login extends EA_Controller
             'base_url' => config('base_url'),
             'dest_url' => session('dest_url', site_url('calendar')),
             'company_name' => setting('company_name'),
+            'company_logo' => setting('company_logo'),
         ]);
 
         $this->load->view('pages/login');

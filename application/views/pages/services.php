@@ -61,7 +61,7 @@
             </div>
 
             <div class="rounded-xl border border-[var(--bs-border-color,#e2e8f0)] bg-white p-4">
-                <h4 class="text-black-50 mb-3 fw-light">
+                <h4 class="text-dark mb-3 fw-medium fs-4">
                     <?= lang('details') ?>
                 </h4>
 

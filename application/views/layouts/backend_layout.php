@@ -56,20 +56,26 @@
     <?php component('backend_sidebar', ['active_menu' => vars('active_menu')]); ?>
 
     <main class="backend-shell-content">
+        <?php
+        $hide_page_title = in_array(vars('active_menu'), [
+            PRIV_APPOINTMENTS,
+            PRIV_USERS,
+            PRIV_SERVICES,
+        ], true);
+        ?>
+        <?php if (vars('active_menu') !== PRIV_SYSTEM_SETTINGS): ?>
+            <div class="backend-page-header"
+                 style="height: 60px; display: flex; align-items: center; background: #fff; border-bottom: 1px solid var(--bs-border-color, #e2e8f0);">
+                <div class="mx-auto w-full px-4">
+                    <?php if (!$hide_page_title): ?>
+                        <h2 class="backend-page-title">
+                            <?= e(vars('page_title') ?? lang('backend_section')) ?>
+                        </h2>
+                    <?php endif; ?>
+                </div>
+            </div>
+        <?php endif; ?>
         <div class="mx-auto w-full px-4 py-6">
-            <?php
-            $hide_page_title = in_array(vars('active_menu'), [
-                PRIV_APPOINTMENTS,
-                PRIV_CUSTOMERS,
-                PRIV_USERS,
-                PRIV_SERVICES,
-            ], true);
-            ?>
-            <?php if (vars('active_menu') !== PRIV_SYSTEM_SETTINGS && !$hide_page_title): ?>
-                <h2 class="mb-6 text-left text-2xl font-medium text-slate-900">
-                    <?= e(vars('page_title') ?? lang('backend_section')) ?>
-                </h2>
-            <?php endif; ?>
             <?php slot('content'); ?>
         </div>
     </main>
