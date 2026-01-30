@@ -520,7 +520,7 @@ class Booking extends EA_Controller
                 }
             }
 
-            if (!$customer_logged_in()) {
+            if (!customer_logged_in()) {
                 $customer_email = trim((string) ($customer_input['email'] ?? ''));
 
                 if (empty($customer_email) || !filter_var($customer_email, FILTER_VALIDATE_EMAIL)) {
