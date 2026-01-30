@@ -11,7 +11,11 @@ $show_login = ($otp_pending && $otp_pending_intent === 'login') || vars('auth_mo
 <div class="wizard-frame">
     <div class="frame-container">
         <h2 id="customer-auth-title" class="frame-title booking-frame-title">
-            <?= $login_mode === 'otp' ? 'Book an Appointment' : ($show_login ? lang('login') : 'Create an Account') ?>
+            <?php if ($login_mode === 'otp'): ?>
+                <?= $otp_pending ? 'Verify your address' : 'Start your booking' ?>
+            <?php else: ?>
+                <?= $show_login ? lang('login') : 'Create an Account' ?>
+            <?php endif; ?>
         </h2>
 
         <?php if (vars('auth_error')): ?>
@@ -137,16 +141,22 @@ $show_login = ($otp_pending && $otp_pending_intent === 'login') || vars('auth_mo
                                            required>
                                 </div>
                             </div>
-                            <p class="mt-4 text-sm text-slate-500">
-                                You will complete your profile after creating your account.
-                            </p>
                             <button type="submit" class="booking-button mt-4">
                                 <?= lang('customer_login_send_code') ?>
                             </button>
                         </form>
                     <?php else: ?>
-                        <div class="mt-2 text-sm text-slate-500">
-                            <?= strtr(lang('customer_login_otp_sent'), ['{$email}' => e($otp_pending_email)]) ?>
+                        <div class="mt-2 text-sm text-slate-500 text-center">
+                            <?= strtr(lang('customer_login_otp_sent'), ['{$email}' => '<strong>' . e($otp_pending_email) . '</strong>']) ?>
+                            <form method="post" action="<?= site_url('customer/request_otp') ?>" class="d-inline">
+                                <input type="hidden" name="csrf_token" value="<?= e(vars('csrf_token')) ?>">
+                                <input type="hidden" name="intent"
+                                       value="<?= $otp_pending_intent === 'register' ? 'register' : 'login' ?>">
+                                <input type="hidden" name="email" value="<?= e($otp_pending_email) ?>">
+                                <button type="submit" class="booking-link border-0 bg-transparent p-0 align-baseline">
+                                    <?= lang('customer_login_resend_code') ?>
+                                </button>
+                            </form>
                         </div>
                         <form method="post" action="<?= site_url('customer/verify_otp') ?>" class="mt-4">
                             <input type="hidden" name="csrf_token" value="<?= e(vars('csrf_token')) ?>">
@@ -154,17 +164,25 @@ $show_login = ($otp_pending && $otp_pending_intent === 'login') || vars('auth_mo
                             <input type="hidden" name="email" value="<?= e($otp_pending_email) ?>">
                             <div class="space-y-4">
                                 <div>
-                                    <label for="customer-otp-code" class="form-label">
+                                    <label for="customer-otp-digit-0" class="form-label">
                                         <?= lang('customer_login_otp_label') ?>
                                     </label>
-                                    <input type="text"
-                                           id="customer-otp-code"
-                                           name="code"
-                                           class="booking-input"
-                                           inputmode="numeric"
-                                           autocomplete="one-time-code"
-                                           pattern="[0-9]{6}"
-                                           required>
+                                    <input type="hidden" name="code" id="customer-otp-code" required>
+                                    <div class="flex flex-nowrap items-center justify-center gap-2"
+                                         id="customer-otp-inputs"
+                                         data-otp-inputs>
+                                        <?php for ($i = 0; $i < 6; $i++): ?>
+                                            <input type="tel"
+                                                   id="customer-otp-digit-<?= $i ?>"
+                                                   inputmode="numeric"
+                                                   pattern="[0-9]*"
+                                                   maxlength="1"
+                                                   autocomplete="one-time-code"
+                                                   class="booking-input text-center text-lg font-semibold"
+                                                   aria-label="<?= lang('customer_login_otp_label') ?> <?= $i + 1 ?>"
+                                                   data-otp-index="<?= $i ?>">
+                                        <?php endfor; ?>
+                                    </div>
                                     <div class="form-text text-muted">
                                         <small><?= lang('customer_login_otp_hint') ?></small>
                                     </div>
@@ -174,7 +192,7 @@ $show_login = ($otp_pending && $otp_pending_intent === 'login') || vars('auth_mo
                                 <?= lang('customer_login_verify_code') ?>
                             </button>
                         </form>
-                        <div class="mt-4 text-sm text-slate-500">
+                        <div class="mt-4 text-sm text-slate-500 text-center">
                             <a href="<?= site_url('customer/login?reset_otp=1') ?>" class="booking-link">
                                 <?= lang('back') ?>
                             </a>
@@ -319,6 +337,8 @@ $show_login = ($otp_pending && $otp_pending_intent === 'login') || vars('auth_mo
         const otpForm = document.getElementById('customer-auth-otp-form');
         const otpEmailInput = document.getElementById('customer-auth-otp-email');
         const loginEmailInput = document.getElementById('customer-login-email');
+        const otpHiddenInput = document.getElementById('customer-otp-code');
+        const otpInputsWrapper = document.querySelector('[data-otp-inputs]');
 
         const titleEl = document.getElementById('customer-auth-title');
         const togglePanels = (showLoginPanel) => {
@@ -333,27 +353,129 @@ $show_login = ($otp_pending && $otp_pending_intent === 'login') || vars('auth_mo
             }
         };
 
-        if (!registerPanel || !loginPanel || !showLogin || !showRegister) {
-            return;
+        if (registerPanel && loginPanel && showLogin && showRegister) {
+            const initialIsLogin = !loginPanel.classList.contains('hidden');
+            togglePanels(initialIsLogin);
+
+            showLogin.addEventListener('click', (event) => {
+                event.preventDefault();
+                togglePanels(true);
+            });
+
+            showRegister.addEventListener('click', (event) => {
+                event.preventDefault();
+                togglePanels(false);
+            });
         }
-
-        const initialIsLogin = !loginPanel.classList.contains('hidden');
-        togglePanels(initialIsLogin);
-
-        showLogin.addEventListener('click', (event) => {
-            event.preventDefault();
-            togglePanels(true);
-        });
-
-        showRegister.addEventListener('click', (event) => {
-            event.preventDefault();
-            togglePanels(false);
-        });
 
         if (requestOtpButton && otpForm && otpEmailInput && loginEmailInput) {
             requestOtpButton.addEventListener('click', () => {
                 otpEmailInput.value = loginEmailInput.value;
                 otpForm.submit();
+            });
+        }
+
+        if (otpHiddenInput && otpInputsWrapper) {
+            const otpInputs = Array.from(otpInputsWrapper.querySelectorAll('input[data-otp-index]'));
+
+            const syncOtpValue = () => {
+                const code = otpInputs.map((input) => input.value).join('');
+                otpHiddenInput.value = code;
+            };
+
+            otpInputs.forEach((input, index) => {
+                input.setAttribute('maxlength', '1');
+
+                const setValueAt = (targetIndex, value) => {
+                    if (otpInputs[targetIndex]) {
+                        otpInputs[targetIndex].value = value;
+                    }
+                };
+
+                const distribute = (value) => {
+                    const chars = String(value).replace(/[^0-9]/g, '').split('');
+                    if (!chars.length) {
+                        return;
+                    }
+                    chars.slice(0, otpInputs.length - index).forEach((char, offset) => {
+                        setValueAt(index + offset, char);
+                    });
+                    syncOtpValue();
+                    const nextIndex = Math.min(index + chars.length, otpInputs.length - 1);
+                    if (otpInputs[nextIndex]) {
+                        otpInputs[nextIndex].focus();
+                    }
+                };
+
+                const isEmptyInput = (inputIndex) =>
+                    inputIndex < otpInputs.length && otpInputs[inputIndex].value === '';
+
+                input.addEventListener('keydown', (event) => {
+                    if (event.ctrlKey || event.metaKey) {
+                        return;
+                    }
+
+                    event.preventDefault();
+
+                    switch (event.key) {
+                        case 'ArrowLeft':
+                            if (otpInputs[index - 1]) {
+                                otpInputs[index - 1].focus();
+                            }
+                            break;
+                        case 'ArrowRight':
+                            if (otpInputs[index + 1]) {
+                                otpInputs[index + 1].focus();
+                            }
+                            break;
+                        case 'Backspace':
+                        case 'Delete':
+                            setValueAt(index, '');
+                            if (event.key === 'Backspace' && otpInputs[index - 1]) {
+                                otpInputs[index - 1].focus();
+                            }
+                            syncOtpValue();
+                            break;
+                        case 'Home':
+                            if (otpInputs[0]) {
+                                otpInputs[0].focus();
+                            }
+                            break;
+                        case 'End':
+                            if (otpInputs[otpInputs.length - 1]) {
+                                otpInputs[otpInputs.length - 1].focus();
+                            }
+                            break;
+                        default:
+                            if (!/^[0-9]$/.test(event.key)) {
+                                return;
+                            }
+
+                            if (isEmptyInput(index)) {
+                                setValueAt(index, event.key);
+                            }
+
+                            if (isEmptyInput(index + 1) && otpInputs[index + 1]) {
+                                otpInputs[index + 1].focus();
+                            }
+
+                            syncOtpValue();
+                            break;
+                    }
+                });
+
+                input.addEventListener('paste', (event) => {
+                    event.preventDefault();
+                    const pasted = (event.clipboardData?.getData('text') || '')
+                        .replace(/[^0-9]/g, '')
+                        .slice(0, otpInputs.length - index);
+
+                    if (!pasted) {
+                        return;
+                    }
+
+                    distribute(pasted);
+                });
             });
         }
     })();

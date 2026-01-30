@@ -64,6 +64,7 @@ class Customer_auth extends EA_Controller
             'company_logo' => setting('company_logo'),
             'company_color' => setting('company_color'),
             'display_booking_header' => false,
+            'booking_wizard_max_width' => 'max-w-sm',
             'auth_error' => session('customer_auth_error'),
             'auth_mode' => session('customer_auth_mode'),
             'login_mode' => $this->get_login_mode(),
