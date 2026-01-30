@@ -40,7 +40,7 @@
 <div id="main" class="mx-auto max-w-6xl px-4 py-6">
     <div class="flex justify-center">
         <div id="book-appointment-wizard"
-             class="w-full <?= e(vars('booking_wizard_max_width') ?? 'max-w-4xl') ?> mt-6">
+             class="w-full <?= e(vars('booking_wizard_max_width') ?? 'max-w-sm') ?> mt-6">
 
             <?php if (vars('display_booking_header', true)): ?>
                 <?php component('booking_header', [
