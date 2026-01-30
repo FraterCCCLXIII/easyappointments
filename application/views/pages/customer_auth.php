@@ -11,7 +11,7 @@ $show_login = ($otp_pending && $otp_pending_intent === 'login') || vars('auth_mo
 <div class="wizard-frame">
     <div class="frame-container">
         <h2 id="customer-auth-title" class="frame-title booking-frame-title">
-            <?= $show_login ? lang('login') : 'Create an Account' ?>
+            <?= $login_mode === 'otp' ? 'Book an Appointment' : ($show_login ? lang('login') : 'Create an Account') ?>
         </h2>
 
         <?php if (vars('auth_error')): ?>
@@ -123,6 +123,7 @@ $show_login = ($otp_pending && $otp_pending_intent === 'login') || vars('auth_mo
             <?php elseif ($login_mode === 'otp'): ?>
                 <div id="customer-auth-otp" class="">
                     <?php if (!$otp_pending): ?>
+                        <p class="text-center text-sm text-slate-500">New and returning customers</p>
                         <form method="post" action="<?= site_url('customer/request_otp') ?>">
                             <input type="hidden" name="csrf_token" value="<?= e(vars('csrf_token')) ?>">
                             <input type="hidden" name="intent" value="<?= $show_login ? 'login' : 'register' ?>">

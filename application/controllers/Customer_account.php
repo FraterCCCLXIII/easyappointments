@@ -42,6 +42,7 @@ class Customer_account extends EA_Controller
 
         $this->load->model('customers_model');
         $this->load->model('customer_auth_model');
+        $this->load->model('customer_otp_model');
         $this->load->model('custom_fields_model');
         $this->load->model('customer_custom_field_values_model');
         $this->load->model('appointments_model');
@@ -49,6 +50,7 @@ class Customer_account extends EA_Controller
         $this->load->model('forms_model');
         $this->load->library('timezones');
         $this->load->library('stripe_gateway');
+        $this->load->library('email_messages');
     }
 
     public function index(): void
@@ -165,47 +167,8 @@ class Customer_account extends EA_Controller
     public function update_email(): void
     {
         try {
-            $customer = $this->require_customer();
-            $auth = $this->customer_auth_model->find_by_customer_id($customer['id']);
-
-            if (empty($auth)) {
-                throw new RuntimeException('Customer account was not found.');
-            }
-
-            $new_email = trim((string) request('email'));
-            $password = (string) request('password');
-
-            if (empty($new_email)) {
-                throw new InvalidArgumentException('Email is required.');
-            }
-
-            if (!empty($auth['password_hash'])) {
-                if (empty($password)) {
-                    throw new InvalidArgumentException('Password is required.');
-                }
-
-                if (!password_verify($password, $auth['password_hash'])) {
-                    throw new InvalidArgumentException('Current password is invalid.');
-                }
-            }
-
-            $customer['email'] = $new_email;
-            $this->customers_model->save($customer);
-
-            $this->customer_auth_model->save([
-                'id' => $auth['id'],
-                'email' => $new_email,
-            ]);
-
-            session([
-                'customer_email' => $new_email,
-                'customer_flash' => [
-                    'type' => 'success',
-                    'message' => 'Email updated.',
-                ],
-            ]);
-
-            redirect('customer/account');
+            $this->require_customer();
+            throw new RuntimeException('Email changes require OTP verification.');
         } catch (Throwable $e) {
             session([
                 'customer_flash' => [
@@ -218,32 +181,136 @@ class Customer_account extends EA_Controller
         }
     }
 
-    public function update_password(): void
+    public function request_email_change_otp(): void
     {
         try {
             $customer = $this->require_customer();
+            rate_limit($this->input->ip_address(), 10, 120);
+
+            $new_email = trim((string) request('email'));
+
+            if (empty($new_email)) {
+                throw new InvalidArgumentException('Email is required.');
+            }
+
+            if (!filter_var($new_email, FILTER_VALIDATE_EMAIL)) {
+                throw new InvalidArgumentException('Invalid email address provided.');
+            }
+
+            if (strcasecmp($new_email, (string) $customer['email']) === 0) {
+                throw new InvalidArgumentException('Email matches the current address.');
+            }
+
+            $existing = $this->customer_auth_model->find_by_email($new_email);
+            if (!empty($existing)) {
+                throw new InvalidArgumentException('The provided email address is already in use.');
+            }
+
+            $code = $this->customer_otp_model->request_code($new_email);
+
+            $company_color = setting('company_color');
+            $settings = [
+                'company_name' => setting('company_name'),
+                'company_link' => setting('company_link'),
+                'company_email' => setting('company_email'),
+                'company_color' =>
+                    !empty($company_color) && $company_color != DEFAULT_COMPANY_COLOR ? $company_color : null,
+            ];
+
+            $this->email_messages->send_customer_login_otp($code, $new_email, $settings);
+
+            session([
+                'customer_email_change_pending' => $new_email,
+            ]);
+
+            json_response(['success' => true]);
+        } catch (RuntimeException $e) {
+            $remaining = $this->customer_otp_model->get_lockout_remaining_seconds((string) request('email'));
+            if ($remaining > 0) {
+                json_response([
+                    'success' => false,
+                    'message' => $e->getMessage(),
+                    'lockout_remaining_seconds' => $remaining,
+                ], 429);
+
+                return;
+            }
+
+            json_exception($e);
+        } catch (Throwable $e) {
+            json_exception($e);
+        }
+    }
+
+    public function confirm_email_change_otp(): void
+    {
+        try {
+            $customer = $this->require_customer();
+            rate_limit($this->input->ip_address(), 10, 120);
             $auth = $this->customer_auth_model->find_by_customer_id($customer['id']);
 
             if (empty($auth)) {
                 throw new RuntimeException('Customer account was not found.');
             }
 
-            $current_password = (string) request('current_password');
+            $code = trim((string) request('code'));
+            $new_email = session('customer_email_change_pending');
+
+            if (empty($new_email) || empty($code)) {
+                throw new InvalidArgumentException('Email and code are required.');
+            }
+
+            $this->customer_otp_model->verify_code($new_email, $code);
+
+            $this->db->where('id', $customer['id'])->update('users', [
+                'email' => $new_email,
+                'update_datetime' => date('Y-m-d H:i:s'),
+            ]);
+
+            $this->customer_auth_model->save([
+                'id' => $auth['id'],
+                'email' => $new_email,
+            ]);
+
+            session([
+                'customer_email' => $new_email,
+                'customer_email_change_pending' => null,
+            ]);
+
+            json_response(['success' => true]);
+        } catch (RuntimeException $e) {
+            $remaining = $this->customer_otp_model->get_lockout_remaining_seconds((string) session('customer_email_change_pending'));
+            if ($remaining > 0) {
+                json_response([
+                    'success' => false,
+                    'message' => $e->getMessage(),
+                    'lockout_remaining_seconds' => $remaining,
+                ], 429);
+
+                return;
+            }
+
+            json_exception($e);
+        } catch (Throwable $e) {
+            json_exception($e);
+        }
+    }
+
+    public function request_password_change_otp(): void
+    {
+        try {
+            if (customer_login_mode() === 'otp') {
+                throw new RuntimeException('Password changes are disabled.');
+            }
+
+            $customer = $this->require_customer();
+            rate_limit($this->input->ip_address(), 10, 120);
+
             $new_password = (string) request('new_password');
             $confirm_password = (string) request('confirm_password');
 
             if (empty($new_password) || empty($confirm_password)) {
-                throw new InvalidArgumentException('New password and confirmation are required.');
-            }
-
-            if (!empty($auth['password_hash'])) {
-                if (empty($current_password)) {
-                    throw new InvalidArgumentException('Current password is required.');
-                }
-
-                if (!password_verify($current_password, $auth['password_hash'])) {
-                    throw new InvalidArgumentException('Current password is invalid.');
-                }
+                throw new InvalidArgumentException('Both password fields are required.');
             }
 
             if ($new_password !== $confirm_password) {
@@ -254,22 +321,104 @@ class Customer_account extends EA_Controller
                 throw new InvalidArgumentException('Password length is invalid.');
             }
 
+            $code = $this->customer_otp_model->request_code($customer['email']);
+
+            $company_color = setting('company_color');
+            $settings = [
+                'company_name' => setting('company_name'),
+                'company_link' => setting('company_link'),
+                'company_email' => setting('company_email'),
+                'company_color' =>
+                    !empty($company_color) && $company_color != DEFAULT_COMPANY_COLOR ? $company_color : null,
+            ];
+
+            $this->email_messages->send_customer_login_otp($code, $customer['email'], $settings);
+
+            session([
+                'customer_password_change_hash' => password_hash($new_password, PASSWORD_DEFAULT),
+            ]);
+
+            json_response(['success' => true]);
+        } catch (RuntimeException $e) {
+            $customer = $customer ?? $this->require_customer();
+            $remaining = $this->customer_otp_model->get_lockout_remaining_seconds((string) ($customer['email'] ?? ''));
+            if ($remaining > 0) {
+                json_response([
+                    'success' => false,
+                    'message' => $e->getMessage(),
+                    'lockout_remaining_seconds' => $remaining,
+                ], 429);
+
+                return;
+            }
+
+            json_exception($e);
+        } catch (Throwable $e) {
+            json_exception($e);
+        }
+    }
+
+    public function confirm_password_change_otp(): void
+    {
+        try {
+            if (customer_login_mode() === 'otp') {
+                throw new RuntimeException('Password changes are disabled.');
+            }
+
+            $customer = $this->require_customer();
+            rate_limit($this->input->ip_address(), 10, 120);
+            $auth = $this->customer_auth_model->find_by_customer_id($customer['id']);
+
+            if (empty($auth)) {
+                throw new RuntimeException('Customer account was not found.');
+            }
+
+            $code = trim((string) request('code'));
+            $password_hash = session('customer_password_change_hash');
+
+            if (empty($code) || empty($password_hash)) {
+                throw new InvalidArgumentException('Verification code is required.');
+            }
+
+            $this->customer_otp_model->verify_code($customer['email'], $code);
+
             $this->customer_auth_model->save([
                 'id' => $auth['id'],
-                'password_hash' => password_hash($new_password, PASSWORD_DEFAULT),
+                'password_hash' => $password_hash,
                 'password_updated_at' => date('Y-m-d H:i:s'),
                 'failed_attempts' => 0,
                 'locked_until' => null,
             ]);
 
             session([
-                'customer_flash' => [
-                    'type' => 'success',
-                    'message' => 'Password updated.',
-                ],
+                'customer_password_change_hash' => null,
             ]);
 
-            redirect('customer/account');
+            json_response(['success' => true]);
+        } catch (RuntimeException $e) {
+            $customer = $customer ?? $this->require_customer();
+            $remaining = $this->customer_otp_model->get_lockout_remaining_seconds((string) ($customer['email'] ?? ''));
+            if ($remaining > 0) {
+                json_response([
+                    'success' => false,
+                    'message' => $e->getMessage(),
+                    'lockout_remaining_seconds' => $remaining,
+                ], 429);
+
+                return;
+            }
+
+            json_exception($e);
+        } catch (Throwable $e) {
+            json_exception($e);
+        }
+    }
+
+    public function update_password(): void
+    {
+        try {
+            $this->require_customer();
+            throw new RuntimeException('Password changes require OTP verification.');
         } catch (Throwable $e) {
             session([
                 'customer_flash' => [

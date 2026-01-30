@@ -149,6 +149,19 @@ class Customer_otp_model extends EA_Model
         $this->save($record);
     }
 
+    public function get_lockout_remaining_seconds(string $email): int
+    {
+        $record = $this->find_by_email($email);
+
+        if (empty($record['lockout_until'])) {
+            return 0;
+        }
+
+        $remaining = strtotime($record['lockout_until']) - time();
+
+        return max(0, $remaining);
+    }
+
     protected function reset_attempt_window_if_needed(array $record, int $now): array
     {
         $window_start = $record['attempt_window_started_at'] ?? null;
