@@ -125,34 +125,25 @@
                 <div class="row frame-content">
                     <div class="col-12 col-lg-8 mx-auto">
                         <h5 class="mb-3">Update Email</h5>
-                        <form method="post" action="<?= site_url('customer/account/email') ?>" class="mb-5">
+                        <form method="post" action="<?= site_url('customer/account/email') ?>" class="mb-5"
+                              id="customer-email-form">
                             <input type="hidden" name="csrf_token" value="<?= e(vars('csrf_token')) ?>">
                             <div class="mb-3">
                                 <label for="customer-email" class="form-label">Email</label>
                                 <input type="email" id="customer-email" name="email" class="form-control"
                                        value="<?= e(vars('customer')['email'] ?? '') ?>" required>
                             </div>
-                            <?php if (vars('customer_login_mode') !== 'otp'): ?>
-                                <div class="mb-3">
-                                    <label for="customer-email-password" class="form-label">Current Password</label>
-                                    <input type="password" id="customer-email-password" name="password" class="form-control"
-                                           required>
-                                </div>
-                            <?php endif; ?>
-                            <button type="submit" class="btn btn-outline-dark w-100 py-3">
+                            <button type="submit" class="btn btn-outline-dark w-100 py-3"
+                                    id="customer-email-update" disabled>
                                 Update Email
                             </button>
                         </form>
 
                         <?php if (vars('customer_login_mode') !== 'otp'): ?>
                             <h5 class="mb-3">Update Password</h5>
-                            <form method="post" action="<?= site_url('customer/account/password') ?>">
+                            <form method="post" action="<?= site_url('customer/account/password') ?>"
+                                  id="customer-password-form">
                                 <input type="hidden" name="csrf_token" value="<?= e(vars('csrf_token')) ?>">
-                                <div class="mb-3">
-                                    <label for="customer-current-password" class="form-label">Current Password</label>
-                                    <input type="password" id="customer-current-password" name="current_password"
-                                           class="form-control" required>
-                                </div>
                                 <div class="mb-3">
                                     <label for="customer-new-password" class="form-label">New Password</label>
                                     <input type="password" id="customer-new-password" name="new_password"
@@ -163,7 +154,8 @@
                                     <input type="password" id="customer-confirm-password" name="confirm_password"
                                            class="form-control" required>
                                 </div>
-                                <button type="submit" class="btn btn-outline-dark w-100 py-3">
+                                <button type="submit" class="btn btn-outline-dark w-100 py-3"
+                                        id="customer-password-update" disabled>
                                     Update Password
                                 </button>
                             </form>
@@ -228,6 +220,36 @@
         </div>
     </div>
 </div>
+
+<div class="modal fade" id="customer-otp-modal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="customer-otp-modal-title">Enter Verification Code</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted" id="customer-otp-modal-message">
+                    Enter the code sent to your email.
+                </p>
+                <div class="mb-3">
+                    <label for="customer-otp-code" class="form-label">Verification Code</label>
+                    <input type="text" id="customer-otp-code" class="form-control"
+                           inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}">
+                    <div class="form-text text-muted">Enter the 6-digit code from your email.</div>
+                </div>
+                <div id="customer-otp-error" class="form-text text-danger d-none"></div>
+                <div class="text-sm text-slate-500">
+                    <button type="button" class="booking-link" id="customer-otp-resend">Resend code</button>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="customer-otp-confirm">Confirm</button>
+            </div>
+        </div>
+    </div>
+</div>
 <?php end_section('content'); ?>
 
 <?php section('scripts'); ?>
@@ -255,6 +277,256 @@
         });
 
         updateButton();
+    });
+</script>
+
+<script>
+    $(document).ready(() => {
+        const csrfToken = <?= json_encode(vars('csrf_token')) ?>;
+        const originalEmail = <?= json_encode(vars('customer')['email'] ?? '') ?>;
+        const $emailInput = $('#customer-email');
+        const $emailButton = $('#customer-email-update');
+        const $passwordButton = $('#customer-password-update');
+        const $passwordInput = $('#customer-new-password');
+        const $passwordConfirmInput = $('#customer-confirm-password');
+        const otpModalEl = document.getElementById('customer-otp-modal');
+        const otpModal = otpModalEl
+            ? new bootstrap.Modal(otpModalEl, {backdrop: false})
+            : null;
+        const $otpCode = $('#customer-otp-code');
+        const $otpError = $('#customer-otp-error');
+        const $otpTitle = $('#customer-otp-modal-title');
+        const $otpMessage = $('#customer-otp-modal-message');
+        const $otpConfirm = $('#customer-otp-confirm');
+        const $otpResend = $('#customer-otp-resend');
+        let otpMode = null;
+        let pendingEmail = '';
+        let lockoutTimer = null;
+
+        if (!$emailInput.length || !otpModal) {
+            return;
+        }
+
+        function setOtpError(message) {
+            if (!message) {
+                $otpError.addClass('d-none').text('');
+                return;
+            }
+            $otpError.removeClass('d-none').text(message);
+        }
+
+        function formatCountdown(seconds) {
+            const minutes = Math.floor(seconds / 60);
+            const remainingSeconds = seconds % 60;
+            return minutes + ':' + remainingSeconds.toString().padStart(2, '0');
+        }
+
+        function startLockoutCountdown(seconds) {
+            if (lockoutTimer) {
+                clearInterval(lockoutTimer);
+                lockoutTimer = null;
+            }
+
+            if (!seconds || seconds <= 0) {
+                $otpConfirm.prop('disabled', false);
+                $otpResend.prop('disabled', false);
+                return;
+            }
+
+            $otpConfirm.prop('disabled', true);
+            $otpResend.prop('disabled', true);
+
+            let remaining = seconds;
+            setOtpError('Too many attempts. Try again in ' + formatCountdown(remaining) + '.');
+
+            lockoutTimer = setInterval(() => {
+                remaining -= 1;
+
+                if (remaining <= 0) {
+                    clearInterval(lockoutTimer);
+                    lockoutTimer = null;
+                    setOtpError('');
+                    $otpConfirm.prop('disabled', false);
+                    $otpResend.prop('disabled', false);
+                    return;
+                }
+
+                setOtpError('Too many attempts. Try again in ' + formatCountdown(remaining) + '.');
+            }, 1000);
+        }
+
+        function removeAllBackdrops() {
+            document.querySelectorAll('.modal-backdrop').forEach((backdrop) => backdrop.remove());
+        }
+
+        function ensureOtpBackdrop() {
+            removeAllBackdrops();
+            const backdrop = document.createElement('div');
+            backdrop.className = 'modal-backdrop fade show ea-otp-backdrop';
+            backdrop.style.zIndex = '1090';
+            document.body.appendChild(backdrop);
+        }
+
+        function removeOtpBackdrop() {
+            document.querySelectorAll('.ea-otp-backdrop').forEach((backdrop) => backdrop.remove());
+        }
+
+        function openOtpModal(mode) {
+            otpMode = mode;
+            $otpCode.val('');
+            setOtpError('');
+            startLockoutCountdown(0);
+            ensureOtpBackdrop();
+            if (mode === 'email') {
+                $otpTitle.text('Confirm Email Change');
+                $otpMessage.text('Enter the code sent to your new email address.');
+            } else {
+                $otpTitle.text('Confirm Password Change');
+                $otpMessage.text('Enter the code sent to your email address.');
+            }
+            otpModal.show();
+        }
+
+        if (otpModalEl) {
+            otpModalEl.addEventListener('shown.bs.modal', () => {
+                ensureOtpBackdrop();
+            });
+            otpModalEl.addEventListener('hidden.bs.modal', () => {
+                removeOtpBackdrop();
+            });
+        }
+
+        function requestEmailOtp() {
+            pendingEmail = $emailInput.val().trim();
+            return $.post({
+                url: <?= json_encode(site_url('customer/account/email/otp_request')) ?>,
+                data: {
+                    csrf_token: csrfToken,
+                    email: pendingEmail,
+                },
+            });
+        }
+
+        function requestPasswordOtp() {
+            return $.post({
+                url: <?= json_encode(site_url('customer/account/password/otp_request')) ?>,
+                data: {
+                    csrf_token: csrfToken,
+                    new_password: $passwordInput.val(),
+                    confirm_password: $passwordConfirmInput.val(),
+                },
+            });
+        }
+
+        function confirmEmailOtp() {
+            return $.post({
+                url: <?= json_encode(site_url('customer/account/email/otp_confirm')) ?>,
+                data: {
+                    csrf_token: csrfToken,
+                    code: $otpCode.val().trim(),
+                },
+            });
+        }
+
+        function confirmPasswordOtp() {
+            return $.post({
+                url: <?= json_encode(site_url('customer/account/password/otp_confirm')) ?>,
+                data: {
+                    csrf_token: csrfToken,
+                    code: $otpCode.val().trim(),
+                },
+            });
+        }
+
+        $emailInput.on('input', () => {
+            const currentValue = $emailInput.val().trim();
+            $emailButton.prop('disabled', !currentValue || currentValue === originalEmail);
+        });
+        $emailInput.trigger('input');
+
+        if ($passwordInput.length && $passwordConfirmInput.length && $passwordButton.length) {
+            const updatePasswordButtonState = () => {
+                const newPassword = $passwordInput.val();
+                const confirmPassword = $passwordConfirmInput.val();
+                const canSubmit = newPassword.length > 0 && confirmPassword.length > 0 && newPassword === confirmPassword;
+                $passwordButton.prop('disabled', !canSubmit);
+            };
+
+            $passwordInput.on('input', updatePasswordButtonState);
+            $passwordConfirmInput.on('input', updatePasswordButtonState);
+            updatePasswordButtonState();
+        }
+
+        $emailButton.on('click', (event) => {
+            event.preventDefault();
+            requestEmailOtp()
+                .done(() => {
+                    openOtpModal('email');
+                })
+                .fail((xhr) => {
+                    const message = xhr.responseJSON?.message || 'Unable to send verification code.';
+                    openOtpModal('email');
+                    const lockout = xhr.responseJSON?.lockout_remaining_seconds;
+                    if (lockout) {
+                        startLockoutCountdown(lockout);
+                        return;
+                    }
+                    setOtpError(message);
+                });
+        });
+
+        $passwordButton.on('click', (event) => {
+            event.preventDefault();
+            requestPasswordOtp()
+                .done(() => {
+                    openOtpModal('password');
+                })
+                .fail((xhr) => {
+                    const message = xhr.responseJSON?.message || 'Unable to send verification code.';
+                    openOtpModal('password');
+                    const lockout = xhr.responseJSON?.lockout_remaining_seconds;
+                    if (lockout) {
+                        startLockoutCountdown(lockout);
+                        return;
+                    }
+                    setOtpError(message);
+                });
+        });
+
+        $('#customer-otp-confirm').on('click', () => {
+            const action = otpMode === 'email' ? confirmEmailOtp : confirmPasswordOtp;
+            action()
+                .done(() => {
+                    otpModal.hide();
+                    window.location.reload();
+                })
+                .fail((xhr) => {
+                    const message = xhr.responseJSON?.message || 'Verification failed.';
+                    const lockout = xhr.responseJSON?.lockout_remaining_seconds;
+                    if (lockout) {
+                        startLockoutCountdown(lockout);
+                        return;
+                    }
+                    setOtpError(message);
+                });
+        });
+
+        $('#customer-otp-resend').on('click', () => {
+            const action = otpMode === 'email' ? requestEmailOtp : requestPasswordOtp;
+            action()
+                .done(() => {
+                    setOtpError('');
+                })
+                .fail((xhr) => {
+                    const message = xhr.responseJSON?.message || 'Unable to resend verification code.';
+                    const lockout = xhr.responseJSON?.lockout_remaining_seconds;
+                    if (lockout) {
+                        startLockoutCountdown(lockout);
+                        return;
+                    }
+                    setOtpError(message);
+                });
+        });
     });
 </script>
 
