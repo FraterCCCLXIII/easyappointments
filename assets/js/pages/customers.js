@@ -178,8 +178,8 @@ App.Pages.Customers = (function () {
         $customers.on('click', '#add-customer', () => {
             App.Pages.Customers.resetForm();
             setRecordDetailsVisible(true);
-            $customers.find('#add-edit-delete-group').hide();
-            $customers.find('#save-cancel-group').show();
+            $('#customer-actions-group').addClass('d-none').removeClass('d-flex');
+            $('#customer-save-cancel-group').addClass('d-flex').removeClass('d-none');
             $customers.find('.record-details').find('input, select, textarea').prop('disabled', false);
             $customers.find('.record-details .form-label span').prop('hidden', false);
             $filterCustomers.find('button').prop('disabled', true);
@@ -193,8 +193,8 @@ App.Pages.Customers = (function () {
         $customers.on('click', '#edit-customer', () => {
             $customers.find('.record-details').find('input, select, textarea').prop('disabled', false);
             $customers.find('.record-details .form-label span').prop('hidden', false);
-            $customers.find('#add-edit-delete-group').hide();
-            $customers.find('#save-cancel-group').show();
+            $('#customer-actions-group').addClass('d-none').removeClass('d-flex');
+            $('#customer-save-cancel-group').addClass('d-flex').removeClass('d-none');
             $filterCustomers.find('button').prop('disabled', true);
             $filterCustomers.find('.results').css('color', '#AAA');
             document.getElementById('customer-account-tab')?.click();
@@ -641,11 +641,15 @@ App.Pages.Customers = (function () {
 
         const nameParts = [firstName, lastName].filter(Boolean);
         $summaryName.text(nameParts.length ? nameParts.join(' ') : '—');
-        $summaryId.text(`ID: ${customerId || '—'}`);
+        $summaryId.text(customerId || '—');
 
         $summaryEmail.find('.summary-text').text(email || '—');
         $summaryPhone.find('.summary-text').text(phoneNumber || '—');
         $summaryLocation.find('.summary-text').text(locationText);
+
+        if (window.lucide && typeof window.lucide.createIcons === 'function') {
+            window.lucide.createIcons();
+        }
     }
 
     function openAppointmentModal(appointment) {
@@ -702,7 +706,7 @@ App.Pages.Customers = (function () {
             // Validate required fields.
             let missingRequired = false;
 
-            $('.required').each((index, requiredField) => {
+            $customers.find('.record-details .required').each((index, requiredField) => {
                 if ($(requiredField).val() === '') {
                     $(requiredField).addClass('is-invalid');
                     missingRequired = true;
@@ -762,8 +766,8 @@ App.Pages.Customers = (function () {
         updateCustomerSummaryFromInputs();
 
         $customers.find('#edit-customer, #delete-customer').prop('disabled', true);
-        $customers.find('#add-edit-delete-group').show();
-        $customers.find('#save-cancel-group').hide();
+        $('#customer-actions-group').addClass('d-flex').removeClass('d-none');
+        $('#customer-save-cancel-group').addClass('d-none').removeClass('d-flex');
 
         $customers.find('.record-details .is-invalid').removeClass('is-invalid');
         $customers.find('.record-details #form-message').hide();
@@ -845,7 +849,7 @@ App.Pages.Customers = (function () {
             'class': 'w-full text-left text-sm',
         });
         const $appointmentsHead = $('<thead/>', {
-            'class': 'bg-slate-50 text-xs font-medium uppercase tracking-wide text-slate-500',
+            'class': 'text-xs font-medium tracking-wide text-slate-500 border-b border-[var(--bs-border-color,#e2e8f0)] normal-case',
         });
         const $appointmentsBody = $('<tbody/>', {
             'class': 'divide-y divide-[var(--bs-border-color,#e2e8f0)]',
@@ -860,7 +864,7 @@ App.Pages.Customers = (function () {
             '',
         ].forEach((title) => {
             $('<th/>', {
-                'class': 'px-4 py-3' + (title ? '' : ' text-right'),
+                'class': 'px-4 py-3 normal-case' + (title ? '' : ' text-right'),
                 'text': title,
             }).appendTo($appointmentsHeadRow);
         });
@@ -1547,8 +1551,22 @@ App.Pages.Customers = (function () {
 
             if (!response.length) {
                 $filterCustomers.find('.results').append(
-                    $('<em/>', {
-                        'text': lang('no_records_found'),
+                    $('<div/>', {
+                        'class': 'flex h-full flex-1 flex-col items-center justify-center text-center py-8',
+                        'html': [
+                            $('<div/>', {
+                                'class': 'mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-slate-50 text-slate-400',
+                                'html': '<i class="fas fa-search text-xl"></i>',
+                            }),
+                            $('<div/>', {
+                                'class': 'text-sm font-medium text-slate-900',
+                                'text': lang('no_records_found'),
+                            }),
+                            $('<div/>', {
+                                'class': 'mt-1 text-xs text-slate-500',
+                                'text': 'Try adjusting your search terms',
+                            }),
+                        ],
                     }),
                 );
             } else if (response.length === filterLimit) {

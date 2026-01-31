@@ -107,8 +107,9 @@ App.Pages.Services = (function () {
         $services.on('click', '#add-service', () => {
             App.Pages.Services.resetForm();
             setRecordDetailsVisible(true);
-            $services.find('.add-edit-delete-group').hide();
-            $services.find('.save-cancel-group').show();
+            $('#service-details-title').text('Add New Service');
+            $('#service-actions-group').addClass('d-none').removeClass('d-flex');
+            $('#service-save-cancel-group').addClass('d-flex').removeClass('d-none');
             $services.find('.record-details').find('input, select, textarea').prop('disabled', false);
             $services.find('.record-details .form-label span').prop('hidden', false);
             $filterServices.find('button').prop('disabled', true);
@@ -173,8 +174,8 @@ App.Pages.Services = (function () {
          * Event: Edit Service Button "Click"
          */
         $services.on('click', '#edit-service', () => {
-            $services.find('.add-edit-delete-group').hide();
-            $services.find('.save-cancel-group').show();
+            $('#service-actions-group').addClass('d-none').removeClass('d-flex');
+            $('#service-save-cancel-group').addClass('d-flex').removeClass('d-none');
             $services.find('.record-details').find('input, select, textarea').prop('disabled', false);
             $services.find('.record-details .form-label span').prop('hidden', false);
             $filterServices.find('button').prop('disabled', true);
@@ -285,12 +286,13 @@ App.Pages.Services = (function () {
         $services.find('.record-details #is-private').prop('checked', false);
         $services.find('.record-details h4 a').remove();
 
-        $services.find('.add-edit-delete-group').show();
-        $services.find('.save-cancel-group').hide();
+        $('#service-actions-group').addClass('d-flex').removeClass('d-none');
+        $('#service-save-cancel-group').addClass('d-none').removeClass('d-flex');
         $('#edit-service, #delete-service').prop('disabled', true);
 
         $services.find('.record-details .is-invalid').removeClass('is-invalid');
         $services.find('.record-details .form-message').hide();
+        $('#service-details-title').text(lang('details'));
 
         App.Components.ColorSelection.disable($color);
         setRecordDetailsVisible(false);
@@ -338,8 +340,22 @@ App.Pages.Services = (function () {
 
             if (response.length === 0) {
                 $filterServices.find('.results').append(
-                    $('<em/>', {
-                        'text': lang('no_records_found'),
+                    $('<div/>', {
+                        'class': 'flex h-full flex-1 flex-col items-center justify-center text-center py-8',
+                        'html': [
+                            $('<div/>', {
+                                'class': 'mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-slate-50 text-slate-400',
+                                'html': '<i class="fas fa-search text-xl"></i>',
+                            }),
+                            $('<div/>', {
+                                'class': 'text-sm font-medium text-slate-900',
+                                'text': lang('no_records_found'),
+                            }),
+                            $('<div/>', {
+                                'class': 'mt-1 text-xs text-slate-500',
+                                'text': 'Try adjusting your search terms',
+                            }),
+                        ],
                     }),
                 );
             } else if (response.length === filterLimit) {

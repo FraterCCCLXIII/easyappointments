@@ -61,17 +61,19 @@
             PRIV_APPOINTMENTS,
             PRIV_USERS,
             PRIV_SERVICES,
+            PRIV_CUSTOMERS,
+            PRIV_WEBHOOKS,
+            PRIV_BLOCKED_PERIODS,
+            'billing',
         ], true);
         ?>
-        <?php if (vars('active_menu') !== PRIV_SYSTEM_SETTINGS): ?>
+        <?php if (vars('active_menu') !== PRIV_SYSTEM_SETTINGS && !$hide_page_title): ?>
             <div class="backend-page-header"
                  style="height: 60px; display: flex; align-items: center; background: #fff; border-bottom: 1px solid var(--bs-border-color, #e2e8f0);">
                 <div class="mx-auto w-full px-4">
-                    <?php if (!$hide_page_title): ?>
-                        <h2 class="backend-page-title">
-                            <?= e(vars('page_title') ?? lang('backend_section')) ?>
-                        </h2>
-                    <?php endif; ?>
+                    <h2 class="backend-page-title">
+                        <?= e(vars('page_title') ?? lang('backend_section')) ?>
+                    </h2>
                 </div>
             </div>
         <?php endif; ?>

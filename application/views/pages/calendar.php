@@ -3,32 +3,33 @@
 <?php section('content'); ?>
 
 <div class="container-fluid backend-page" id="calendar-page">
-    <div class="row g-3 align-items-center" id="calendar-toolbar">
-        <div class="col-12 col-md-auto">
-            <h2 class="mb-0 text-left text-2xl font-medium text-slate-900">
-                <?= lang('calendar') ?>
-            </h2>
-        </div>
-        <div id="calendar-filter" class="col-12 col-md-4 col-xl-3">
-            <div class="calendar-filter-items">
-                <select id="select-filter-item"
-                        class="form-select w-full rounded-xl border border-[var(--bs-border-color,#e2e8f0)] px-3 py-2 text-sm text-slate-700 shadow-sm transition focus:border-[var(--bs-border-color,#e2e8f0)] focus:outline-none"
-                        data-tippy-content="<?= lang('select_filter_item_hint') ?>"
-                        aria-label="Filter">
-                    <!-- JS -->
-                </select>
+    <div id="calendar-toolbar" class="mb-6 animate-fade-in">
+        <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div class="flex items-center gap-4">
+                <h1 class="text-2xl font-semibold text-slate-900">
+                    <?= lang('calendar') ?>
+                </h1>
+                <div id="calendar-filter" class="flex items-center gap-2 rounded-xl border border-[var(--bs-border-color,#e2e8f0)] bg-white px-3 py-1.5 shadow-sm">
+                    <i data-lucide="filter" class="h-4 w-4 text-slate-500"></i>
+                    <select id="select-filter-item"
+                            class="form-select border-0 bg-transparent p-0 text-sm font-medium text-slate-700 focus:ring-0 focus:outline-none"
+                            data-tippy-content="<?= lang('select_filter_item_hint') ?>"
+                            aria-label="<?= lang('filter') ?>">
+                        <!-- JS -->
+                    </select>
+                </div>
             </div>
-        </div>
 
-        <div id="calendar-actions" class="col-12 col-md-8 col-xl-9 d-flex flex-wrap items-center justify-content-end gap-3">
-            <div class="inline-flex items-center gap-2 rounded-xl border border-[var(--bs-border-color,#e2e8f0)] bg-white p-1 shadow-sm ms-auto">
+            <div id="calendar-actions" class="flex flex-wrap items-center gap-2 sm:justify-end">
+                <div id="calendar-header-controls" class="flex flex-wrap items-center gap-2"></div>
+                <div class="ea-button-group">
                 <?php if (can('add', PRIV_APPOINTMENTS)): ?>
                     <div class="dropdown d-sm-inline-block">
-                        <button class="inline-flex h-10 items-center justify-center rounded-lg border border-[var(--bs-border-color,#e2e8f0)] bg-white px-3 text-sm font-medium text-slate-700 transition hover:border-[var(--bs-border-color,#e2e8f0)] hover:text-slate-900"
+                        <button class="btn"
                                 type="button"
                                 data-bs-toggle="dropdown"
                                 aria-label="<?= lang('add') ?>">
-                            <i class="fas fa-plus-square" style="width: 16px; height: 16px; font-size: 16px; display: inline-flex; align-items: center; justify-content: center;"></i>
+                            <i data-lucide="plus" class="w-4 h-4"></i>
                         </button>
                         <ul class="dropdown-menu mt-2 w-64 rounded-xl border border-[var(--bs-border-color,#e2e8f0)] bg-white p-2 shadow-lg">
                             <li>
@@ -60,32 +61,32 @@
 
                 <button id="reload-appointments"
                         type="button"
-                        class="inline-flex h-10 items-center justify-center rounded-lg border border-[var(--bs-border-color,#e2e8f0)] bg-white px-3 text-sm font-medium text-slate-700 transition hover:border-[var(--bs-border-color,#e2e8f0)] hover:text-slate-900"
+                        class="btn"
                         data-tippy-content="<?= lang('reload_appointments_hint') ?>"
                         aria-label="<?= lang('reload') ?>">
-                    <i class="fas fa-rotate" style="width: 14px; height: 14px; font-size: 14px; display: inline-flex; align-items: center; justify-content: center;"></i>
+                    <i data-lucide="rotate-cw" class="w-4 h-4"></i>
                 </button>
                 <?php if (vars('calendar_view') === CALENDAR_VIEW_DEFAULT): ?>
-                    <a class="inline-flex h-10 items-center justify-center rounded-lg border border-[var(--bs-border-color,#e2e8f0)] bg-white px-3 text-sm font-medium text-slate-700 transition hover:border-[var(--bs-border-color,#e2e8f0)] hover:text-slate-900"
+                    <a class="btn"
                        href="<?= site_url('calendar?view=table') ?>"
                        aria-label="<?= lang('table') ?>">
-                        <i class="fas fa-table" style="width: 14px; height: 14px; font-size: 14px; display: inline-flex; align-items: center; justify-content: center;"></i>
+                        <i data-lucide="table" class="w-4 h-4"></i>
                     </a>
                 <?php endif; ?>
                 <?php if (vars('calendar_view') === CALENDAR_VIEW_TABLE): ?>
-                    <a class="inline-flex h-10 items-center justify-center rounded-lg border border-[var(--bs-border-color,#e2e8f0)] bg-white px-3 text-sm font-medium text-slate-700 transition hover:border-[var(--bs-border-color,#e2e8f0)] hover:text-slate-900"
+                    <a class="btn"
                        href="<?= site_url('calendar?view=default') ?>"
                        aria-label="<?= lang('default') ?>">
-                        <i class="fas fa-calendar-days" style="width: 14px; height: 14px; font-size: 14px; display: inline-flex; align-items: center; justify-content: center;"></i>
+                        <i data-lucide="calendar" class="w-4 h-4"></i>
                     </a>
                 <?php endif; ?>
                 <?php if (vars('calendar_view') === CALENDAR_VIEW_DEFAULT): ?>
-                    <div class="dropdown d-sm-inline-block ms-auto">
-                        <button class="inline-flex h-10 items-center justify-center rounded-lg border border-[var(--bs-border-color,#e2e8f0)] bg-white px-3 text-sm font-medium text-slate-700 transition hover:border-[var(--bs-border-color,#e2e8f0)] hover:text-slate-900"
+                    <div class="dropdown d-sm-inline-block">
+                        <button class="btn"
                                 type="button"
                                 data-bs-toggle="dropdown"
                                 aria-label="<?= lang('synchronize') ?>">
-                            <i class="fas fa-ellipsis-vertical" style="width: 14px; height: 14px; font-size: 14px; display: inline-flex; align-items: center; justify-content: center;"></i>
+                            <i data-lucide="more-vertical" class="w-4 h-4"></i>
                         </button>
                         <ul class="dropdown-menu dropdown-menu-end mt-2 w-56 rounded-xl border border-[var(--bs-border-color,#e2e8f0)] bg-white p-2 shadow-lg">
                             <li>
@@ -116,9 +117,10 @@
                         </ul>
                     </div>
                 <?php endif; ?>
-            </div>
+                </div>
 
-            <?php slot('after_calendar_actions'); ?>
+                <?php slot('after_calendar_actions'); ?>
+            </div>
         </div>
     </div>
 
@@ -171,4 +173,3 @@
 <script src="<?= asset_url('assets/js/pages/calendar.js') ?>"></script>
 
 <?php end_section('scripts'); ?>
-

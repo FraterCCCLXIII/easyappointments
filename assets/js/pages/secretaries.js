@@ -168,8 +168,8 @@ App.Pages.Secretaries = (function () {
             $filterSecretaries.find('button').prop('disabled', true);
             $filterSecretaries.find('.results').css('color', '#AAA');
 
-            $secretaries.find('.add-edit-delete-group').hide();
-            $secretaries.find('.save-cancel-group').show();
+            $('#secretary-actions-group').addClass('d-none').removeClass('d-flex');
+            $('#secretary-save-cancel-group').addClass('d-flex').removeClass('d-none');
             $secretaries.find('.record-details').find('input, select, textarea').prop('disabled', false);
             $secretaries.find('.record-details .form-label span').prop('hidden', false);
             $('#password, #password-confirm').addClass('required');
@@ -182,8 +182,8 @@ App.Pages.Secretaries = (function () {
         $secretaries.on('click', '#edit-secretary', () => {
             $filterSecretaries.find('button').prop('disabled', true);
             $filterSecretaries.find('.results').css('color', '#AAA');
-            $secretaries.find('.add-edit-delete-group').hide();
-            $secretaries.find('.save-cancel-group').show();
+            $('#secretary-actions-group').addClass('d-none').removeClass('d-flex');
+            $('#secretary-save-cancel-group').addClass('d-flex').removeClass('d-none');
             $secretaries.find('.record-details').find('input, select, textarea').prop('disabled', false);
             $secretaries.find('.record-details .form-label span').prop('hidden', false);
             $('#password, #password-confirm').removeClass('required');
@@ -401,8 +401,8 @@ App.Pages.Secretaries = (function () {
         $secretaries.find('.record-details #timezone').val(vars('default_timezone'));
         $secretaries.find('.record-details #language').val(vars('default_language'));
         $secretaries.find('.record-details #notifications').prop('checked', true);
-        $secretaries.find('.add-edit-delete-group').show();
-        $secretaries.find('.save-cancel-group').hide();
+        $('#secretary-actions-group').addClass('d-flex').removeClass('d-none');
+        $('#secretary-save-cancel-group').addClass('d-none').removeClass('d-flex');
         $secretaries.find('.form-message').hide();
         $secretaries.find('.is-invalid').removeClass('is-invalid');
         $('#edit-secretary, #delete-secretary').prop('disabled', true);
@@ -495,8 +495,22 @@ App.Pages.Secretaries = (function () {
 
             if (!filterResults.length) {
                 $('#filter-secretaries .results').append(
-                    $('<em/>', {
-                        'text': lang('no_records_found'),
+                    $('<div/>', {
+                        'class': 'flex h-full flex-1 flex-col items-center justify-center text-center py-8',
+                        'html': [
+                            $('<div/>', {
+                                'class': 'mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-slate-50 text-slate-400',
+                                'html': '<i class="fas fa-search text-xl"></i>',
+                            }),
+                            $('<div/>', {
+                                'class': 'text-sm font-medium text-slate-900',
+                                'text': lang('no_records_found'),
+                            }),
+                            $('<div/>', {
+                                'class': 'mt-1 text-xs text-slate-500',
+                                'text': 'Try adjusting your search terms',
+                            }),
+                        ],
                     }),
                 );
             } else if (filterResults.length === filterLimit) {

@@ -5,6 +5,24 @@
 <div class="container-fluid backend-page" id="customers-page">
     <div class="row" id="customers">
         <div id="filter-customers" class="filter-records column col-12 col-md-5 backend-sticky-panel">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="backend-page-title mb-0">
+                    <?= lang('customers') ?>
+                </h2>
+
+                <?php if (
+                    can('add', PRIV_CUSTOMERS) &&
+                    (!setting('limit_customer_access') || vars('role_slug') === DB_SLUG_ADMIN)
+                ): ?>
+                    <div class="ea-button-group">
+                        <button id="add-customer" class="btn btn-primary btn-sm">
+                            <i class="fas fa-plus-square me-2"></i>
+                            <?= lang('add') ?>
+                        </button>
+                    </div>
+                <?php endif; ?>
+            </div>
+
             <?php slot('after_page_title'); ?>
 
             <form class="mb-4">
@@ -18,38 +36,12 @@
                 </div>
             </form>
 
-            <?php if (
-                can('add', PRIV_CUSTOMERS) &&
-                (!setting('limit_customer_access') || vars('role_slug') === DB_SLUG_ADMIN)
-            ): ?>
-                <div class="mb-4">
-                    <button id="add-customer" class="btn btn-primary w-100">
-                        <i class="fas fa-plus-square me-2"></i>
-                        <?= lang('add') ?>
-                    </button>
-                </div>
-            <?php endif; ?>
-
             <div class="results">
                 <!-- JS -->
             </div>
         </div>
 
         <div class="record-details col-12 col-md-7">
-            <div class="mb-4 d-flex w-100 justify-content-end">
-                <div id="save-cancel-group" style="display:none;">
-                    <button id="save-customer" class="btn btn-primary">
-                        <i class="fas fa-check-square me-2"></i>
-                        <?= lang('save') ?>
-                    </button>
-                    <button id="cancel-customer" class="btn btn-secondary">
-                        <?= lang('cancel') ?>
-                    </button>
-                </div>
-
-                <?php slot('after_page_actions'); ?>
-            </div>
-
             <input id="customer-record-id" type="hidden">
 
             <div class="mb-4 rounded-xl border border-[var(--bs-border-color,#e2e8f0)] overflow-hidden bg-white">
@@ -59,61 +51,70 @@
                             <div class="text-lg font-medium text-slate-900" id="customer-summary-name">
                                 —
                             </div>
-                            <div class="mt-1 text-sm text-slate-500" id="customer-summary-id">
-                                ID: —
+                            <div class="mt-2" id="customer-summary-id-container">
+                                <span class="inline-flex items-center rounded-full bg-slate-100 px-2 py-1 text-xs font-medium text-slate-600 border border-slate-200">
+                                    Customer ID: <span id="customer-summary-id" class="ms-1">—</span>
+                                </span>
                             </div>
                         </div>
-                        <?php if (can('edit', PRIV_CUSTOMERS) || can('delete', PRIV_CUSTOMERS)): ?>
-                            <div class="dropdown">
-                                <button class="btn btn-outline-secondary btn-sm"
-                                        type="button"
-                                        id="customer-actions-menu"
-                                        data-bs-toggle="dropdown"
-                                        aria-expanded="false"
-                                        aria-label="<?= lang('actions') ?>">
-                                    <i class="fas fa-ellipsis-vertical"></i>
-                                </button>
-                                <ul class="dropdown-menu dropdown-menu-end mt-0" style="top: calc(100% - 6px);">
-                                    <?php if (can('edit', PRIV_CUSTOMERS)): ?>
-                                        <li>
-                                            <button id="edit-customer"
-                                                    class="dropdown-item"
-                                                    type="button"
-                                                    disabled="disabled">
-                                                <i class="fas fa-edit me-2"></i>
-                                                <?= lang('edit') ?>
-                                            </button>
-                                        </li>
-                                    <?php endif; ?>
-                                    <?php if (can('delete', PRIV_CUSTOMERS)): ?>
-                                        <li>
-                                            <button id="delete-customer"
-                                                    class="dropdown-item"
-                                                    type="button"
-                                                    disabled="disabled">
-                                                <i class="fas fa-trash-alt me-2"></i>
-                                                <?= lang('delete') ?>
-                                            </button>
-                                        </li>
-                                    <?php endif; ?>
-                                </ul>
+                    <div id="customer-actions-group" class="d-flex align-items-start">
+                                <div class="dropdown">
+                                    <button class="btn btn-outline-secondary btn-sm"
+                                            type="button"
+                                            id="customer-actions-menu"
+                                            data-bs-toggle="dropdown"
+                                            aria-expanded="false"
+                                            aria-label="<?= lang('actions') ?>">
+                                        <i class="fas fa-ellipsis-vertical"></i>
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end mt-0" style="top: calc(100% - 6px);">
+                                        <?php if (can('edit', PRIV_CUSTOMERS)): ?>
+                                            <li>
+                                                <button id="edit-customer"
+                                                        class="dropdown-item"
+                                                        type="button"
+                                                        disabled="disabled">
+                                                    <i class="fas fa-edit me-2"></i>
+                                                    <?= lang('edit') ?>
+                                                </button>
+                                            </li>
+                                        <?php endif; ?>
+                                        <?php if (can('delete', PRIV_CUSTOMERS)): ?>
+                                            <li>
+                                                <button id="delete-customer"
+                                                        class="dropdown-item"
+                                                        type="button"
+                                                        disabled="disabled">
+                                                    <i class="fas fa-trash-alt me-2"></i>
+                                                    <?= lang('delete') ?>
+                                                </button>
+                                            </li>
+                                        <?php endif; ?>
+                                    </ul>
+                                </div>
                             </div>
-                        <?php endif; ?>
+
+                            <div id="customer-save-cancel-group" class="d-none align-items-start gap-2">
+                                <button id="save-customer" class="btn btn-primary btn-sm">
+                                    <i class="fas fa-check-square me-2"></i>
+                                    <?= lang('save') ?>
+                                </button>
+                                <button id="cancel-customer" class="btn btn-outline-secondary btn-sm">
+                                    <?= lang('cancel') ?>
+                                </button>
+                            </div>
                     </div>
-                    <div class="mt-3 flex flex-wrap items-center gap-3 text-sm text-slate-700">
+                    <div class="mt-3 flex flex-wrap items-center gap-3 text-sm text-slate-700 ps-1">
                         <span class="inline-flex items-center gap-2" id="customer-summary-email">
-                            <i class="fas fa-envelope text-slate-400"
-                               style="width: 14px; height: 14px; font-size: 14px; display: inline-flex; align-items: center; justify-content: center;"></i>
+                            <i data-lucide="mail" style="width: 16px; height: 16px;" class="text-slate-600"></i>
                             <span class="summary-text">—</span>
                         </span>
                         <span class="inline-flex items-center gap-2" id="customer-summary-phone">
-                            <i class="fas fa-phone text-slate-400"
-                               style="width: 14px; height: 14px; font-size: 14px; display: inline-flex; align-items: center; justify-content: center;"></i>
+                            <i data-lucide="phone" style="width: 16px; height: 16px;" class="text-slate-600"></i>
                             <span class="summary-text">—</span>
                         </span>
                         <span class="inline-flex items-center gap-2" id="customer-summary-location">
-                            <i class="fas fa-location-dot text-slate-400"
-                               style="width: 14px; height: 14px; font-size: 14px; display: inline-flex; align-items: center; justify-content: center;"></i>
+                            <i data-lucide="map-pin" style="width: 16px; height: 16px;" class="text-slate-600"></i>
                             <span class="summary-text">—</span>
                         </span>
                     </div>
@@ -305,11 +306,11 @@
                     <div id="customer-billing" class="w-full overflow-hidden rounded-xl border border-[var(--bs-border-color,#e2e8f0)] bg-white">
                         <div class="p-0">
                             <table class="w-full text-left text-sm">
-                                <thead class="bg-slate-50 text-xs font-medium uppercase tracking-wide text-slate-500">
+                                <thead class="text-xs font-medium tracking-wide text-slate-500 border-b border-[var(--bs-border-color,#e2e8f0)] normal-case">
                                     <tr>
-                                        <th class="px-4 py-3"><?= lang('date') ?></th>
-                                        <th class="px-4 py-3"><?= lang('amount') ?></th>
-                                        <th class="px-4 py-3"><?= lang('status') ?></th>
+                                        <th class="px-4 py-3 normal-case"><?= lang('date') ?></th>
+                                        <th class="px-4 py-3 normal-case"><?= lang('amount') ?></th>
+                                        <th class="px-4 py-3 normal-case"><?= lang('status') ?></th>
                                     </tr>
                                 </thead>
                                 <tbody id="billing-history-body" class="divide-y divide-[var(--bs-border-color,#e2e8f0)]">
@@ -366,11 +367,11 @@
                              data-can-reset="<?= can('edit', PRIV_CUSTOMERS) ? '1' : '0' ?>">
                             <div class="w-full overflow-hidden rounded-xl border border-[var(--bs-border-color,#e2e8f0)] bg-white">
                                 <table class="w-full text-left text-sm">
-                                    <thead class="bg-slate-50 text-xs font-medium uppercase tracking-wide text-slate-500">
+                                    <thead class="text-xs font-medium tracking-wide text-slate-500 border-b border-[var(--bs-border-color,#e2e8f0)] normal-case">
                                         <tr>
-                                            <th class="px-4 py-3">Form</th>
-                                            <th class="px-4 py-3">Status</th>
-                                            <th class="px-4 py-3 text-right">Action</th>
+                                            <th class="px-4 py-3 normal-case">Form</th>
+                                            <th class="px-4 py-3 normal-case">Status</th>
+                                            <th class="px-4 py-3 text-right normal-case">Action</th>
                                         </tr>
                                     </thead>
                                     <tbody class="user-forms-body divide-y divide-[var(--bs-border-color,#e2e8f0)]">
@@ -402,12 +403,12 @@
                         </div>
                         <div class="w-full overflow-hidden rounded-xl border border-[var(--bs-border-color,#e2e8f0)] bg-white">
                             <table class="w-full text-left text-sm">
-                                <thead class="bg-slate-50 text-xs font-medium uppercase tracking-wide text-slate-500">
+                                <thead class="text-xs font-medium tracking-wide text-slate-500 border-b border-[var(--bs-border-color,#e2e8f0)] normal-case">
                                     <tr>
-                                        <th class="px-4 py-3">Name</th>
-                                        <th class="px-4 py-3">Size</th>
-                                        <th class="px-4 py-3">Date</th>
-                                        <th class="px-4 py-3 text-right">Actions</th>
+                                        <th class="px-4 py-3 normal-case">Name</th>
+                                        <th class="px-4 py-3 normal-case">Size</th>
+                                        <th class="px-4 py-3 normal-case">Date</th>
+                                        <th class="px-4 py-3 text-right normal-case">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody class="user-files-body divide-y divide-[var(--bs-border-color,#e2e8f0)]">
