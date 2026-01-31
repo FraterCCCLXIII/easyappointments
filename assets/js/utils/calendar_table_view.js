@@ -718,7 +718,7 @@ App.Utils.CalendarTableView = (function () {
             selectHelper: true,
             themeSystem: 'bootstrap5',
             headerToolbar: {
-                left: 'listDay,timeGridDay',
+                left: 'listDay prev,today,next timeGridDay',
                 center: '',
                 right: '',
             },
@@ -1885,6 +1885,12 @@ App.Utils.CalendarTableView = (function () {
      */
     function initialize() {
         createHeader();
+
+        App.Utils.UI.initializeDropdown($selectFilterItem, {
+            width: '100%',
+            dropdownParent: $('#calendar-page'),
+            minimumResultsForSearch: 10,
+        });
 
         const startDate = moment().toDate();
 

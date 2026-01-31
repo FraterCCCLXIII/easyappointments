@@ -62,11 +62,13 @@
     }
 
     .booking-frame-title {
-        @apply text-center font-brand text-3xl font-normal normal-case text-brand-dark;
+        @apply text-center text-3xl font-bold text-slate-900;
+        font-family: ui-sans-serif, system-ui, sans-serif !important;
     }
 
     .frame-title {
-        @apply mt-6 mb-6 text-center font-brand text-3xl font-normal normal-case text-brand-dark;
+        @apply mt-6 mb-6 text-center text-3xl font-bold text-slate-900;
+        font-family: ui-sans-serif, system-ui, sans-serif !important;
     }
 
     .booking-modal {

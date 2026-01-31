@@ -164,8 +164,8 @@ App.Pages.Admins = (function () {
         $admins.on('click', '#add-admin', () => {
             App.Pages.Admins.resetForm();
             setRecordDetailsVisible(true);
-            $admins.find('.add-edit-delete-group').hide();
-            $admins.find('.save-cancel-group').show();
+            $('#admin-actions-group').addClass('d-none').removeClass('d-flex');
+            $('#admin-save-cancel-group').addClass('d-flex').removeClass('d-none');
             $admins.find('.record-details').find('input, select, textarea').prop('disabled', false);
             $admins.find('.record-details .form-label span').prop('hidden', false);
             $('#password, #password-confirm').addClass('required');
@@ -177,8 +177,8 @@ App.Pages.Admins = (function () {
          * Event: Edit Admin Button "Click"
          */
         $admins.on('click', '#edit-admin', () => {
-            $admins.find('.add-edit-delete-group').hide();
-            $admins.find('.save-cancel-group').show();
+            $('#admin-actions-group').addClass('d-none').removeClass('d-flex');
+            $('#admin-save-cancel-group').addClass('d-flex').removeClass('d-none');
             $admins.find('.record-details').find('input, select, textarea').prop('disabled', false);
             $admins.find('.record-details .form-label span').prop('hidden', false);
             $('#password, #password-confirm').removeClass('required');
@@ -317,7 +317,7 @@ App.Pages.Admins = (function () {
             });
 
             if (missingRequired) {
-                throw new Error('Fields with * are  required.');
+                throw new Error(lang('fields_are_required'));
             }
 
             // Validate passwords.
@@ -374,8 +374,8 @@ App.Pages.Admins = (function () {
         $('#filter-admins button').prop('disabled', false);
         $('#filter-admins .results').css('color', '');
 
-        $admins.find('.add-edit-delete-group').show();
-        $admins.find('.save-cancel-group').hide();
+        $('#admin-actions-group').addClass('d-flex').removeClass('d-none');
+        $('#admin-save-cancel-group').addClass('d-none').removeClass('d-flex');
         $admins.find('.record-details').find('input, select, textarea').val('').prop('disabled', true);
         $admins.find('.record-details .form-label span').prop('hidden', true);
         $admins.find('.record-details #calendar-view').val('default');
@@ -454,8 +454,22 @@ App.Pages.Admins = (function () {
 
             if (!response.length) {
                 $filterAdmins.find('.results').append(
-                    $('<em/>', {
-                        'text': lang('no_records_found'),
+                    $('<div/>', {
+                        'class': 'flex h-full flex-1 flex-col items-center justify-center text-center py-8',
+                        'html': [
+                            $('<div/>', {
+                                'class': 'mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-slate-50 text-slate-400',
+                                'html': '<i class="fas fa-search text-xl"></i>',
+                            }),
+                            $('<div/>', {
+                                'class': 'text-sm font-medium text-slate-900',
+                                'text': lang('no_records_found'),
+                            }),
+                            $('<div/>', {
+                                'class': 'mt-1 text-xs text-slate-500',
+                                'text': 'Try adjusting your search terms',
+                            }),
+                        ],
                     }),
                 );
             } else if (response.length === filterLimit) {

@@ -87,8 +87,8 @@ App.Pages.BlockedPeriods = (function () {
         $blockedPeriods.on('click', '#add-blocked-period', () => {
             App.Pages.BlockedPeriods.resetForm();
             setRecordDetailsVisible(true);
-            $blockedPeriods.find('.add-edit-delete-group').hide();
-            $blockedPeriods.find('.save-cancel-group').show();
+            $('#blocked-period-actions-group').addClass('d-none').removeClass('d-flex');
+            $('#blocked-period-save-cancel-group').addClass('d-flex').removeClass('d-none');
             $blockedPeriods.find('.record-details').find('input, select, textarea').prop('disabled', false);
             $blockedPeriods.find('.record-details .form-label span').prop('hidden', false);
             $filterBlockedPeriods.find('button').prop('disabled', true);
@@ -102,8 +102,8 @@ App.Pages.BlockedPeriods = (function () {
          * Event: Edit Blocked-Period Button "Click"
          */
         $blockedPeriods.on('click', '#edit-blocked-period', () => {
-            $blockedPeriods.find('.add-edit-delete-group').hide();
-            $blockedPeriods.find('.save-cancel-group').show();
+            $('#blocked-period-actions-group').addClass('d-none').removeClass('d-flex');
+            $('#blocked-period-save-cancel-group').addClass('d-flex').removeClass('d-none');
             $blockedPeriods.find('.record-details').find('input, select, textarea').prop('disabled', false);
             $blockedPeriods.find('.record-details .form-label span').prop('hidden', false);
             $filterBlockedPeriods.find('button').prop('disabled', true);
@@ -217,8 +217,22 @@ App.Pages.BlockedPeriods = (function () {
 
             if (response.length === 0) {
                 $('#filter-blocked-periods .results').append(
-                    $('<em/>', {
-                        'text': lang('no_records_found'),
+                    $('<div/>', {
+                        'class': 'flex h-full flex-1 flex-col items-center justify-center text-center py-8',
+                        'html': [
+                            $('<div/>', {
+                                'class': 'mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-slate-50 text-slate-400',
+                                'html': '<i class="fas fa-search text-xl"></i>',
+                            }),
+                            $('<div/>', {
+                                'class': 'text-sm font-medium text-slate-900',
+                                'text': lang('no_records_found'),
+                            }),
+                            $('<div/>', {
+                                'class': 'mt-1 text-xs text-slate-500',
+                                'text': 'Try adjusting your search terms',
+                            }),
+                        ],
                     }),
                 );
             } else if (response.length === filterLimit) {
@@ -330,8 +344,8 @@ App.Pages.BlockedPeriods = (function () {
         $filterBlockedPeriods.find('button').prop('disabled', false);
         $filterBlockedPeriods.find('.results').css('color', '');
 
-        $blockedPeriods.find('.add-edit-delete-group').show();
-        $blockedPeriods.find('.save-cancel-group').hide();
+        $('#blocked-period-actions-group').addClass('d-flex').removeClass('d-none');
+        $('#blocked-period-save-cancel-group').addClass('d-none').removeClass('d-flex');
         $blockedPeriods.find('.record-details').find('input, select, textarea').val('').prop('disabled', true);
         $blockedPeriods.find('.record-details .form-label span').prop('hidden', true);
         $('#edit-blocked-period, #delete-blocked-period').prop('disabled', true);

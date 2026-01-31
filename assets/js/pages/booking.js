@@ -558,6 +558,22 @@ App.Pages.Booking = (function () {
 
         maxStep = 3;
 
+        // Skip step 3 (Customer Information) if the profile is complete.
+        if (vars('customer_logged_in') && vars('customer_data')) {
+            const customer = vars('customer_data');
+            const isComplete = customer.first_name && customer.last_name && customer.address;
+            if (isComplete) {
+                maxStep = 4;
+                
+                // Hide step 3 in the breadcrumbs if it's skipped
+                $('#step-3').hide();
+                // Renumber step 4 to 3
+                $('#step-4 strong').text('3');
+                
+                return maxStep;
+            }
+        }
+
         if (!isNextEnabledForStep(3)) {
             return maxStep;
         }
@@ -628,6 +644,16 @@ App.Pages.Booking = (function () {
 
         if (targetStep > maxStep) {
             targetStep = maxStep;
+        }
+
+        // If targetStep is 3 but profile is complete, jump to 4.
+        if (targetStep === 3 && vars('customer_logged_in') && vars('customer_data')) {
+            const customer = vars('customer_data');
+            const isComplete = customer.first_name && customer.last_name && customer.address;
+            if (isComplete) {
+                targetStep = 4;
+                App.Pages.Booking.updateConfirmFrame();
+            }
         }
 
         if (targetStep === 1 && !$('#step-1').is(':visible')) {
@@ -881,7 +907,17 @@ App.Pages.Booking = (function () {
             }
 
             // Display the next step tab (uses jquery animation effect).
-            const nextTabIndex = parseInt($target.attr('data-step_index')) + 1;
+            let nextTabIndex = parseInt($target.attr('data-step_index')) + 1;
+
+            // Skip step 3 (Customer Information) if the profile is complete.
+            if (nextTabIndex === 3 && vars('customer_logged_in') && vars('customer_data')) {
+                const customer = vars('customer_data');
+                const isComplete = customer.first_name && customer.last_name && customer.address;
+                if (isComplete) {
+                    nextTabIndex = 4;
+                    App.Pages.Booking.updateConfirmFrame();
+                }
+            }
 
             $target.closest('.wizard-frame').fadeOut(() => {
                 $('.active-step').removeClass('active-step');
@@ -914,7 +950,17 @@ App.Pages.Booking = (function () {
                 event.stopPropagation();
 
                 const currentStepIndex = parseInt(frameId.replace('wizard-frame-', ''));
-                const prevTabIndex = currentStepIndex - 1;
+                let prevTabIndex = currentStepIndex - 1;
+
+                // Skip step 3 (Customer Information) if the profile is complete when going back.
+                if (prevTabIndex === 3 && vars('customer_logged_in') && vars('customer_data')) {
+                    const customer = vars('customer_data');
+                    const isComplete = customer.first_name && customer.last_name && customer.address;
+                    if (isComplete) {
+                        prevTabIndex = 2;
+                        App.Pages.Booking.updateConfirmFrame();
+                    }
+                }
 
                 $activeFrame.fadeOut(() => {
                     $('.active-step').removeClass('active-step');

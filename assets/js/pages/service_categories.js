@@ -83,8 +83,8 @@ App.Pages.ServiceCategories = (function () {
         $serviceCategories.on('click', '#add-service-category', () => {
             App.Pages.ServiceCategories.resetForm();
             setRecordDetailsVisible(true);
-            $serviceCategories.find('.add-edit-delete-group').hide();
-            $serviceCategories.find('.save-cancel-group').show();
+            $('#service-category-actions-group').addClass('d-none').removeClass('d-flex');
+            $('#service-category-save-cancel-group').addClass('d-flex').removeClass('d-none');
             $serviceCategories.find('.record-details').find('input, select, textarea').prop('disabled', false);
             $serviceCategories.find('.record-details .form-label span').prop('hidden', false);
             $filterServiceCategories.find('button').prop('disabled', true);
@@ -95,8 +95,8 @@ App.Pages.ServiceCategories = (function () {
          * Event: Edit Service-Category Button "Click"
          */
         $serviceCategories.on('click', '#edit-service-category', () => {
-            $serviceCategories.find('.add-edit-delete-group').hide();
-            $serviceCategories.find('.save-cancel-group').show();
+            $('#service-category-actions-group').addClass('d-none').removeClass('d-flex');
+            $('#service-category-save-cancel-group').addClass('d-flex').removeClass('d-none');
             $serviceCategories.find('.record-details').find('input, select, textarea').prop('disabled', false);
             $serviceCategories.find('.record-details .form-label span').prop('hidden', false);
             $filterServiceCategories.find('button').prop('disabled', true);
@@ -182,8 +182,22 @@ App.Pages.ServiceCategories = (function () {
 
             if (response.length === 0) {
                 $('#filter-service-categories .results').append(
-                    $('<em/>', {
-                        'text': lang('no_records_found'),
+                    $('<div/>', {
+                        'class': 'flex h-full flex-1 flex-col items-center justify-center text-center py-8',
+                        'html': [
+                            $('<div/>', {
+                                'class': 'mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-slate-50 text-slate-400',
+                                'html': '<i class="fas fa-search text-xl"></i>',
+                            }),
+                            $('<div/>', {
+                                'class': 'text-sm font-medium text-slate-900',
+                                'text': lang('no_records_found'),
+                            }),
+                            $('<div/>', {
+                                'class': 'mt-1 text-xs text-slate-500',
+                                'text': 'Try adjusting your search terms',
+                            }),
+                        ],
                     }),
                 );
             } else if (response.length === filterLimit) {
@@ -284,8 +298,8 @@ App.Pages.ServiceCategories = (function () {
         $filterServiceCategories.find('button').prop('disabled', false);
         $filterServiceCategories.find('.results').css('color', '');
 
-        $serviceCategories.find('.add-edit-delete-group').show();
-        $serviceCategories.find('.save-cancel-group').hide();
+        $('#service-category-actions-group').addClass('d-flex').removeClass('d-none');
+        $('#service-category-save-cancel-group').addClass('d-none').removeClass('d-flex');
         $serviceCategories.find('.record-details').find('input, select, textarea').val('').prop('disabled', true);
         $serviceCategories.find('.record-details .form-label span').prop('hidden', true);
         $('#edit-service-category, #delete-service-category').prop('disabled', true);

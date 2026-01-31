@@ -84,8 +84,8 @@ App.Pages.Webhooks = (function () {
         $webhooks.on('click', '#add-webhook', () => {
             App.Pages.Webhooks.resetForm();
             setRecordDetailsVisible(true);
-            $webhooks.find('.add-edit-delete-group').hide();
-            $webhooks.find('.save-cancel-group').show();
+            $('#webhook-actions-group').addClass('d-none').removeClass('d-flex');
+            $('#webhook-save-cancel-group').addClass('d-flex').removeClass('d-none');
             $webhooks.find('.record-details').find('input, select, textarea').prop('disabled', false);
             $webhooks.find('.record-details .form-label span').prop('hidden', false);
             $filterWebhooks.find('button').prop('disabled', true);
@@ -145,8 +145,8 @@ App.Pages.Webhooks = (function () {
          * Event: Edit Webhook Button "Click"
          */
         $webhooks.on('click', '#edit-webhook', () => {
-            $webhooks.find('.add-edit-delete-group').hide();
-            $webhooks.find('.save-cancel-group').show();
+            $('#webhook-actions-group').addClass('d-none').removeClass('d-flex');
+            $('#webhook-save-cancel-group').addClass('d-flex').removeClass('d-none');
             $webhooks.find('.record-details').find('input, select, textarea').prop('disabled', false);
             $webhooks.find('.record-details .form-label span').prop('hidden', false);
             $filterWebhooks.find('button').prop('disabled', true);
@@ -249,8 +249,8 @@ App.Pages.Webhooks = (function () {
         $webhooks.find('.record-details .form-label span').prop('hidden', true);
         $webhooks.find('.record-details h3 a').remove();
 
-        $webhooks.find('.add-edit-delete-group').show();
-        $webhooks.find('.save-cancel-group').hide();
+        $('#webhook-actions-group').addClass('d-flex').removeClass('d-none');
+        $('#webhook-save-cancel-group').addClass('d-none').removeClass('d-flex');
         $('#edit-webhook, #delete-webhook').prop('disabled', true);
 
         $webhooks.find('.record-details .is-invalid').removeClass('is-invalid');
@@ -301,8 +301,22 @@ App.Pages.Webhooks = (function () {
 
             if (response.length === 0) {
                 $filterWebhooks.find('.results').append(
-                    $('<em/>', {
-                        'text': lang('no_records_found'),
+                    $('<div/>', {
+                        'class': 'flex h-full flex-1 flex-col items-center justify-center text-center py-8',
+                        'html': [
+                            $('<div/>', {
+                                'class': 'mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-slate-50 text-slate-400',
+                                'html': '<i class="fas fa-search text-xl"></i>',
+                            }),
+                            $('<div/>', {
+                                'class': 'text-sm font-medium text-slate-900',
+                                'text': lang('no_records_found'),
+                            }),
+                            $('<div/>', {
+                                'class': 'mt-1 text-xs text-slate-500',
+                                'text': 'Try adjusting your search terms',
+                            }),
+                        ],
                     }),
                 );
             } else if (response.length === filterLimit) {

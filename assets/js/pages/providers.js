@@ -254,8 +254,8 @@ App.Pages.Providers = (function () {
             setRecordDetailsVisible(true);
             $filterProviders.find('button').prop('disabled', true);
             $filterProviders.find('.results').css('color', '#AAA');
-            $providers.find('.add-edit-delete-group').hide();
-            $providers.find('.save-cancel-group').show();
+            $('#provider-actions-group').addClass('d-none').removeClass('d-flex');
+            $('#provider-save-cancel-group').addClass('d-flex').removeClass('d-none');
             $providers.find('.record-details').find('input, select, textarea').prop('disabled', false);
             $providers.find('.record-details .form-label span').prop('hidden', false);
             $('#password, #password-confirm').addClass('required');
@@ -276,8 +276,8 @@ App.Pages.Providers = (function () {
          * Event: Edit Provider Button "Click"
          */
         $providers.on('click', '#edit-provider', () => {
-            $providers.find('.add-edit-delete-group').hide();
-            $providers.find('.save-cancel-group').show();
+            $('#provider-actions-group').addClass('d-none').removeClass('d-flex');
+            $('#provider-save-cancel-group').addClass('d-flex').removeClass('d-none');
             $filterProviders.find('button').prop('disabled', true);
             $filterProviders.find('.results').css('color', '#AAA');
             $providers.find('.record-details').find('input, select, textarea').prop('disabled', false);
@@ -499,12 +499,11 @@ App.Pages.Providers = (function () {
      * Resets the provider tab form back to its initial state.
      */
     function resetForm() {
-        $filterProviders.find('.selected').removeClass('selected');
         $filterProviders.find('button').prop('disabled', false);
         $filterProviders.find('.results').css('color', '');
 
-        $providers.find('.add-edit-delete-group').show();
-        $providers.find('.save-cancel-group').hide();
+        $('#provider-actions-group').addClass('d-flex').removeClass('d-none');
+        $('#provider-save-cancel-group').addClass('d-none').removeClass('d-flex');
         $providers.find('.record-details h4 a').remove();
         $providers.find('.record-details').find('input, select, textarea').val('').prop('disabled', true);
         $providers.find('.record-details .form-label span').prop('hidden', true);
@@ -663,8 +662,22 @@ App.Pages.Providers = (function () {
 
             if (!response.length) {
                 $filterProviders.find('.results').append(
-                    $('<em/>', {
-                        'text': lang('no_records_found'),
+                    $('<div/>', {
+                        'class': 'flex h-full flex-1 flex-col items-center justify-center text-center py-8',
+                        'html': [
+                            $('<div/>', {
+                                'class': 'mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-slate-50 text-slate-400',
+                                'html': '<i class="fas fa-search text-xl"></i>',
+                            }),
+                            $('<div/>', {
+                                'class': 'text-sm font-medium text-slate-900',
+                                'text': lang('no_records_found'),
+                            }),
+                            $('<div/>', {
+                                'class': 'mt-1 text-xs text-slate-500',
+                                'text': 'Try adjusting your search terms',
+                            }),
+                        ],
                     }),
                 );
             } else if (response.length === filterLimit) {

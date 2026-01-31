@@ -2,6 +2,13 @@
 
 <?php section('content'); ?>
 <div id="billing-page" class="container backend-page">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2 class="backend-page-title mb-0">
+                Billing
+            </h2>
+        </div>
+    </div>
     <div class="row">
         <div class="col-12">
             <div class="rounded-xl border border-[var(--bs-border-color,#e2e8f0)] bg-white shadow-sm overflow-hidden">

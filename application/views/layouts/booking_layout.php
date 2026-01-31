@@ -72,6 +72,7 @@
 <?php endif; ?>
 
 <script src="<?= asset_url('assets/vendor/jquery/jquery.min.js') ?>"></script>
+<script src="<?= asset_url('assets/vendor/lucide/lucide.min.js') ?>"></script>
 <script src="<?= asset_url('assets/vendor/cookieconsent/cookieconsent.min.js') ?>"></script>
 <script src="<?= asset_url('assets/vendor/@popperjs-core/popper.min.js') ?>"></script>
 <script src="<?= asset_url('assets/vendor/bootstrap/bootstrap.min.js') ?>"></script>
@@ -104,6 +105,14 @@
 ]); ?>
 
 <?php slot('scripts'); ?>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        if (window.lucide) {
+            window.lucide.createIcons();
+        }
+    });
+</script>
 
 </body>
 </html>

@@ -27,10 +27,12 @@ App.Utils.CalendarDefaultView = (function () {
     const $footer = $('#footer');
     const $notification = $('#notification');
     const $calendarToolbar = $('#calendar-toolbar');
+    const $calendarHeaderControls = $('#calendar-header-controls');
     const FILTER_TYPE_ALL = 'all';
     const FILTER_TYPE_PROVIDER = 'provider';
     const FILTER_TYPE_SERVICE = 'service';
     const moment = window.moment;
+    const LIST_TOGGLE_BUTTON = 'listToggle';
 
     let $popoverTarget;
     let fullCalendar = null;
@@ -1154,6 +1156,9 @@ App.Utils.CalendarDefaultView = (function () {
             return;
         }
 
+        moveCalendarHeader();
+        renderListToggleButton();
+
         refreshCalendarAppointments(
             $calendar,
             $selectFilterItem.val(),
@@ -1175,6 +1180,50 @@ App.Utils.CalendarDefaultView = (function () {
         $('.fv-events').each((index, eventEl) => {
             $(eventEl).popover();
         });
+    }
+
+    /**
+     * Move the FullCalendar header into the toolbar area.
+     */
+    function moveCalendarHeader() {
+        if (!$calendarHeaderControls.length) {
+            return;
+        }
+
+        const $calendarHeader = $calendar.find('.fc-header-toolbar');
+
+        if (!$calendarHeader.length) {
+            return;
+        }
+
+        $calendarHeader.appendTo($calendarHeaderControls);
+    }
+
+    /**
+     * Render the list toggle button with icons.
+     */
+    function renderListToggleButton() {
+        const $listToggleButton = $calendar.find(`.fc-${LIST_TOGGLE_BUTTON}-button`);
+
+        if (!$listToggleButton.length) {
+            return;
+        }
+
+        $listToggleButton
+            .attr('title', lang('table'))
+            .attr('aria-label', lang('table'))
+            .html(`
+                <span class="calendar-view-toggle__icon" aria-hidden="true">
+                    <i data-lucide="calendar" class="h-4 w-4"></i>
+                </span>
+                <span class="calendar-view-toggle__icon" aria-hidden="true">
+                    <i data-lucide="list" class="h-4 w-4"></i>
+                </span>
+            `);
+
+        if (window.lucide) {
+            window.lucide.createIcons();
+        }
     }
 
     /**
@@ -1509,9 +1558,17 @@ App.Utils.CalendarDefaultView = (function () {
             selectMirror: true,
             themeSystem: 'bootstrap5',
             headerToolbar: {
-                left: 'prev,next today',
+                left: 'prev today next',
                 center: 'title',
-                right: 'timeGridDay,timeGridWeek,dayGridMonth',
+                right: `timeGridDay,timeGridWeek,dayGridMonth ${LIST_TOGGLE_BUTTON}`,
+            },
+            customButtons: {
+                [LIST_TOGGLE_BUTTON]: {
+                    text: '',
+                    click: () => {
+                        window.location.href = App.Utils.Url.siteUrl('calendar?view=table');
+                    },
+                },
             },
             buttonText: {
                 today: lang('today'),
@@ -1532,10 +1589,19 @@ App.Utils.CalendarDefaultView = (function () {
 
         $calendar.data('fullCalendar', fullCalendar);
 
+        moveCalendarHeader();
+        renderListToggleButton();
+
         // Trigger once to set the proper footer position after calendar initialization.
         onWindowResize();
 
         $selectFilterItem.append(new Option(lang('all'), FILTER_TYPE_ALL, true, true));
+
+        App.Utils.UI.initializeDropdown($selectFilterItem, {
+            width: '100%',
+            dropdownParent: $calendarPage,
+            minimumResultsForSearch: 10,
+        });
 
         $('#insert-working-plan-exception').hide();
 
