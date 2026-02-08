@@ -475,18 +475,9 @@ class Customer_account extends EA_Controller
 
     protected function is_profile_complete(array $customer): bool
     {
-        if (empty($customer['first_name'])) {
-            return false;
-        }
+        $custom_fields = $this->custom_fields_model->find_displayed();
+        $custom_field_values = $this->customer_custom_field_values_model->find_for_user((int) $customer['id']);
 
-        if (empty($customer['last_name'])) {
-            return false;
-        }
-
-        if (empty($customer['address'])) {
-            return false;
-        }
-
-        return true;
+        return $this->customers_model->is_profile_complete($customer, $custom_fields, $custom_field_values);
     }
 }
