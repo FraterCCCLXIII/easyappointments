@@ -1778,6 +1778,7 @@ App.Pages.Customers = (function () {
                 userType: 'customer',
                 getUserId: () => $id.val(),
                 canReset: Number($customerFormsPanel.data('can-reset')) === 1,
+                canRemind: Number($customerFormsPanel.data('can-remind')) === 1,
             });
         }
         pendingSlug = vars('selected_record_slug') || null;

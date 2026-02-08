@@ -16,6 +16,9 @@
                 <div id="forms-user-content" class="prose prose-sm max-w-none"></div>
                 <div id="forms-user-fields" class="mt-4 d-flex flex-column gap-3"></div>
                 <div class="mt-4 d-flex justify-content-end gap-2">
+                    <button type="button" id="forms-user-reminder" class="btn btn-outline-primary d-none">
+                        Send Reminder
+                    </button>
                     <button type="button" id="forms-user-reset" class="btn btn-outline-danger d-none">
                         Reset Form
                     </button>

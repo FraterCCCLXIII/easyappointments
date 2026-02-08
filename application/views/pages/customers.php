@@ -364,7 +364,8 @@
                     <div class="tab-pane fade" id="customer-forms-panel" role="tabpanel"
                          aria-labelledby="customer-forms-tab">
                         <div class="user-forms-panel w-full" data-user-type="customer"
-                             data-can-reset="<?= can('edit', PRIV_CUSTOMERS) ? '1' : '0' ?>">
+                             data-can-reset="<?= can('edit', PRIV_CUSTOMERS) ? '1' : '0' ?>"
+                             data-can-remind="<?= can('view', PRIV_CUSTOMERS) ? '1' : '0' ?>">
                             <div class="w-full overflow-hidden rounded-xl border border-[var(--bs-border-color,#e2e8f0)] bg-white">
                                 <table class="w-full text-left text-sm">
                                     <thead class="text-xs font-medium tracking-wide text-slate-500 border-b border-[var(--bs-border-color,#e2e8f0)] normal-case">
@@ -378,6 +379,13 @@
                                         <!-- JS -->
                                     </tbody>
                                 </table>
+                                <div class="border-t border-[var(--bs-border-color,#e2e8f0)] px-4 py-3">
+                                    <div class="d-flex justify-content-end">
+                                        <button type="button" class="btn btn-outline-primary user-forms-reminder">
+                                            Send Reminder
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>

@@ -65,6 +65,15 @@ App.Http.Forms = (function () {
         });
     }
 
+    function sendReminder(userId, userType) {
+        const url = App.Utils.Url.siteUrl('forms/send_reminder');
+        return $.post(url, {
+            csrf_token: vars('csrf_token'),
+            user_id: userId,
+            user_type: userType,
+        });
+    }
+
     function findForRecord(formId, userId, userType) {
         const url = App.Utils.Url.siteUrl('forms/find_for_record');
         return $.post(url, {
@@ -86,5 +95,6 @@ App.Http.Forms = (function () {
         findForRecord,
         submit,
         resetSubmission,
+        sendReminder,
     };
 })();

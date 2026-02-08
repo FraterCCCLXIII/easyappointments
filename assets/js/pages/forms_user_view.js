@@ -19,6 +19,7 @@ App.Pages.FormsUserView = (function () {
     const $status = $('#forms-user-status');
     const $message = $('#forms-user-message');
     const $reset = $('#forms-user-reset');
+    const $reminder = $('#forms-user-reminder');
 
     let currentForm = null;
 
@@ -176,7 +177,9 @@ App.Pages.FormsUserView = (function () {
         }
 
         const canReset = Number(vars('can_reset_form')) === 1;
+        const canSendReminder = vars('user_type') === 'customer' && form.status !== 'complete';
         $reset.toggleClass('d-none', !(canReset && form.status === 'complete'));
+        $reminder.toggleClass('d-none', !canSendReminder);
     }
 
     function loadForm() {
@@ -219,8 +222,27 @@ App.Pages.FormsUserView = (function () {
             });
     }
 
+    function onSendReminder() {
+        if (!currentForm) {
+            return;
+        }
+
+        if (!window.confirm('Send a profile completion reminder to this customer?')) {
+            return;
+        }
+
+        App.Http.Forms.sendReminder(Number(vars('user_id')), vars('user_type'))
+            .done(() => {
+                showMessage('Reminder sent.', 'success');
+            })
+            .fail((xhr) => {
+                showMessage(xhr.responseJSON?.message || 'Failed to send reminder.');
+            });
+    }
+
     function initialize() {
         $reset.on('click', onReset);
+        $reminder.on('click', onSendReminder);
         loadForm();
     }
 
