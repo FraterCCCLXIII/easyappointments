@@ -11,13 +11,13 @@
             <div id="about">
 
         <div class="text-center mb-5 d-flex flex-column align-items-center">
-            <svg role="img" aria-label="PegasusCal Logo" xmlns="http://www.w3.org/2000/svg"
-                 viewBox="0 0 241.07 169.55" width="180" height="126" class="mb-4"
-                 fill="currentColor">
-                <path
-                    d="M241.07,0v8.86c0,23.94-17.54,43.85-40.45,47.57-3.43,19.84-19.03,35.57-38.81,39.19-3.85,22.75-23.69,40.13-47.52,40.13H33.81l17.72-17.72h62.76c13.73,0,25.36-9.12,29.17-21.62h-70.31l17.72-17.73h62.24c13.73,0,25.36-9.12,29.17-21.62h-69.79l17.72-17.72h62.65c13.73,0,25.37-9.12,29.17-21.62H59.63c-19.38,0-41.91,21.72-41.91,49.72v84.39L0,169.55v-102.11C0,32.14,28.42,0,59.63,0h181.44Z"/>
-            </svg>
-            <h1 class="display-4 fw-semibold mb-0" style="letter-spacing: -1px">PegasusCal</h1>
+            <?php component('company_logo', [
+                'company_logo' => setting('company_logo'),
+                'company_name' => 'OpenBook',
+                'height' => 126,
+                'class' => 'mb-4',
+            ]); ?>
+            <h1 class="display-4 fw-semibold mb-0" style="letter-spacing: -1px">OpenBook</h1>
             <span class="badge rounded-pill border border-[var(--bs-border-color,#e2e8f0)] bg-[var(--bs-secondary-bg,#f8fafc)] text-slate-900 mt-3">
                 <?= lang('current_version') ?>: <?= config('version') ?>
             </span>

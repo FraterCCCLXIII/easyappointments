@@ -83,6 +83,52 @@ window.App.Layouts.Backend = (function () {
     /**
      * Initialize the module.
      */
+    let sidebarTooltipInstances = [];
+
+    function destroyTooltips(instances) {
+        if (!instances || !instances.length) {
+            return;
+        }
+        instances.forEach((instance) => {
+            if (instance && typeof instance.destroy === 'function') {
+                instance.destroy();
+            }
+        });
+        instances.length = 0;
+    }
+
+    function initGlobalTooltips() {
+        if (!window.tippy) {
+            return;
+        }
+
+        const selector = '[data-tippy-content]:not(.backend-sidebar [data-tippy-content])';
+        window.tippy(selector);
+    }
+
+    function syncSidebarTooltips() {
+        if (!window.tippy) {
+            return;
+        }
+
+        destroyTooltips(sidebarTooltipInstances);
+
+        const isCollapsed = document.body.classList.contains('backend-sidebar-collapsed');
+        if (!isCollapsed) {
+            return;
+        }
+
+        const sidebarItems = document.querySelectorAll('.backend-sidebar [data-tippy-content]');
+        if (!sidebarItems.length) {
+            return;
+        }
+
+        sidebarTooltipInstances = window.tippy(sidebarItems, {
+            placement: 'right',
+            allowHTML: false,
+        });
+    }
+
     function initialize() {
         $(document).ajaxStart(() => {
             $loading.show();
@@ -92,7 +138,8 @@ window.App.Layouts.Backend = (function () {
             $loading.hide();
         });
 
-        tippy('[data-tippy-content]');
+        initGlobalTooltips();
+        syncSidebarTooltips();
 
         App.Utils.Lang.enableLanguageSelection($selectLanguage);
 
@@ -116,5 +163,6 @@ window.App.Layouts.Backend = (function () {
         PRIV_SYSTEM_SETTINGS,
         PRIV_USER_SETTINGS,
         displayNotification,
+        syncSidebarTooltips,
     };
 })();

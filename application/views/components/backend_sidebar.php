@@ -58,7 +58,7 @@ $dropdown_menu_class = 'backend-sidebar-dropdown dropdown-menu absolute z-50 mt-
                     ) ?>"
                        class="<?= $active ? $nav_link_active : $nav_link_inactive ?>"
                        aria-label="<?= lang('calendar') ?>"
-                       data-tippy-content="<?= lang('manage_appointment_record_hint') ?>">
+                       data-tippy-content="<?= lang('calendar') ?>">
                         <i class="backend-sidebar-icon" data-lucide="calendar"></i>
                         <span class="backend-sidebar-label"><?= lang('calendar') ?></span>
                     </a>
@@ -70,7 +70,7 @@ $dropdown_menu_class = 'backend-sidebar-dropdown dropdown-menu absolute z-50 mt-
                     <a href="<?= site_url('customers') ?>"
                        class="<?= $active ? $nav_link_active : $nav_link_inactive ?>"
                        aria-label="<?= lang('customers') ?>"
-                       data-tippy-content="<?= lang('manage_customers_hint') ?>">
+                       data-tippy-content="<?= lang('customers') ?>">
                         <i class="backend-sidebar-icon" data-lucide="user"></i>
                         <span class="backend-sidebar-label"><?= lang('customers') ?></span>
                     </a>
@@ -82,7 +82,7 @@ $dropdown_menu_class = 'backend-sidebar-dropdown dropdown-menu absolute z-50 mt-
                     <a href="<?= site_url('billing') ?>"
                        class="<?= $active ? $nav_link_active : $nav_link_inactive ?>"
                        aria-label="Billing"
-                       data-tippy-content="View all billing transactions">
+                       data-tippy-content="Billing">
                         <i class="backend-sidebar-icon" data-lucide="file-text"></i>
                         <span class="backend-sidebar-label">Billing</span>
                     </a>
@@ -95,7 +95,7 @@ $dropdown_menu_class = 'backend-sidebar-dropdown dropdown-menu absolute z-50 mt-
                             type="button"
                             data-bs-toggle="dropdown"
                             aria-label="<?= lang('services') ?>"
-                            data-tippy-content="<?= lang('manage_services_hint') ?>">
+                            data-tippy-content="<?= lang('services') ?>">
                         <i class="backend-sidebar-icon" data-lucide="briefcase"></i>
                         <span class="backend-sidebar-label"><?= lang('services') ?></span>
                         <i class="backend-sidebar-chevron" data-lucide="chevron-down"></i>
@@ -117,7 +117,7 @@ $dropdown_menu_class = 'backend-sidebar-dropdown dropdown-menu absolute z-50 mt-
                             type="button"
                             data-bs-toggle="dropdown"
                             aria-label="<?= lang('users') ?>"
-                            data-tippy-content="<?= lang('manage_users_hint') ?>">
+                            data-tippy-content="<?= lang('users') ?>">
                         <i class="backend-sidebar-icon" data-lucide="users"></i>
                         <span class="backend-sidebar-label"><?= lang('users') ?></span>
                         <i class="backend-sidebar-chevron" data-lucide="chevron-down"></i>
@@ -149,7 +149,7 @@ $dropdown_menu_class = 'backend-sidebar-dropdown dropdown-menu absolute z-50 mt-
                             type="button"
                             data-bs-toggle="dropdown"
                             aria-label="<?= e(vars('user_display_name')) ?>"
-                            data-tippy-content="<?= lang('settings_hint') ?>">
+                            data-tippy-content="<?= e(vars('user_display_name')) ?>">
                         <i class="backend-sidebar-icon" data-lucide="user"></i>
                         <span class="backend-sidebar-label"><?= e(vars('user_display_name')) ?></span>
                         <i class="backend-sidebar-chevron" data-lucide="chevron-down"></i>

@@ -25,7 +25,7 @@
         })();
     </script>
 
-    <link rel="icon" type="image/x-icon" href="<?= asset_url('assets/img/favicon.ico') ?>">
+    <link rel="icon" type="image/svg+xml" href="<?= asset_url('assets/img/favicon.svg') ?>">
     <link rel="icon" sizes="192x192" href="<?= asset_url('assets/img/logo.png') ?>">
 
     <link rel="stylesheet" type="text/css" href="<?= asset_url('assets/vendor/trumbowyg/trumbowyg.min.css') ?>">
@@ -137,12 +137,19 @@
             return;
         }
 
+        const updateSidebarTooltips = () => {
+            if (window.App?.Layouts?.Backend?.syncSidebarTooltips) {
+                window.App.Layouts.Backend.syncSidebarTooltips();
+            }
+        };
+
         const setSidebarCollapsed = (isCollapsed) => {
             document.documentElement.classList.toggle('backend-sidebar-collapsed', isCollapsed);
             document.body.classList.toggle('backend-sidebar-collapsed', isCollapsed);
             toggleButtons.forEach((button) => {
                 button.setAttribute('aria-expanded', (!isCollapsed).toString());
             });
+            updateSidebarTooltips();
         };
 
         let storedCollapsed = false;
@@ -202,6 +209,7 @@
                 document.body.classList.add('backend-sidebar-mobile-nav-ready');
                 mobileNavReady = true;
             }
+            updateSidebarTooltips();
         };
 
         applyMobileNav(mobileQuery.matches, false);
