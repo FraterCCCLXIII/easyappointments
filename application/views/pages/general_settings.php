@@ -85,6 +85,14 @@
                                                  class="img-thumbnail my-3" hidden>
                                         </div>
 
+                                        <div class="d-flex flex-column align-items-center" id="company-logo-email-preview-wrapper" hidden>
+                                            <div class="mb-2 text-muted">
+                                                <small>Email notifications logo (PNG)</small>
+                                            </div>
+                                            <img src="#" alt="Email Logo Preview" id="company-logo-email-preview"
+                                                 class="img-thumbnail mb-3">
+                                        </div>
+
                                         <div class="d-flex justify-content-center">
                                             <button type="button" class="btn btn-danger btn-sm mb-3"
                                                     id="remove-company-logo" hidden>
