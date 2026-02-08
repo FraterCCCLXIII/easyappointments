@@ -32,15 +32,38 @@ class Customer_otp_model extends EA_Model
         'send_count' => 'integer',
     ];
 
+    /**
+     * @var array
+     */
+    protected array $phi_fields = [
+        'email',
+    ];
+
     public function find_by_email(string $email): ?array
     {
-        $record = $this->db->get_where('customer_otp', ['email' => $this->normalize_email($email)])->row_array();
+        $normalized = $this->normalize_email($email);
+        $crypto = $this->get_phi_crypto();
+        $email_hash = $crypto->enabled() ? $crypto->hash_search($normalized) : null;
+
+        $query = $this->db->from('customer_otp');
+
+        if ($crypto->enabled() && $email_hash) {
+            $query->group_start()
+                ->where('email_hash', $email_hash)
+                ->or_where('email', $normalized)
+                ->group_end();
+        } else {
+            $query->where('email', $normalized);
+        }
+
+        $record = $query->get()->row_array();
 
         if (empty($record)) {
             return null;
         }
 
         $this->cast($record);
+        $this->decrypt_phi_fields($record, $this->phi_fields);
 
         return $record;
     }
@@ -54,6 +77,7 @@ class Customer_otp_model extends EA_Model
                 throw new InvalidArgumentException('Customer OTP record was not found.');
             }
 
+            $this->decrypt_phi_fields($existing, $this->phi_fields);
             $record = array_merge($existing, $record);
         }
 
@@ -64,9 +88,11 @@ class Customer_otp_model extends EA_Model
         }
 
         if (empty($record['id'])) {
+            $this->apply_phi_write($record);
             return $this->insert($record);
         }
 
+        $this->apply_phi_write($record);
         return $this->update($record);
     }
 
@@ -220,5 +246,25 @@ class Customer_otp_model extends EA_Model
         $this->db->where('id', $record_id)->update('customer_otp', $record);
 
         return (int) $record_id;
+    }
+
+    /**
+     * Apply PHI encryption + hashes before persisting data.
+     *
+     * @param array $record
+     */
+    protected function apply_phi_write(array &$record): void
+    {
+        $crypto = $this->get_phi_crypto();
+
+        if (!$crypto->enabled()) {
+            return;
+        }
+
+        $this->set_phi_hashes($record, [
+            'email_hash' => 'email',
+        ]);
+
+        $this->encrypt_phi_fields($record, $this->phi_fields);
     }
 }

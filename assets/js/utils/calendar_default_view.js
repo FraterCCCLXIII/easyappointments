@@ -28,11 +28,13 @@ App.Utils.CalendarDefaultView = (function () {
     const $notification = $('#notification');
     const $calendarToolbar = $('#calendar-toolbar');
     const $calendarHeaderControls = $('#calendar-header-controls');
+    const $calendarTitleControls = $('#calendar-title-controls');
     const FILTER_TYPE_ALL = 'all';
     const FILTER_TYPE_PROVIDER = 'provider';
     const FILTER_TYPE_SERVICE = 'service';
     const moment = window.moment;
-    const LIST_TOGGLE_BUTTON = 'listToggle';
+    const CALENDAR_VIEW_BUTTON = 'calendarView';
+    const TABLE_VIEW_BUTTON = 'tableView';
 
     let $popoverTarget;
     let fullCalendar = null;
@@ -1197,29 +1199,50 @@ App.Utils.CalendarDefaultView = (function () {
         }
 
         $calendarHeader.appendTo($calendarHeaderControls);
+
+        if ($calendarTitleControls.length) {
+            const $toolbarChunks = $calendarHeader.find('.fc-toolbar-chunk');
+            const $navChunk = $toolbarChunks.eq(0);
+            const $titleChunk = $toolbarChunks.eq(1);
+
+            if ($navChunk.length) {
+                $navChunk.addClass('fc-toolbar-chunk--nav');
+                $navChunk.appendTo($calendarTitleControls);
+            }
+
+            if ($titleChunk.length) {
+                $titleChunk.appendTo($calendarTitleControls);
+            }
+        }
     }
 
     /**
-     * Render the list toggle button with icons.
+     * Render the view toggle buttons with icons.
      */
     function renderListToggleButton() {
-        const $listToggleButton = $calendar.find(`.fc-${LIST_TOGGLE_BUTTON}-button`);
+        const $calendarViewButton = $calendar.find(`.fc-${CALENDAR_VIEW_BUTTON}-button`);
+        const $tableViewButton = $calendar.find(`.fc-${TABLE_VIEW_BUTTON}-button`);
 
-        if (!$listToggleButton.length) {
+        if (!$calendarViewButton.length || !$tableViewButton.length) {
             return;
         }
 
-        $listToggleButton
+        $calendarViewButton
+            .attr('title', lang('default'))
+            .attr('aria-label', lang('default'))
+            .addClass('fc-button-active')
+            .html('<i data-lucide="calendar" class="h-4 w-4"></i>');
+
+        $tableViewButton
             .attr('title', lang('table'))
             .attr('aria-label', lang('table'))
-            .html(`
-                <span class="calendar-view-toggle__icon" aria-hidden="true">
-                    <i data-lucide="calendar" class="h-4 w-4"></i>
-                </span>
-                <span class="calendar-view-toggle__icon" aria-hidden="true">
-                    <i data-lucide="list" class="h-4 w-4"></i>
-                </span>
-            `);
+            .html('<i data-lucide="table" class="h-4 w-4"></i>');
+
+        const $toolbarChunk = $calendarViewButton.closest('.fc-toolbar-chunk');
+        $toolbarChunk.addClass('calendar-view-toggle-group');
+        
+        // Wrap both buttons in a button group
+        $calendarViewButton.add($tableViewButton).wrapAll('<div class="fc-button-group calendar-view-toggle-buttons"></div>');
 
         if (window.lucide) {
             window.lucide.createIcons();
@@ -1560,10 +1583,16 @@ App.Utils.CalendarDefaultView = (function () {
             headerToolbar: {
                 left: 'prev today next',
                 center: 'title',
-                right: `timeGridDay,timeGridWeek,dayGridMonth ${LIST_TOGGLE_BUTTON}`,
+                right: `timeGridDay,timeGridWeek,dayGridMonth ${CALENDAR_VIEW_BUTTON} ${TABLE_VIEW_BUTTON}`,
             },
             customButtons: {
-                [LIST_TOGGLE_BUTTON]: {
+                [CALENDAR_VIEW_BUTTON]: {
+                    text: '',
+                    click: () => {
+                        // Already in calendar view
+                    },
+                },
+                [TABLE_VIEW_BUTTON]: {
                     text: '',
                     click: () => {
                         window.location.href = App.Utils.Url.siteUrl('calendar?view=table');

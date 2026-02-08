@@ -47,6 +47,11 @@ class EA_Model extends CI_Model
     protected array $casts = [];
 
     /**
+     * @var Phi_crypto|null
+     */
+    protected ?Phi_crypto $phi_crypto = null;
+
+    /**
      * EA_Model constructor.
      */
     public function __construct()
@@ -179,6 +184,101 @@ class EA_Model extends CI_Model
                 default:
                     throw new RuntimeException('Unsupported cast type provided: ' . $cast);
             }
+        }
+    }
+
+    /**
+     * Get the PHI crypto helper (lazy-loaded).
+     */
+    protected function get_phi_crypto(): Phi_crypto
+    {
+        if ($this->phi_crypto !== null) {
+            return $this->phi_crypto;
+        }
+
+        $this->load->library('phi_crypto');
+
+        if ($this->phi_crypto === null) {
+            $this->phi_crypto = new Phi_crypto();
+        }
+
+        return $this->phi_crypto;
+    }
+
+    /**
+     * Encrypt selected fields in a record.
+     *
+     * @param array $record
+     * @param array $fields
+     */
+    protected function encrypt_phi_fields(array &$record, array $fields): void
+    {
+        $crypto = $this->get_phi_crypto();
+
+        if (!$crypto->enabled()) {
+            return;
+        }
+
+        foreach ($fields as $field) {
+            if (!array_key_exists($field, $record)) {
+                continue;
+            }
+
+            if ($record[$field] === null || $record[$field] === '') {
+                continue;
+            }
+
+            $record[$field] = $crypto->encrypt_string((string) $record[$field]);
+        }
+    }
+
+    /**
+     * Decrypt selected fields in a record.
+     *
+     * @param array $record
+     * @param array $fields
+     */
+    protected function decrypt_phi_fields(array &$record, array $fields): void
+    {
+        $crypto = $this->get_phi_crypto();
+
+        if (!$crypto->enabled()) {
+            return;
+        }
+
+        foreach ($fields as $field) {
+            if (!array_key_exists($field, $record)) {
+                continue;
+            }
+
+            if ($record[$field] === null || $record[$field] === '') {
+                continue;
+            }
+
+            $record[$field] = $crypto->decrypt_string((string) $record[$field]);
+        }
+    }
+
+    /**
+     * Set hashed lookup fields for PHI search.
+     *
+     * @param array $record
+     * @param array $field_map ['hash_field' => 'source_field']
+     */
+    protected function set_phi_hashes(array &$record, array $field_map): void
+    {
+        $crypto = $this->get_phi_crypto();
+
+        if (!$crypto->enabled()) {
+            return;
+        }
+
+        foreach ($field_map as $hash_field => $source_field) {
+            if (!array_key_exists($source_field, $record)) {
+                continue;
+            }
+
+            $record[$hash_field] = $crypto->hash_search((string) $record[$source_field]);
         }
     }
 

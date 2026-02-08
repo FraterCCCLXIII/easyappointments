@@ -65,5 +65,20 @@ $db['default']['swap_pre'] = '';
 $db['default']['autoinit'] = TRUE;
 $db['default']['stricton'] = FALSE;
 
+$db_ssl_enabled = filter_var(getenv('DB_SSL_ENABLED') ?: 'false', FILTER_VALIDATE_BOOLEAN);
+
+if ($db_ssl_enabled) {
+    $db['default']['encrypt'] = [
+        'ssl_key' => getenv('DB_SSL_KEY') ?: null,
+        'ssl_cert' => getenv('DB_SSL_CERT') ?: null,
+        'ssl_ca' => getenv('DB_SSL_CA') ?: null,
+        'ssl_capath' => getenv('DB_SSL_CAPATH') ?: null,
+        'ssl_cipher' => getenv('DB_SSL_CIPHER') ?: null,
+        'ssl_verify' => filter_var(getenv('DB_SSL_VERIFY') ?: 'true', FILTER_VALIDATE_BOOLEAN),
+    ];
+} else {
+    $db['default']['encrypt'] = false;
+}
+
 /* End of file database.php */
 /* Location: ./application/config/database.php */

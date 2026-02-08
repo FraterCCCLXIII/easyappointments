@@ -30,6 +30,13 @@ class User_files_model extends EA_Model
     ];
 
     /**
+     * @var array
+     */
+    protected array $phi_fields = [
+        'file_name',
+    ];
+
+    /**
      * Insert a new file record.
      *
      * @param array $file
@@ -39,6 +46,8 @@ class User_files_model extends EA_Model
     public function insert(array $file): int
     {
         $file['create_datetime'] = date('Y-m-d H:i:s');
+
+        $this->encrypt_phi_fields($file, $this->phi_fields);
 
         if (!$this->db->insert('user_files', $file)) {
             throw new RuntimeException('Could not insert user file.');
@@ -73,6 +82,7 @@ class User_files_model extends EA_Model
         }
 
         $this->cast($file);
+        $this->decrypt_phi_fields($file, $this->phi_fields);
 
         return $file;
     }
@@ -93,6 +103,7 @@ class User_files_model extends EA_Model
 
         foreach ($files as &$file) {
             $this->cast($file);
+            $this->decrypt_phi_fields($file, $this->phi_fields);
         }
 
         return $files;

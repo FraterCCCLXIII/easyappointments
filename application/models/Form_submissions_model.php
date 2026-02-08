@@ -26,6 +26,13 @@ class Form_submissions_model extends EA_Model
         'id_users' => 'integer',
     ];
 
+    /**
+     * @var array
+     */
+    protected array $phi_fields = [
+        'fields_snapshot',
+    ];
+
     public function create(int $form_id, int $user_id, ?string $fields_snapshot = null): int
     {
         $data = [
@@ -37,6 +44,8 @@ class Form_submissions_model extends EA_Model
         if ($fields_snapshot) {
             $data['fields_snapshot'] = $fields_snapshot;
         }
+
+        $this->encrypt_phi_fields($data, $this->phi_fields);
 
         if (!$this->db->insert('form_submissions', $data)) {
             throw new RuntimeException('Could not create form submission.');
@@ -59,6 +68,7 @@ class Form_submissions_model extends EA_Model
         }
 
         $this->cast($submission);
+        $this->decrypt_phi_fields($submission, $this->phi_fields);
 
         return $submission;
     }

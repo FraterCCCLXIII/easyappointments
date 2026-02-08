@@ -31,6 +31,13 @@ class Customer_auth_model extends EA_Model
     ];
 
     /**
+     * @var array
+     */
+    protected array $phi_fields = [
+        'email',
+    ];
+
+    /**
      * Save (insert or update) a customer auth record.
      *
      * @param array $record
@@ -46,10 +53,13 @@ class Customer_auth_model extends EA_Model
                 throw new InvalidArgumentException('Customer auth record was not found.');
             }
 
+            $this->decrypt_phi_fields($existing, $this->phi_fields);
             $record = array_merge($existing, $record);
         }
 
         $this->validate($record);
+
+        $this->apply_phi_write($record);
 
         if (empty($record['id'])) {
             return $this->insert($record);
@@ -67,13 +77,28 @@ class Customer_auth_model extends EA_Model
      */
     public function find_by_email(string $email): ?array
     {
-        $record = $this->db->get_where('customer_auth', ['email' => $email])->row_array();
+        $crypto = $this->get_phi_crypto();
+        $email_hash = $crypto->enabled() ? $crypto->hash_search($email) : null;
+
+        $query = $this->db->from('customer_auth');
+
+        if ($crypto->enabled() && $email_hash) {
+            $query->group_start()
+                ->where('email_hash', $email_hash)
+                ->or_where('email', $email)
+                ->group_end();
+        } else {
+            $query->where('email', $email);
+        }
+
+        $record = $query->get()->row_array();
 
         if (empty($record)) {
             return null;
         }
 
         $this->cast($record);
+        $this->decrypt_phi_fields($record, $this->phi_fields);
 
         return $record;
     }
@@ -94,6 +119,7 @@ class Customer_auth_model extends EA_Model
         }
 
         $this->cast($record);
+        $this->decrypt_phi_fields($record, $this->phi_fields);
 
         return $record;
     }
@@ -124,9 +150,24 @@ class Customer_auth_model extends EA_Model
         $record_id = $record['id'] ?? null;
 
         $email_count = $this->db
-            ->where('email', $record['email'])
-            ->where('id !=', $record_id)
-            ->count_all_results('customer_auth');
+            ->from('customer_auth')
+            ->where('id !=', $record_id);
+
+        $crypto = $this->get_phi_crypto();
+        $email_hash = $crypto->enabled() ? $crypto->hash_search($record['email']) : null;
+
+        if ($crypto->enabled() && $email_hash) {
+            $email_count = $email_count
+                ->group_start()
+                ->where('email_hash', $email_hash)
+                ->or_where('email', $record['email'])
+                ->group_end()
+                ->count_all_results();
+        } else {
+            $email_count = $email_count
+                ->where('email', $record['email'])
+                ->count_all_results();
+        }
 
         if ($email_count > 0) {
             throw new InvalidArgumentException('The provided email address is already in use.');
@@ -169,5 +210,25 @@ class Customer_auth_model extends EA_Model
         $this->db->where('id', $record_id)->update('customer_auth', $record);
 
         return (int) $record_id;
+    }
+
+    /**
+     * Apply PHI encryption + hashes before persisting data.
+     *
+     * @param array $record
+     */
+    protected function apply_phi_write(array &$record): void
+    {
+        $crypto = $this->get_phi_crypto();
+
+        if (!$crypto->enabled()) {
+            return;
+        }
+
+        $this->set_phi_hashes($record, [
+            'email_hash' => 'email',
+        ]);
+
+        $this->encrypt_phi_fields($record, $this->phi_fields);
     }
 }

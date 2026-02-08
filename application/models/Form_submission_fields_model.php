@@ -26,6 +26,13 @@ class Form_submission_fields_model extends EA_Model
         'id_form_fields' => 'integer',
     ];
 
+    /**
+     * @var array
+     */
+    protected array $phi_fields = [
+        'value',
+    ];
+
     public function insert_batch(int $submission_id, array $responses): void
     {
         if (!$responses) {
@@ -33,11 +40,15 @@ class Form_submission_fields_model extends EA_Model
         }
 
         $batch = array_map(function ($response) use ($submission_id) {
-            return [
+            $row = [
                 'id_form_submissions' => $submission_id,
                 'id_form_fields' => $response['field_id'],
                 'value' => $response['value'],
             ];
+
+            $this->encrypt_phi_fields($row, $this->phi_fields);
+
+            return $row;
         }, $responses);
 
         $this->db->insert_batch('form_submission_fields', $batch);
@@ -51,6 +62,7 @@ class Form_submission_fields_model extends EA_Model
 
         foreach ($rows as &$row) {
             $this->cast($row);
+            $this->decrypt_phi_fields($row, $this->phi_fields);
         }
 
         return $rows;
@@ -66,6 +78,10 @@ class Form_submission_fields_model extends EA_Model
             ->order_by('form_fields.sort_order')
             ->get()
             ->result_array();
+
+        foreach ($rows as &$row) {
+            $this->decrypt_phi_fields($row, $this->phi_fields);
+        }
 
         return $rows;
     }

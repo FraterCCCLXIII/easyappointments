@@ -28,6 +28,7 @@ class Login extends EA_Controller
         parent::__construct();
 
         $this->load->library('accounts');
+        $this->load->library('audit_log');
         $this->load->library('ldap_client');
         $this->load->library('email_messages');
 
@@ -63,6 +64,8 @@ class Login extends EA_Controller
     public function validate(): void
     {
         try {
+            rate_limit($this->input->ip_address(), 20, 120);
+
             $username = request('username');
 
             if (empty($username)) {
@@ -89,10 +92,19 @@ class Login extends EA_Controller
 
             session($user_data); // Save data in the session.
 
+            $this->audit_log->write('auth.login.success', [
+                'user_id' => $user_data['user_id'] ?? null,
+                'role_slug' => $user_data['role_slug'] ?? null,
+            ]);
+
             json_response([
                 'success' => true,
             ]);
         } catch (Throwable $e) {
+            $this->audit_log->write('auth.login.failed', [
+                'reason' => $e->getMessage(),
+            ]);
+
             json_exception($e);
         }
     }

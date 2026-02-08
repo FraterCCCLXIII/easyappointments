@@ -26,6 +26,7 @@ class Customers_api_v1 extends EA_Controller
         parent::__construct();
 
         $this->load->library('api');
+        $this->load->library('audit_log');
         $this->load->library('webhooks_client');
 
         $this->api->auth();
@@ -67,6 +68,10 @@ class Customers_api_v1 extends EA_Controller
                 }
             }
 
+            $this->audit_log->write('api.customers.index', [
+                'count' => count($customers),
+            ]);
+
             json_response($customers);
         } catch (Throwable $e) {
             json_exception($e);
@@ -99,6 +104,10 @@ class Customers_api_v1 extends EA_Controller
                 $this->customers_model->only($customer, $fields);
             }
 
+            $this->audit_log->write('api.customers.show', [
+                'customer_id' => (int) $id,
+            ]);
+
             json_response($customer);
         } catch (Throwable $e) {
             json_exception($e);
@@ -126,6 +135,10 @@ class Customers_api_v1 extends EA_Controller
             $this->webhooks_client->trigger(WEBHOOK_CUSTOMER_SAVE, $created_customer);
 
             $this->customers_model->api_encode($created_customer);
+
+            $this->audit_log->write('api.customers.create', [
+                'customer_id' => (int) $customer_id,
+            ]);
 
             json_response($created_customer, 201);
         } catch (Throwable $e) {
@@ -163,6 +176,10 @@ class Customers_api_v1 extends EA_Controller
 
             $this->customers_model->api_encode($updated_customer);
 
+            $this->audit_log->write('api.customers.update', [
+                'customer_id' => (int) $customer_id,
+            ]);
+
             json_response($updated_customer);
         } catch (Throwable $e) {
             json_exception($e);
@@ -190,6 +207,10 @@ class Customers_api_v1 extends EA_Controller
             $this->customers_model->delete($id);
 
             $this->webhooks_client->trigger(WEBHOOK_CUSTOMER_DELETE, $deleted_customer);
+
+            $this->audit_log->write('api.customers.delete', [
+                'customer_id' => (int) $id,
+            ]);
 
             response('', 204);
         } catch (Throwable $e) {

@@ -50,6 +50,23 @@ class Users_model extends EA_Model
     ];
 
     /**
+     * @var array
+     */
+    protected array $phi_fields = [
+        'first_name',
+        'last_name',
+        'email',
+        'mobile_number',
+        'phone_number',
+        'address',
+        'city',
+        'state',
+        'zip_code',
+        'ldap_dn',
+        'notes',
+    ];
+
+    /**
      * Save (insert or update) a user.
      *
      * @param array $user Associative array with the user data.
@@ -117,6 +134,8 @@ class Users_model extends EA_Model
 
         $settings = $user['settings'];
         unset($user['settings']);
+
+        $this->apply_phi_write($user);
 
         if (!$this->db->insert('users', $user)) {
             throw new RuntimeException('Could not insert user.');
@@ -197,6 +216,14 @@ class Users_model extends EA_Model
             $settings['password'] = hash_password($existing_settings['salt'], $settings['password']);
         }
 
+        $existing = $this->db->get_where('users', ['id' => $user['id']])->row_array();
+
+        if (!empty($existing)) {
+            $this->decrypt_phi_fields($existing, $this->phi_fields);
+        }
+
+        $this->apply_phi_write($user, $existing ?: null);
+
         if (!$this->db->update('users', $user, ['id' => $user['id']])) {
             throw new RuntimeException('Could not update user.');
         }
@@ -236,6 +263,7 @@ class Users_model extends EA_Model
         }
 
         $this->cast($user);
+        $this->decrypt_phi_fields($user, $this->phi_fields);
 
         $user['settings'] = $this->get_settings($user['id']);
 
@@ -289,6 +317,7 @@ class Users_model extends EA_Model
         $user = $query->row_array();
 
         $this->cast($user);
+        $this->decrypt_phi_fields($user, $this->phi_fields);
 
         if (!array_key_exists($field, $user)) {
             throw new InvalidArgumentException('The requested field was not found in the user data: ' . $field);
@@ -338,21 +367,60 @@ class Users_model extends EA_Model
      */
     public function search(string $keyword, ?int $limit = null, ?int $offset = null, ?string $order_by = null): array
     {
-        $users = $this->db
+        $query = $this->db
             ->select()
-            ->from('users')
-            ->group_start()
-            ->like('first_name', $keyword)
-            ->or_like('last_name', $keyword)
-            ->or_like('email', $keyword)
-            ->or_like('phone_number', $keyword)
-            ->or_like('mobile_number', $keyword)
-            ->or_like('address', $keyword)
-            ->or_like('city', $keyword)
-            ->or_like('state', $keyword)
-            ->or_like('zip_code', $keyword)
-            ->or_like('notes', $keyword)
-            ->group_end()
+            ->from('users');
+
+        $crypto = $this->get_phi_crypto();
+
+        if ($crypto->enabled()) {
+            $keyword_hash = $crypto->hash_search($keyword);
+
+            if ($keyword_hash) {
+                $query->group_start()
+                    ->or_where('first_name_hash', $keyword_hash)
+                    ->or_where('last_name_hash', $keyword_hash)
+                    ->or_where('full_name_hash', $keyword_hash)
+                    ->or_where('email_hash', $keyword_hash)
+                    ->or_where('phone_hash', $keyword_hash)
+                    ->or_where('mobile_hash', $keyword_hash)
+                    ->group_end();
+            }
+
+            if (config('phi_allow_plaintext_search', true)) {
+                $query->or_group_start()
+                    ->like('first_name', $keyword)
+                    ->or_like('last_name', $keyword)
+                    ->or_like('email', $keyword)
+                    ->or_like('phone_number', $keyword)
+                    ->or_like('mobile_number', $keyword)
+                    ->or_like('address', $keyword)
+                    ->or_like('city', $keyword)
+                    ->or_like('state', $keyword)
+                    ->or_like('zip_code', $keyword)
+                    ->or_like('notes', $keyword)
+                    ->group_end();
+            }
+
+            if (!$keyword_hash && !config('phi_allow_plaintext_search', true)) {
+                $query->where('1 = 0', null, false);
+            }
+        } else {
+            $query->group_start()
+                ->like('first_name', $keyword)
+                ->or_like('last_name', $keyword)
+                ->or_like('email', $keyword)
+                ->or_like('phone_number', $keyword)
+                ->or_like('mobile_number', $keyword)
+                ->or_like('address', $keyword)
+                ->or_like('city', $keyword)
+                ->or_like('state', $keyword)
+                ->or_like('zip_code', $keyword)
+                ->or_like('notes', $keyword)
+                ->group_end();
+        }
+
+        $users = $query
             ->limit($limit)
             ->offset($offset)
             ->order_by($this->quote_order_by($order_by))
@@ -361,6 +429,7 @@ class Users_model extends EA_Model
 
         foreach ($users as &$user) {
             $this->cast($user);
+            $this->decrypt_phi_fields($user, $this->phi_fields);
             $user['settings'] = $this->get_settings($user['id']);
         }
 
@@ -395,6 +464,7 @@ class Users_model extends EA_Model
 
         foreach ($users as &$user) {
             $this->cast($user);
+            $this->decrypt_phi_fields($user, $this->phi_fields);
             $user['settings'] = $this->get_settings($user['id']);
         }
 
@@ -429,5 +499,36 @@ class Users_model extends EA_Model
         }
 
         return $this->db->get_where('user_settings', ['username' => $username])->num_rows() === 0;
+    }
+
+    /**
+     * Apply PHI encryption + hashes before persisting data.
+     *
+     * @param array $user
+     * @param array|null $existing
+     */
+    protected function apply_phi_write(array &$user, ?array $existing = null): void
+    {
+        $crypto = $this->get_phi_crypto();
+
+        if (!$crypto->enabled()) {
+            return;
+        }
+
+        $this->set_phi_hashes($user, [
+            'email_hash' => 'email',
+            'phone_hash' => 'phone_number',
+            'mobile_hash' => 'mobile_number',
+            'first_name_hash' => 'first_name',
+            'last_name_hash' => 'last_name',
+        ]);
+
+        if (array_key_exists('first_name', $user) || array_key_exists('last_name', $user)) {
+            $first = $user['first_name'] ?? ($existing['first_name'] ?? '');
+            $last = $user['last_name'] ?? ($existing['last_name'] ?? '');
+            $user['full_name_hash'] = $crypto->hash_search(trim($first . ' ' . $last));
+        }
+
+        $this->encrypt_phi_fields($user, $this->phi_fields);
     }
 }

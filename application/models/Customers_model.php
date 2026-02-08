@@ -53,6 +53,28 @@ class Customers_model extends EA_Model
     ];
 
     /**
+     * @var array
+     */
+    protected array $phi_fields = [
+        'first_name',
+        'last_name',
+        'email',
+        'phone_number',
+        'mobile_number',
+        'address',
+        'city',
+        'state',
+        'zip_code',
+        'notes',
+        'custom_field_1',
+        'custom_field_2',
+        'custom_field_3',
+        'custom_field_4',
+        'custom_field_5',
+        'ldap_dn',
+    ];
+
+    /**
      * Save (insert or update) a customer.
      *
      * @param array $customer Associative array with the customer data.
@@ -125,16 +147,26 @@ class Customers_model extends EA_Model
 
             // Make sure the email address is unique.
             $customer_id = $customer['id'] ?? null;
+            $crypto = $this->get_phi_crypto();
+            $email_hash = $crypto->enabled() ? $crypto->hash_search($customer['email']) : null;
 
-            $count = $this->db
+            $query = $this->db
                 ->select()
                 ->from('users')
                 ->join('roles', 'roles.id = users.id_roles', 'inner')
                 ->where('roles.slug', DB_SLUG_CUSTOMER)
-                ->where('users.email', $customer['email'])
-                ->where('users.id !=', $customer_id)
-                ->get()
-                ->num_rows();
+                ->where('users.id !=', $customer_id);
+
+            if ($crypto->enabled() && $email_hash) {
+                $query->group_start()
+                    ->where('users.email_hash', $email_hash)
+                    ->or_where('users.email', $customer['email'])
+                    ->group_end();
+            } else {
+                $query->where('users.email', $customer['email']);
+            }
+
+            $count = $query->get()->num_rows();
 
             if ($count > 0) {
                 throw new InvalidArgumentException(
@@ -174,6 +206,7 @@ class Customers_model extends EA_Model
 
         foreach ($customers as &$customer) {
             $this->cast($customer);
+            $this->decrypt_phi_fields($customer, $this->phi_fields);
         }
 
         return $customers;
@@ -210,14 +243,25 @@ class Customers_model extends EA_Model
             return false;
         }
 
-        $count = $this->db
+        $crypto = $this->get_phi_crypto();
+        $email_hash = $crypto->enabled() ? $crypto->hash_search($customer['email']) : null;
+
+        $query = $this->db
             ->select()
             ->from('users')
             ->join('roles', 'roles.id = users.id_roles', 'inner')
-            ->where('users.email', $customer['email'])
-            ->where('roles.slug', DB_SLUG_CUSTOMER)
-            ->get()
-            ->num_rows();
+            ->where('roles.slug', DB_SLUG_CUSTOMER);
+
+        if ($crypto->enabled() && $email_hash) {
+            $query->group_start()
+                ->where('users.email_hash', $email_hash)
+                ->or_where('users.email', $customer['email'])
+                ->group_end();
+        } else {
+            $query->where('users.email', $customer['email']);
+        }
+
+        $count = $query->get()->num_rows();
 
         return $count > 0;
     }
@@ -249,6 +293,8 @@ class Customers_model extends EA_Model
         $customer['create_datetime'] = date('Y-m-d H:i:s');
         $customer['update_datetime'] = $customer['create_datetime'];
 
+        $this->apply_phi_write($customer);
+
         $this->db->insert('users', $customer);
 
         return (int) $this->db->insert_id();
@@ -269,14 +315,25 @@ class Customers_model extends EA_Model
             throw new InvalidArgumentException('The customer email was not provided: ' . print_r($customer, true));
         }
 
-        $customer = $this->db
+        $crypto = $this->get_phi_crypto();
+        $email_hash = $crypto->enabled() ? $crypto->hash_search($customer['email']) : null;
+
+        $query = $this->db
             ->select('users.id')
             ->from('users')
             ->join('roles', 'roles.id = users.id_roles', 'inner')
-            ->where('users.email', $customer['email'])
-            ->where('roles.slug', DB_SLUG_CUSTOMER)
-            ->get()
-            ->row_array();
+            ->where('roles.slug', DB_SLUG_CUSTOMER);
+
+        if ($crypto->enabled() && $email_hash) {
+            $query->group_start()
+                ->where('users.email_hash', $email_hash)
+                ->or_where('users.email', $customer['email'])
+                ->group_end();
+        } else {
+            $query->where('users.email', $customer['email']);
+        }
+
+        $customer = $query->get()->row_array();
 
         if (empty($customer)) {
             throw new InvalidArgumentException('Could not find customer record id.');
@@ -301,6 +358,8 @@ class Customers_model extends EA_Model
         $customer['id_roles'] = $this->get_customer_role_id();
         $customer['slug'] = $customer['slug'] ?? $this->generate_unique_slug();
 
+        $this->apply_phi_write($customer);
+
         if (!$this->db->insert('users', $customer)) {
             throw new RuntimeException('Could not insert customer.');
         }
@@ -320,6 +379,14 @@ class Customers_model extends EA_Model
     protected function update(array $customer): int
     {
         $customer['update_datetime'] = date('Y-m-d H:i:s');
+
+        $existing = $this->db->get_where('users', ['id' => $customer['id']])->row_array();
+
+        if (!empty($existing)) {
+            $this->decrypt_phi_fields($existing, $this->phi_fields);
+        }
+
+        $this->apply_phi_write($customer, $existing ?: null);
 
         if (!$this->db->update('users', $customer, ['id' => $customer['id']])) {
             throw new RuntimeException('Could not update customer.');
@@ -358,6 +425,7 @@ class Customers_model extends EA_Model
         }
 
         $this->cast($customer);
+        $this->decrypt_phi_fields($customer, $this->phi_fields);
 
         return $customer;
     }
@@ -384,6 +452,7 @@ class Customers_model extends EA_Model
         }
 
         $this->cast($customer);
+        $this->decrypt_phi_fields($customer, $this->phi_fields);
 
         return $customer;
     }
@@ -421,6 +490,7 @@ class Customers_model extends EA_Model
         $customer = $query->row_array();
 
         $this->cast($customer);
+        $this->decrypt_phi_fields($customer, $this->phi_fields);
 
         if (!array_key_exists($field, $customer)) {
             throw new InvalidArgumentException('The requested field was not found in the customer data: ' . $field);
@@ -455,23 +525,63 @@ class Customers_model extends EA_Model
     {
         $role_id = $this->get_customer_role_id();
 
-        $customers = $this->db
+        $query = $this->db
             ->select()
             ->from('users')
-            ->where('id_roles', $role_id)
-            ->group_start()
-            ->like('first_name', $keyword)
-            ->or_like('last_name', $keyword)
-            ->or_like('CONCAT_WS(" ", first_name, last_name)', $keyword)
-            ->or_like('email', $keyword)
-            ->or_like('phone_number', $keyword)
-            ->or_like('mobile_number', $keyword)
-            ->or_like('address', $keyword)
-            ->or_like('city', $keyword)
-            ->or_like('state', $keyword)
-            ->or_like('zip_code', $keyword)
-            ->or_like('notes', $keyword)
-            ->group_end()
+            ->where('id_roles', $role_id);
+
+        $crypto = $this->get_phi_crypto();
+
+        if ($crypto->enabled()) {
+            $keyword_hash = $crypto->hash_search($keyword);
+
+            if ($keyword_hash) {
+                $query->group_start()
+                    ->or_where('first_name_hash', $keyword_hash)
+                    ->or_where('last_name_hash', $keyword_hash)
+                    ->or_where('full_name_hash', $keyword_hash)
+                    ->or_where('email_hash', $keyword_hash)
+                    ->or_where('phone_hash', $keyword_hash)
+                    ->or_where('mobile_hash', $keyword_hash)
+                    ->group_end();
+            }
+
+            if (config('phi_allow_plaintext_search', true)) {
+                $query->or_group_start()
+                    ->like('first_name', $keyword)
+                    ->or_like('last_name', $keyword)
+                    ->or_like('CONCAT_WS(" ", first_name, last_name)', $keyword)
+                    ->or_like('email', $keyword)
+                    ->or_like('phone_number', $keyword)
+                    ->or_like('mobile_number', $keyword)
+                    ->or_like('address', $keyword)
+                    ->or_like('city', $keyword)
+                    ->or_like('state', $keyword)
+                    ->or_like('zip_code', $keyword)
+                    ->or_like('notes', $keyword)
+                    ->group_end();
+            }
+
+            if (!$keyword_hash && !config('phi_allow_plaintext_search', true)) {
+                $query->where('1 = 0', null, false);
+            }
+        } else {
+            $query->group_start()
+                ->like('first_name', $keyword)
+                ->or_like('last_name', $keyword)
+                ->or_like('CONCAT_WS(" ", first_name, last_name)', $keyword)
+                ->or_like('email', $keyword)
+                ->or_like('phone_number', $keyword)
+                ->or_like('mobile_number', $keyword)
+                ->or_like('address', $keyword)
+                ->or_like('city', $keyword)
+                ->or_like('state', $keyword)
+                ->or_like('zip_code', $keyword)
+                ->or_like('notes', $keyword)
+                ->group_end();
+        }
+
+        $customers = $query
             ->limit($limit)
             ->offset($offset)
             ->order_by($this->quote_order_by($order_by))
@@ -480,6 +590,7 @@ class Customers_model extends EA_Model
 
         foreach ($customers as &$customer) {
             $this->cast($customer);
+            $this->decrypt_phi_fields($customer, $this->phi_fields);
         }
 
         return $customers;
@@ -505,6 +616,8 @@ class Customers_model extends EA_Model
      */
     public function api_encode(array &$customer): void
     {
+        $this->decrypt_phi_fields($customer, $this->phi_fields);
+
         $encoded_resource = [
             'id' => array_key_exists('id', $customer) ? (int) $customer['id'] : null,
             'firstName' => $customer['first_name'],
@@ -607,5 +720,36 @@ class Customers_model extends EA_Model
         }
 
         $customer = $decoded_resource;
+    }
+
+    /**
+     * Apply PHI encryption + hashes before persisting data.
+     *
+     * @param array $customer
+     * @param array|null $existing
+     */
+    protected function apply_phi_write(array &$customer, ?array $existing = null): void
+    {
+        $crypto = $this->get_phi_crypto();
+
+        if (!$crypto->enabled()) {
+            return;
+        }
+
+        $this->set_phi_hashes($customer, [
+            'email_hash' => 'email',
+            'phone_hash' => 'phone_number',
+            'mobile_hash' => 'mobile_number',
+            'first_name_hash' => 'first_name',
+            'last_name_hash' => 'last_name',
+        ]);
+
+        if (array_key_exists('first_name', $customer) || array_key_exists('last_name', $customer)) {
+            $first = $customer['first_name'] ?? ($existing['first_name'] ?? '');
+            $last = $customer['last_name'] ?? ($existing['last_name'] ?? '');
+            $customer['full_name_hash'] = $crypto->hash_search(trim($first . ' ' . $last));
+        }
+
+        $this->encrypt_phi_fields($customer, $this->phi_fields);
     }
 }
