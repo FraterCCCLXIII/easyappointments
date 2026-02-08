@@ -70,6 +70,10 @@ class Recovery extends EA_Controller
             $company_color = setting('company_color');
 
             if ($new_password) {
+                if (!filter_var(setting('account_recovery_notifications', '1'), FILTER_VALIDATE_BOOLEAN)) {
+                    throw new RuntimeException('Account recovery email notifications are disabled.');
+                }
+
                 $settings = [
                     'company_name' => setting('company_name'),
                     'company_link' => setting('company_link'),

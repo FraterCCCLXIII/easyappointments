@@ -50,6 +50,19 @@ $dropdown_menu_class = 'backend-sidebar-dropdown dropdown-menu absolute z-50 mt-
         <nav class="backend-sidebar-nav">
             <div class="backend-sidebar-scroll">
                 <ul class="backend-sidebar-list">
+                <?php $is_provider = vars('role_slug') === DB_SLUG_PROVIDER; ?>
+                <?php if ($is_provider): ?>
+                    <?php $active = $active_menu == 'provider_bookings'; ?>
+                    <li>
+                        <a href="<?= site_url('provider/bookings') ?>"
+                           class="<?= $active ? $nav_link_active : $nav_link_inactive ?>"
+                           aria-label="Bookings"
+                           data-tippy-content="Bookings">
+                            <i class="backend-sidebar-icon" data-lucide="list"></i>
+                            <span class="backend-sidebar-label">Bookings</span>
+                        </a>
+                    </li>
+                <?php endif; ?>
                 <?php $hidden = can('view', PRIV_APPOINTMENTS) ? '' : 'hidden'; ?>
                 <?php $active = $active_menu == PRIV_APPOINTMENTS; ?>
                 <li class="<?= $hidden ?>">

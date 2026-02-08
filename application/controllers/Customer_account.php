@@ -208,6 +208,10 @@ class Customer_account extends EA_Controller
 
             $code = $this->customer_otp_model->request_code($new_email);
 
+            if (!filter_var(setting('customer_login_otp_notifications', '1'), FILTER_VALIDATE_BOOLEAN)) {
+                throw new RuntimeException('Customer login email notifications are disabled.');
+            }
+
             $company_color = setting('company_color');
             $settings = [
                 'company_name' => setting('company_name'),
@@ -322,6 +326,10 @@ class Customer_account extends EA_Controller
             }
 
             $code = $this->customer_otp_model->request_code($customer['email']);
+
+            if (!filter_var(setting('customer_login_otp_notifications', '1'), FILTER_VALIDATE_BOOLEAN)) {
+                throw new RuntimeException('Customer login email notifications are disabled.');
+            }
 
             $company_color = setting('company_color');
             $settings = [

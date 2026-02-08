@@ -635,6 +635,10 @@ class Forms extends EA_Controller
             return;
         }
 
+        if (!filter_var(setting('customer_profile_completion_notifications', '1'), FILTER_VALIDATE_BOOLEAN)) {
+            return;
+        }
+
         $forms = $this->get_incomplete_forms($customer_id);
 
         $settings = [

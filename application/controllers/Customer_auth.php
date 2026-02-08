@@ -266,6 +266,10 @@ class Customer_auth extends EA_Controller
         try {
             rate_limit($this->input->ip_address(), 10, 120);
 
+            if (!filter_var(setting('customer_login_otp_notifications', '1'), FILTER_VALIDATE_BOOLEAN)) {
+                throw new RuntimeException('Customer login email notifications are disabled.');
+            }
+
             $login_mode = $this->get_login_mode();
 
             $email = trim((string) request('email'));
@@ -571,6 +575,10 @@ class Customer_auth extends EA_Controller
     protected function send_profile_completion_email(int $customer_id, string $recipient_email): void
     {
         if (empty($recipient_email)) {
+            return;
+        }
+
+        if (!filter_var(setting('customer_profile_completion_notifications', '1'), FILTER_VALIDATE_BOOLEAN)) {
             return;
         }
 

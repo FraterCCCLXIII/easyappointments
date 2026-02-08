@@ -187,6 +187,9 @@ $route['customer/forms/find'] = 'customer_forms/find';
 $route['customer/forms/submit'] = 'customer_forms/submit';
 $route['customer/forms/(:any)'] = 'customer_forms/view/$1';
 
+$route['provider/bookings'] = 'provider_bookings/index';
+$route['provider/bookings/(:num)'] = 'provider_bookings/view/$1';
+
 $route['forms_settings/create'] = 'forms_settings/create';
 $route['forms_settings/view/(:num)'] = 'forms_settings/view/$1';
 $route['forms/user/(:any)/(:num)/(:num)'] = 'forms/view_user/$1/$2/$3';
