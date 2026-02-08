@@ -12,7 +12,11 @@
 
                 <?php if (
                     can('add', PRIV_CUSTOMERS) &&
-                    (!setting('limit_customer_access') || vars('role_slug') === DB_SLUG_ADMIN)
+                    (
+                        vars('role_slug') === DB_SLUG_ADMIN ||
+                        (vars('role_slug') === DB_SLUG_PROVIDER && !setting('limit_provider_customer_access')) ||
+                        (vars('role_slug') === DB_SLUG_SECRETARY && !setting('limit_secretary_customer_access'))
+                    )
                 ): ?>
                     <div class="ea-button-group">
                         <button id="add-customer" class="btn btn-primary btn-sm">
