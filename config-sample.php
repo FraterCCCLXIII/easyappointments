@@ -50,4 +50,12 @@ class Config
     const GOOGLE_SYNC_FEATURE = false; // Enter TRUE or FALSE
     const GOOGLE_CLIENT_ID = '';
     const GOOGLE_CLIENT_SECRET = '';
+
+    // ------------------------------------------------------------------------
+    // SECURITY (ENV-DRIVEN)
+    // ------------------------------------------------------------------------
+    // ENCRYPTION_KEY (base64 32 bytes) is required for PHI encryption and sessions.
+    // PHI_ENCRYPTION_ENABLED=true enables application-level encryption for PHI fields.
+    // USER_FILE_ALLOWED_EXTENSIONS and USER_FILE_ALLOWED_MIME_TYPES restrict uploads.
+    // USER_FILE_AV_SCAN_COMMAND="clamdscan --no-summary %s" enables AV scanning.
 }

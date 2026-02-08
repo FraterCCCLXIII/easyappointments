@@ -67,6 +67,7 @@ class Customers extends EA_Controller
         $this->load->model('services_model');
 
         $this->load->library('accounts');
+        $this->load->library('audit_log');
         $this->load->library('permissions');
         $this->load->library('timezones');
         $this->load->library('webhooks_client');
@@ -222,6 +223,10 @@ class Customers extends EA_Controller
                     ->find_for_user((int) $customer['id']);
             }
 
+            $this->audit_log->write('customer.view', [
+                'customer_id' => (int) $customer_id,
+            ]);
+
             json_response($customer);
         } catch (Throwable $e) {
             json_exception($e);
@@ -257,6 +262,11 @@ class Customers extends EA_Controller
             foreach ($appointments as &$appointment) {
                 $this->appointments_model->load($appointment, ['service', 'provider']);
             }
+
+            $this->audit_log->write('customer.view_by_slug', [
+                'customer_id' => (int) $customer['id'],
+                'slug' => $slug,
+            ]);
 
             $customer['appointments'] = $appointments;
             $customer['custom_field_values'] = $this->customer_custom_field_values_model
@@ -667,6 +677,10 @@ class Customers extends EA_Controller
 
             $this->webhooks_client->trigger(WEBHOOK_CUSTOMER_SAVE, $customer);
 
+            $this->audit_log->write('customer.create', [
+                'customer_id' => (int) $customer_id,
+            ]);
+
             json_response([
                 'success' => true,
                 'id' => $customer_id,
@@ -709,6 +723,10 @@ class Customers extends EA_Controller
 
             $this->webhooks_client->trigger(WEBHOOK_CUSTOMER_SAVE, $customer);
 
+            $this->audit_log->write('customer.update', [
+                'customer_id' => (int) $customer_id,
+            ]);
+
             json_response([
                 'success' => true,
                 'id' => $customer_id,
@@ -741,6 +759,10 @@ class Customers extends EA_Controller
             $this->customers_model->delete($customer_id);
 
             $this->webhooks_client->trigger(WEBHOOK_CUSTOMER_DELETE, $customer);
+
+            $this->audit_log->write('customer.delete', [
+                'customer_id' => (int) $customer_id,
+            ]);
 
             json_response([
                 'success' => true,

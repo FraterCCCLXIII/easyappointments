@@ -345,7 +345,26 @@ $config['cache_path'] = __DIR__ . '/../../storage/cache/';
 | MUST set an encryption key.  See the user guide for info.
 |
 */
-$config['encryption_key'] = base64_encode(APPPATH);
+$env_encryption_key = getenv('ENCRYPTION_KEY') ?: '';
+$config['encryption_key'] = $env_encryption_key ?: base64_encode(APPPATH);
+
+if (ENVIRONMENT === 'production' && empty($env_encryption_key)) {
+    show_error('ENCRYPTION_KEY must be set in production.');
+}
+
+/*
+|--------------------------------------------------------------------------
+| PHI Encryption
+|--------------------------------------------------------------------------
+|
+| Toggle application-level encryption for PHI fields. Requires ENCRYPTION_KEY.
+|
+*/
+$config['phi_encryption_enabled'] = filter_var(getenv('PHI_ENCRYPTION_ENABLED') ?: 'false', FILTER_VALIDATE_BOOLEAN);
+$config['phi_allow_plaintext_search'] = filter_var(
+    getenv('PHI_ALLOW_PLAINTEXT_SEARCH') ?: 'true',
+    FILTER_VALIDATE_BOOLEAN,
+);
 
 /*
 |--------------------------------------------------------------------------
@@ -369,7 +388,7 @@ $config['sess_driver'] = 'files';
 $config['sess_cookie_name'] = 'ea_session';
 $config['sess_expiration'] = 7200;
 $config['sess_save_path'] = __DIR__ . '/../../storage/sessions';
-$config['sess_match_ip'] = FALSE;
+$config['sess_match_ip'] = filter_var(getenv('SESSION_MATCH_IP') ?: 'false', FILTER_VALIDATE_BOOLEAN);
 $config['sess_time_to_update'] = 300;
 $config['sess_regenerate_destroy'] = TRUE;
 
@@ -388,6 +407,51 @@ $config['cookie_prefix'] = '';
 $config['cookie_domain'] = '';
 $config['cookie_path'] = '/';
 $config['cookie_secure'] = strpos($config['base_url'], 'https') !== FALSE;
+$config['cookie_httponly'] = TRUE;
+$config['cookie_samesite'] = 'Lax';
+
+/*
+|--------------------------------------------------------------------------
+| User File Uploads
+|--------------------------------------------------------------------------
+|
+| Allowed extensions/mime types are comma-delimited values (lowercase).
+| Set USER_FILE_AV_SCAN_COMMAND to enable AV scanning with a "%s" placeholder.
+|
+*/
+$config['user_file_allowed_extensions'] = array_filter(
+    array_map('trim', explode(',', getenv('USER_FILE_ALLOWED_EXTENSIONS') ?: 'pdf,png,jpg,jpeg')),
+);
+$config['user_file_allowed_mime_types'] = array_filter(
+    array_map('trim', explode(',', getenv('USER_FILE_ALLOWED_MIME_TYPES') ?: 'application/pdf,image/png,image/jpeg')),
+);
+$config['user_file_av_scan_command'] = getenv('USER_FILE_AV_SCAN_COMMAND') ?: '';
+
+/*
+|--------------------------------------------------------------------------
+| Audit Logging
+|--------------------------------------------------------------------------
+|
+| Audit logs are stored separately from error logs.
+|
+*/
+$config['audit_log_path'] = __DIR__ . '/../../storage/logs/audit/';
+$config['audit_log_retention_days'] = (int) (getenv('AUDIT_LOG_RETENTION_DAYS') ?: 365);
+
+/*
+|--------------------------------------------------------------------------
+| Backups
+|--------------------------------------------------------------------------
+|
+| BACKUP_ENCRYPTION_ENABLED=true requires ENCRYPTION_KEY and PHI encryption.
+| BACKUP_RETENTION_DAYS controls cleanup of older backups.
+|
+*/
+$config['backup_encryption_enabled'] = filter_var(
+    getenv('BACKUP_ENCRYPTION_ENABLED') ?: ($config['phi_encryption_enabled'] ? 'true' : 'false'),
+    FILTER_VALIDATE_BOOLEAN,
+);
+$config['backup_retention_days'] = (int) (getenv('BACKUP_RETENTION_DAYS') ?: 30);
 
 /*
 |--------------------------------------------------------------------------

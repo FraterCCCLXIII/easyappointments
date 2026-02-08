@@ -52,6 +52,23 @@ class Providers_model extends EA_Model
     ];
 
     /**
+     * @var array
+     */
+    protected array $phi_fields = [
+        'first_name',
+        'last_name',
+        'email',
+        'mobile_number',
+        'phone_number',
+        'address',
+        'city',
+        'state',
+        'zip_code',
+        'notes',
+        'ldap_dn',
+    ];
+
+    /**
      * Save (insert or update) a provider.
      *
      * @param array $provider Associative array with the provider data.
@@ -226,6 +243,7 @@ class Providers_model extends EA_Model
 
         foreach ($providers as &$provider) {
             $this->cast($provider);
+            $this->decrypt_phi_fields($provider, $this->phi_fields);
             $provider['settings'] = $this->get_settings($provider['id']);
             $provider['services'] = $this->get_service_ids($provider['id']);
         }
@@ -306,6 +324,8 @@ class Providers_model extends EA_Model
         $settings = $provider['settings'];
 
         unset($provider['services'], $provider['settings']);
+
+        $this->apply_phi_write($provider);
 
         if (!$this->db->insert('users', $provider)) {
             throw new RuntimeException('Could not insert provider.');
@@ -407,6 +427,14 @@ class Providers_model extends EA_Model
             $settings['password'] = hash_password($existing_settings['salt'], $settings['password']);
         }
 
+        $existing = $this->db->get_where('users', ['id' => $provider['id']])->row_array();
+
+        if (!empty($existing)) {
+            $this->decrypt_phi_fields($existing, $this->phi_fields);
+        }
+
+        $this->apply_phi_write($provider, $existing ?: null);
+
         if (!$this->db->update('users', $provider, ['id' => $provider['id']])) {
             throw new RuntimeException('Could not update provider.');
         }
@@ -483,6 +511,7 @@ class Providers_model extends EA_Model
         $provider = $query->row_array();
 
         $this->cast($provider);
+        $this->decrypt_phi_fields($provider, $this->phi_fields);
 
         if (!array_key_exists($field, $provider)) {
             throw new InvalidArgumentException('The requested field was not found in the provider data: ' . $field);
@@ -591,6 +620,7 @@ class Providers_model extends EA_Model
         }
 
         $this->cast($provider);
+        $this->decrypt_phi_fields($provider, $this->phi_fields);
         $provider['settings'] = $this->get_settings($provider['id']);
         $provider['services'] = $this->get_service_ids($provider['id']);
 
@@ -619,6 +649,7 @@ class Providers_model extends EA_Model
         }
 
         $this->cast($provider);
+        $this->decrypt_phi_fields($provider, $this->phi_fields);
         $provider['settings'] = $this->get_settings($provider['id']);
         $provider['services'] = $this->get_service_ids($provider['id']);
 
@@ -678,6 +709,7 @@ class Providers_model extends EA_Model
 
         foreach ($providers as &$provider) {
             $this->cast($provider);
+            $this->decrypt_phi_fields($provider, $this->phi_fields);
             $provider['settings'] = $this->get_settings($provider['id']);
             $provider['services'] = $this->get_service_ids($provider['id']);
         }
@@ -711,23 +743,63 @@ class Providers_model extends EA_Model
     {
         $role_id = $this->get_provider_role_id();
 
-        $providers = $this->db
+        $query = $this->db
             ->select()
             ->from('users')
-            ->where('id_roles', $role_id)
-            ->group_start()
-            ->like('first_name', $keyword)
-            ->or_like('last_name', $keyword)
-            ->or_like('CONCAT_WS(" ", first_name, last_name)', $keyword)
-            ->or_like('email', $keyword)
-            ->or_like('phone_number', $keyword)
-            ->or_like('mobile_number', $keyword)
-            ->or_like('address', $keyword)
-            ->or_like('city', $keyword)
-            ->or_like('state', $keyword)
-            ->or_like('zip_code', $keyword)
-            ->or_like('notes', $keyword)
-            ->group_end()
+            ->where('id_roles', $role_id);
+
+        $crypto = $this->get_phi_crypto();
+
+        if ($crypto->enabled()) {
+            $keyword_hash = $crypto->hash_search($keyword);
+
+            if ($keyword_hash) {
+                $query->group_start()
+                    ->or_where('first_name_hash', $keyword_hash)
+                    ->or_where('last_name_hash', $keyword_hash)
+                    ->or_where('full_name_hash', $keyword_hash)
+                    ->or_where('email_hash', $keyword_hash)
+                    ->or_where('phone_hash', $keyword_hash)
+                    ->or_where('mobile_hash', $keyword_hash)
+                    ->group_end();
+            }
+
+            if (config('phi_allow_plaintext_search', true)) {
+                $query->or_group_start()
+                    ->like('first_name', $keyword)
+                    ->or_like('last_name', $keyword)
+                    ->or_like('CONCAT_WS(" ", first_name, last_name)', $keyword)
+                    ->or_like('email', $keyword)
+                    ->or_like('phone_number', $keyword)
+                    ->or_like('mobile_number', $keyword)
+                    ->or_like('address', $keyword)
+                    ->or_like('city', $keyword)
+                    ->or_like('state', $keyword)
+                    ->or_like('zip_code', $keyword)
+                    ->or_like('notes', $keyword)
+                    ->group_end();
+            }
+
+            if (!$keyword_hash && !config('phi_allow_plaintext_search', true)) {
+                $query->where('1 = 0', null, false);
+            }
+        } else {
+            $query->group_start()
+                ->like('first_name', $keyword)
+                ->or_like('last_name', $keyword)
+                ->or_like('CONCAT_WS(" ", first_name, last_name)', $keyword)
+                ->or_like('email', $keyword)
+                ->or_like('phone_number', $keyword)
+                ->or_like('mobile_number', $keyword)
+                ->or_like('address', $keyword)
+                ->or_like('city', $keyword)
+                ->or_like('state', $keyword)
+                ->or_like('zip_code', $keyword)
+                ->or_like('notes', $keyword)
+                ->group_end();
+        }
+
+        $providers = $query
             ->limit($limit)
             ->offset($offset)
             ->order_by($this->quote_order_by($order_by))
@@ -736,6 +808,7 @@ class Providers_model extends EA_Model
 
         foreach ($providers as &$provider) {
             $this->cast($provider);
+            $this->decrypt_phi_fields($provider, $this->phi_fields);
             $provider['settings'] = $this->get_settings($provider['id']);
             $provider['services'] = $this->get_service_ids($provider['id']);
         }
@@ -780,6 +853,8 @@ class Providers_model extends EA_Model
      */
     public function api_encode(array &$provider): void
     {
+        $this->decrypt_phi_fields($provider, $this->phi_fields);
+
         $encoded_resource = [
             'id' => array_key_exists('id', $provider) ? (int) $provider['id'] : null,
             'firstName' => $provider['first_name'],
@@ -995,6 +1070,37 @@ class Providers_model extends EA_Model
         }
 
         $provider = $decoded_resource;
+    }
+
+    /**
+     * Apply PHI encryption + hashes before persisting data.
+     *
+     * @param array $provider
+     * @param array|null $existing
+     */
+    protected function apply_phi_write(array &$provider, ?array $existing = null): void
+    {
+        $crypto = $this->get_phi_crypto();
+
+        if (!$crypto->enabled()) {
+            return;
+        }
+
+        $this->set_phi_hashes($provider, [
+            'email_hash' => 'email',
+            'phone_hash' => 'phone_number',
+            'mobile_hash' => 'mobile_number',
+            'first_name_hash' => 'first_name',
+            'last_name_hash' => 'last_name',
+        ]);
+
+        if (array_key_exists('first_name', $provider) || array_key_exists('last_name', $provider)) {
+            $first = $provider['first_name'] ?? ($existing['first_name'] ?? '');
+            $last = $provider['last_name'] ?? ($existing['last_name'] ?? '');
+            $provider['full_name_hash'] = $crypto->hash_search(trim($first . ' ' . $last));
+        }
+
+        $this->encrypt_phi_fields($provider, $this->phi_fields);
     }
 
     /**

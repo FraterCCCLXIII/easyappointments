@@ -176,8 +176,44 @@ class Instance
 
         $contents = $this->CI->dbutil->backup();
 
+        $encrypt_backups = (bool) config('backup_encryption_enabled', false);
+
+        if ($encrypt_backups) {
+            $this->CI->load->library('phi_crypto');
+            $contents = $this->CI->phi_crypto->encrypt_string($contents);
+        }
+
         $filename = 'easyappointments-backup-' . date('Y-m-d-His') . '.gz';
 
+        if ($encrypt_backups) {
+            $filename .= '.enc';
+        }
+
         write_file(rtrim($path, '/') . '/' . $filename, $contents);
+
+        $this->prune_old_backups($path);
+    }
+
+    /**
+     * Remove backups older than retention window.
+     *
+     * @param string $path
+     */
+    protected function prune_old_backups(string $path): void
+    {
+        $retention_days = (int) config('backup_retention_days', 30);
+
+        if ($retention_days <= 0) {
+            return;
+        }
+
+        $threshold = strtotime('-' . $retention_days . ' days');
+        $files = glob(rtrim($path, '/') . '/easyappointments-backup-*.gz*') ?: [];
+
+        foreach ($files as $file) {
+            if (filemtime($file) < $threshold) {
+                @unlink($file);
+            }
+        }
     }
 }

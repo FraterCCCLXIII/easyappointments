@@ -18,6 +18,13 @@
  */
 class Customer_custom_field_values_model extends EA_Model
 {
+    /**
+     * @var array
+     */
+    protected array $phi_fields = [
+        'value',
+    ];
+
     public function find_for_user(int $user_id): array
     {
         $rows = $this->db
@@ -26,6 +33,7 @@ class Customer_custom_field_values_model extends EA_Model
 
         $values = [];
         foreach ($rows as $row) {
+            $this->decrypt_phi_fields($row, $this->phi_fields);
             $values[(int) $row['id_custom_fields']] = $row['value'];
         }
 
@@ -59,6 +67,8 @@ class Customer_custom_field_values_model extends EA_Model
                 'value' => $value,
                 'update_datetime' => date('Y-m-d H:i:s'),
             ];
+
+            $this->encrypt_phi_fields($data, $this->phi_fields);
 
             if ($existing) {
                 $this->db->update(

@@ -42,6 +42,22 @@ class Appointment_notes_model extends EA_Model
     ];
 
     /**
+     * @var array
+     */
+    protected array $phi_fields = [
+        'note',
+    ];
+
+    /**
+     * @var array
+     */
+    protected array $author_phi_fields = [
+        'author_first_name',
+        'author_last_name',
+        'author_email',
+    ];
+
+    /**
      * Save (insert or update) an appointment note.
      *
      * @param array $note Associative array with the appointment note data.
@@ -107,6 +123,8 @@ class Appointment_notes_model extends EA_Model
         $note['create_datetime'] = date('Y-m-d H:i:s');
         $note['update_datetime'] = date('Y-m-d H:i:s');
 
+        $this->encrypt_phi_fields($note, $this->phi_fields);
+
         if (!$this->db->insert('appointment_notes', $note)) {
             throw new RuntimeException('Could not insert appointment note.');
         }
@@ -126,6 +144,8 @@ class Appointment_notes_model extends EA_Model
     protected function update(array $note): int
     {
         $note['update_datetime'] = date('Y-m-d H:i:s');
+
+        $this->encrypt_phi_fields($note, $this->phi_fields);
 
         if (!$this->db->update('appointment_notes', $note, ['id' => $note['id']])) {
             throw new RuntimeException('Could not update appointment note.');
@@ -154,6 +174,7 @@ class Appointment_notes_model extends EA_Model
         }
 
         $this->cast($note);
+        $this->decrypt_phi_fields($note, $this->phi_fields);
 
         return $note;
     }
@@ -189,6 +210,8 @@ class Appointment_notes_model extends EA_Model
         }
 
         $this->cast($note);
+        $this->decrypt_phi_fields($note, $this->phi_fields);
+        $this->decrypt_phi_fields($note, $this->author_phi_fields);
 
         return $note;
     }
@@ -218,6 +241,8 @@ class Appointment_notes_model extends EA_Model
 
         foreach ($notes as &$note) {
             $this->cast($note);
+            $this->decrypt_phi_fields($note, $this->phi_fields);
+            $this->decrypt_phi_fields($note, $this->author_phi_fields);
         }
 
         return $notes;
@@ -252,6 +277,8 @@ class Appointment_notes_model extends EA_Model
 
         foreach ($notes as &$note) {
             $this->cast($note);
+            $this->decrypt_phi_fields($note, $this->phi_fields);
+            $this->decrypt_phi_fields($note, $this->author_phi_fields);
         }
 
         return $notes;

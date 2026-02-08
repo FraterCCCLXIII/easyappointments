@@ -45,6 +45,7 @@ class Api
         $this->CI = &get_instance();
 
         $this->CI->load->library('accounts');
+        $this->CI->load->library('audit_log');
     }
 
     /**
@@ -65,10 +66,15 @@ class Api
     public function auth(): void
     {
         try {
+            rate_limit($this->CI->input->ip_address(), 60, 120);
+
             // Bearer token.
             $api_token = setting('api_token');
 
             if (!empty($api_token) && $api_token === $this->get_bearer_token()) {
+                $this->CI->audit_log->write('api.auth.success', [
+                    'auth_type' => 'bearer',
+                ]);
                 return;
             }
 
@@ -86,7 +92,13 @@ class Api
                     'Unauthorized',
                 );
             }
+
+            $this->CI->audit_log->write('api.auth.success', [
+                'auth_type' => 'basic',
+                'user_id' => $user_data['user_id'] ?? null,
+            ]);
         } catch (Throwable) {
+            $this->CI->audit_log->write('api.auth.failed');
             $this->request_authentication();
         }
     }

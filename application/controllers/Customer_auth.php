@@ -29,6 +29,7 @@ class Customer_auth extends EA_Controller
         $this->load->model('customer_auth_model');
         $this->load->model('customer_otp_model');
         $this->load->model('settings_model');
+        $this->load->library('audit_log');
         $this->load->library('email_messages');
     }
 
@@ -141,11 +142,19 @@ class Customer_auth extends EA_Controller
                 'customer_email' => $auth['email'],
             ]);
 
+            $this->audit_log->write('customer.login.success', [
+                'customer_id' => (int) $auth['customer_id'],
+            ]);
+
             $return_url = session('customer_return_url') ?: site_url('dashboard');
             session(['customer_return_url' => null]);
 
             redirect($return_url);
         } catch (Throwable $e) {
+            $this->audit_log->write('customer.login.failed', [
+                'reason' => $e->getMessage(),
+            ]);
+
             session([
                 'customer_auth_error' => $e->getMessage(),
                 'customer_auth_mode' => 'login',
@@ -210,8 +219,16 @@ class Customer_auth extends EA_Controller
                 'customer_email' => $email,
             ]);
 
+            $this->audit_log->write('customer.register', [
+                'customer_id' => (int) $customer_id,
+            ]);
+
             redirect('customer/account?complete=1');
         } catch (Throwable $e) {
+            $this->audit_log->write('customer.register.failed', [
+                'reason' => $e->getMessage(),
+            ]);
+
             session([
                 'customer_auth_error' => $e->getMessage(),
                 'customer_auth_mode' => 'register',
@@ -276,8 +293,17 @@ class Customer_auth extends EA_Controller
                 'customer_auth_mode' => $intent === 'login' ? 'login' : 'register',
             ]);
 
+            $this->audit_log->write('customer.otp.requested', [
+                'intent' => $intent,
+                'email' => $email,
+            ]);
+
             redirect('customer/login');
         } catch (Throwable $e) {
+            $this->audit_log->write('customer.otp.request_failed', [
+                'reason' => $e->getMessage(),
+            ]);
+
             session([
                 'customer_auth_error' => $e->getMessage(),
                 'customer_auth_mode' => request('intent', 'login') === 'login' ? 'login' : 'register',
@@ -346,6 +372,11 @@ class Customer_auth extends EA_Controller
                 'customer_otp_pending_intent' => null,
             ]);
 
+            $this->audit_log->write('customer.otp.verified', [
+                'intent' => $login_mode,
+                'customer_id' => (int) $auth['customer_id'],
+            ]);
+
             if ($login_mode === 'password' && empty($auth['password_hash'])) {
                 session(['customer_password_required' => true]);
                 redirect('customer/create_password');
@@ -359,6 +390,10 @@ class Customer_auth extends EA_Controller
 
             redirect($return_url);
         } catch (Throwable $e) {
+            $this->audit_log->write('customer.otp.verify_failed', [
+                'reason' => $e->getMessage(),
+            ]);
+
             session([
                 'customer_auth_error' => $e->getMessage(),
                 'customer_auth_mode' => request('intent', 'login') === 'login' ? 'login' : 'register',

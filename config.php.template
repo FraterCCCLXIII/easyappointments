@@ -26,6 +26,14 @@ class Config
     public const GOOGLE_CLIENT_ID = '';
     public const GOOGLE_CLIENT_SECRET = '';
 
+    // ------------------------------------------------------------------------
+    // SECURITY (ENV-DRIVEN)
+    // ------------------------------------------------------------------------
+    // ENCRYPTION_KEY (base64 32 bytes) must be provided via environment for PHI encryption.
+    // PHI_ENCRYPTION_ENABLED=true enables application-level encryption for PHI fields.
+    // USER_FILE_ALLOWED_EXTENSIONS / USER_FILE_ALLOWED_MIME_TYPES restrict uploads.
+    // USER_FILE_AV_SCAN_COMMAND="clamdscan --no-summary %s" enables AV scanning.
+
     /**
      * Get a configuration value from environment or constant.
      */

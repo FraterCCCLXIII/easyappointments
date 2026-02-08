@@ -9,10 +9,9 @@
                 <h1 class="text-2xl font-semibold text-slate-900">
                     <?= lang('calendar') ?>
                 </h1>
-                <div id="calendar-filter" class="flex items-center gap-2 rounded-xl border border-[var(--bs-border-color,#e2e8f0)] bg-white px-3 py-1.5 shadow-sm">
-                    <i data-lucide="filter" class="h-4 w-4 text-slate-500"></i>
+                <div id="calendar-filter">
                     <select id="select-filter-item"
-                            class="form-select border-0 bg-transparent p-0 text-sm font-medium text-slate-700 focus:ring-0 focus:outline-none"
+                            class="form-select"
                             data-tippy-content="<?= lang('select_filter_item_hint') ?>"
                             aria-label="<?= lang('filter') ?>">
                         <!-- JS -->
@@ -66,13 +65,6 @@
                         aria-label="<?= lang('reload') ?>">
                     <i data-lucide="rotate-cw" class="w-4 h-4"></i>
                 </button>
-                <?php if (vars('calendar_view') === CALENDAR_VIEW_DEFAULT): ?>
-                    <a class="btn"
-                       href="<?= site_url('calendar?view=table') ?>"
-                       aria-label="<?= lang('table') ?>">
-                        <i data-lucide="table" class="w-4 h-4"></i>
-                    </a>
-                <?php endif; ?>
                 <?php if (vars('calendar_view') === CALENDAR_VIEW_TABLE): ?>
                     <a class="btn"
                        href="<?= site_url('calendar?view=default') ?>"

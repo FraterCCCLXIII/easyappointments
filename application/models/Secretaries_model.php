@@ -50,6 +50,23 @@ class Secretaries_model extends EA_Model
     ];
 
     /**
+     * @var array
+     */
+    protected array $phi_fields = [
+        'first_name',
+        'last_name',
+        'email',
+        'mobile_number',
+        'phone_number',
+        'address',
+        'city',
+        'state',
+        'zip_code',
+        'notes',
+        'ldap_dn',
+    ];
+
+    /**
      * Save (insert or update) a secretary.
      *
      * @param array $secretary Associative array with the secretary data.
@@ -224,6 +241,7 @@ class Secretaries_model extends EA_Model
 
         foreach ($secretaries as &$secretary) {
             $this->cast($secretary);
+            $this->decrypt_phi_fields($secretary, $this->phi_fields);
             $secretary['settings'] = $this->get_settings($secretary['id']);
             $secretary['providers'] = $this->get_provider_ids($secretary['id']);
         }
@@ -305,6 +323,8 @@ class Secretaries_model extends EA_Model
         $settings = $secretary['settings'];
 
         unset($secretary['providers'], $secretary['settings']);
+
+        $this->apply_phi_write($secretary);
 
         if (!$this->db->insert('users', $secretary)) {
             throw new RuntimeException('Could not insert secretary.');
@@ -393,6 +413,14 @@ class Secretaries_model extends EA_Model
             $settings['password'] = hash_password($existing_settings['salt'], $settings['password']);
         }
 
+        $existing = $this->db->get_where('users', ['id' => $secretary['id']])->row_array();
+
+        if (!empty($existing)) {
+            $this->decrypt_phi_fields($existing, $this->phi_fields);
+        }
+
+        $this->apply_phi_write($secretary, $existing ?: null);
+
         if (!$this->db->update('users', $secretary, ['id' => $secretary['id']])) {
             throw new RuntimeException('Could not update secretary.');
         }
@@ -467,6 +495,8 @@ class Secretaries_model extends EA_Model
 
         // Check if the required field is part of the secretary data.
         $secretary = $query->row_array();
+        $this->cast($secretary);
+        $this->decrypt_phi_fields($secretary, $this->phi_fields);
 
         if (!array_key_exists($field, $secretary)) {
             throw new InvalidArgumentException('The requested field was not found in the secretary data: ' . $field);
@@ -520,23 +550,63 @@ class Secretaries_model extends EA_Model
     {
         $role_id = $this->get_secretary_role_id();
 
-        $secretaries = $this->db
+        $query = $this->db
             ->select()
             ->from('users')
-            ->where('id_roles', $role_id)
-            ->group_start()
-            ->like('first_name', $keyword)
-            ->or_like('last_name', $keyword)
-            ->or_like('CONCAT_WS(" ", first_name, last_name)', $keyword)
-            ->or_like('email', $keyword)
-            ->or_like('phone_number', $keyword)
-            ->or_like('mobile_number', $keyword)
-            ->or_like('address', $keyword)
-            ->or_like('city', $keyword)
-            ->or_like('state', $keyword)
-            ->or_like('zip_code', $keyword)
-            ->or_like('notes', $keyword)
-            ->group_end()
+            ->where('id_roles', $role_id);
+
+        $crypto = $this->get_phi_crypto();
+
+        if ($crypto->enabled()) {
+            $keyword_hash = $crypto->hash_search($keyword);
+
+            if ($keyword_hash) {
+                $query->group_start()
+                    ->or_where('first_name_hash', $keyword_hash)
+                    ->or_where('last_name_hash', $keyword_hash)
+                    ->or_where('full_name_hash', $keyword_hash)
+                    ->or_where('email_hash', $keyword_hash)
+                    ->or_where('phone_hash', $keyword_hash)
+                    ->or_where('mobile_hash', $keyword_hash)
+                    ->group_end();
+            }
+
+            if (config('phi_allow_plaintext_search', true)) {
+                $query->or_group_start()
+                    ->like('first_name', $keyword)
+                    ->or_like('last_name', $keyword)
+                    ->or_like('CONCAT_WS(" ", first_name, last_name)', $keyword)
+                    ->or_like('email', $keyword)
+                    ->or_like('phone_number', $keyword)
+                    ->or_like('mobile_number', $keyword)
+                    ->or_like('address', $keyword)
+                    ->or_like('city', $keyword)
+                    ->or_like('state', $keyword)
+                    ->or_like('zip_code', $keyword)
+                    ->or_like('notes', $keyword)
+                    ->group_end();
+            }
+
+            if (!$keyword_hash && !config('phi_allow_plaintext_search', true)) {
+                $query->where('1 = 0', null, false);
+            }
+        } else {
+            $query->group_start()
+                ->like('first_name', $keyword)
+                ->or_like('last_name', $keyword)
+                ->or_like('CONCAT_WS(" ", first_name, last_name)', $keyword)
+                ->or_like('email', $keyword)
+                ->or_like('phone_number', $keyword)
+                ->or_like('mobile_number', $keyword)
+                ->or_like('address', $keyword)
+                ->or_like('city', $keyword)
+                ->or_like('state', $keyword)
+                ->or_like('zip_code', $keyword)
+                ->or_like('notes', $keyword)
+                ->group_end();
+        }
+
+        $secretaries = $query
             ->limit($limit)
             ->offset($offset)
             ->order_by($this->quote_order_by($order_by))
@@ -545,6 +615,7 @@ class Secretaries_model extends EA_Model
 
         foreach ($secretaries as &$secretary) {
             $this->cast($secretary);
+            $this->decrypt_phi_fields($secretary, $this->phi_fields);
             $secretary['settings'] = $this->get_settings($secretary['id']);
             $secretary['providers'] = $this->get_provider_ids($secretary['id']);
         }
@@ -589,6 +660,8 @@ class Secretaries_model extends EA_Model
      */
     public function api_encode(array &$secretary): void
     {
+        $this->decrypt_phi_fields($secretary, $this->phi_fields);
+
         $encoded_resource = [
             'id' => array_key_exists('id', $secretary) ? (int) $secretary['id'] : null,
             'firstName' => $secretary['first_name'],
@@ -714,6 +787,37 @@ class Secretaries_model extends EA_Model
     }
 
     /**
+     * Apply PHI encryption + hashes before persisting data.
+     *
+     * @param array $secretary
+     * @param array|null $existing
+     */
+    protected function apply_phi_write(array &$secretary, ?array $existing = null): void
+    {
+        $crypto = $this->get_phi_crypto();
+
+        if (!$crypto->enabled()) {
+            return;
+        }
+
+        $this->set_phi_hashes($secretary, [
+            'email_hash' => 'email',
+            'phone_hash' => 'phone_number',
+            'mobile_hash' => 'mobile_number',
+            'first_name_hash' => 'first_name',
+            'last_name_hash' => 'last_name',
+        ]);
+
+        if (array_key_exists('first_name', $secretary) || array_key_exists('last_name', $secretary)) {
+            $first = $secretary['first_name'] ?? ($existing['first_name'] ?? '');
+            $last = $secretary['last_name'] ?? ($existing['last_name'] ?? '');
+            $secretary['full_name_hash'] = $crypto->hash_search(trim($first . ' ' . $last));
+        }
+
+        $this->encrypt_phi_fields($secretary, $this->phi_fields);
+    }
+
+    /**
      * Quickly check if a provider is assigned to a provider.
      *
      * @param int $secretary_id
@@ -748,6 +852,7 @@ class Secretaries_model extends EA_Model
         }
 
         $this->cast($secretary);
+        $this->decrypt_phi_fields($secretary, $this->phi_fields);
         $secretary['settings'] = $this->get_settings($secretary['id']);
         $secretary['providers'] = $this->get_provider_ids($secretary['id']);
 
@@ -776,6 +881,7 @@ class Secretaries_model extends EA_Model
         }
 
         $this->cast($secretary);
+        $this->decrypt_phi_fields($secretary, $this->phi_fields);
         $secretary['settings'] = $this->get_settings($secretary['id']);
         $secretary['providers'] = $this->get_provider_ids($secretary['id']);
 

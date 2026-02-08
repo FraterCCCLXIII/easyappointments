@@ -8,7 +8,8 @@ if [ ! -f config.php ]; then
 fi
 
 # Set permissions
-chmod -R 777 storage
+chown -R www-data:www-data storage
+chmod -R 750 storage
 
 # Run composer install if vendor doesn't exist
 if [ ! -d vendor ]; then

@@ -45,7 +45,8 @@ COPY --from=asset-builder /app/assets ./assets
 RUN composer install --no-dev --optimize-autoloader
 
 # Set permissions
-RUN chmod -R 777 storage
+RUN chown -R www-data:www-data storage \
+    && chmod -R 750 storage
 
 # Expose port 80
 EXPOSE 80

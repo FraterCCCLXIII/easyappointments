@@ -50,6 +50,31 @@ class Appointments_model extends EA_Model
     ];
 
     /**
+     * @var array
+     */
+    protected array $phi_fields = [
+        'location',
+        'notes',
+    ];
+
+    /**
+     * @var array
+     */
+    protected array $user_phi_fields = [
+        'first_name',
+        'last_name',
+        'email',
+        'phone_number',
+        'mobile_number',
+        'address',
+        'city',
+        'state',
+        'zip_code',
+        'notes',
+        'ldap_dn',
+    ];
+
+    /**
      * Save (insert or update) an appointment.
      *
      * @param array $appointment Associative array with the appointment data.
@@ -215,6 +240,8 @@ class Appointments_model extends EA_Model
         $appointment['update_datetime'] = date('Y-m-d H:i:s');
         $appointment['hash'] = random_string('alnum', 12);
 
+        $this->encrypt_phi_fields($appointment, $this->phi_fields);
+
         if (!$this->db->insert('appointments', $appointment)) {
             throw new RuntimeException('Could not insert appointment.');
         }
@@ -234,6 +261,8 @@ class Appointments_model extends EA_Model
     protected function update(array $appointment): int
     {
         $appointment['update_datetime'] = date('Y-m-d H:i:s');
+
+        $this->encrypt_phi_fields($appointment, $this->phi_fields);
 
         if (!$this->db->update('appointments', $appointment, ['id' => $appointment['id']])) {
             throw new RuntimeException('Could not update appointment record.');
@@ -262,6 +291,7 @@ class Appointments_model extends EA_Model
         }
 
         $this->cast($appointment);
+        $this->decrypt_phi_fields($appointment, $this->phi_fields);
 
         return $appointment;
     }
@@ -299,6 +329,7 @@ class Appointments_model extends EA_Model
         $appointment = $query->row_array();
 
         $this->cast($appointment);
+        $this->decrypt_phi_fields($appointment, $this->phi_fields);
 
         if (!array_key_exists($field, $appointment)) {
             throw new InvalidArgumentException('The requested field was not found in the appointment data: ' . $field);
@@ -466,30 +497,80 @@ class Appointments_model extends EA_Model
      */
     public function search(string $keyword, ?int $limit = null, ?int $offset = null, ?string $order_by = null): array
     {
-        $appointments = $this->db
+        $query = $this->db
             ->select('appointments.*')
             ->from('appointments')
             ->join('services', 'services.id = appointments.id_services', 'left')
             ->join('users AS providers', 'providers.id = appointments.id_users_provider', 'inner')
             ->join('users AS customers', 'customers.id = appointments.id_users_customer', 'left')
-            ->where('is_unavailability', false)
-            ->group_start()
-            ->like('appointments.start_datetime', $keyword)
-            ->or_like('appointments.end_datetime', $keyword)
-            ->or_like('appointments.location', $keyword)
-            ->or_like('appointments.hash', $keyword)
-            ->or_like('appointments.notes', $keyword)
-            ->or_like('services.name', $keyword)
-            ->or_like('services.description', $keyword)
-            ->or_like('providers.first_name', $keyword)
-            ->or_like('providers.last_name', $keyword)
-            ->or_like('providers.email', $keyword)
-            ->or_like('providers.phone_number', $keyword)
-            ->or_like('customers.first_name', $keyword)
-            ->or_like('customers.last_name', $keyword)
-            ->or_like('customers.email', $keyword)
-            ->or_like('customers.phone_number', $keyword)
-            ->group_end()
+            ->where('is_unavailability', false);
+
+        $crypto = $this->get_phi_crypto();
+
+        if ($crypto->enabled()) {
+            $keyword_hash = $crypto->hash_search($keyword);
+
+            if ($keyword_hash) {
+                $query->group_start()
+                    ->or_where('providers.first_name_hash', $keyword_hash)
+                    ->or_where('providers.last_name_hash', $keyword_hash)
+                    ->or_where('providers.full_name_hash', $keyword_hash)
+                    ->or_where('providers.email_hash', $keyword_hash)
+                    ->or_where('providers.phone_hash', $keyword_hash)
+                    ->or_where('providers.mobile_hash', $keyword_hash)
+                    ->or_where('customers.first_name_hash', $keyword_hash)
+                    ->or_where('customers.last_name_hash', $keyword_hash)
+                    ->or_where('customers.full_name_hash', $keyword_hash)
+                    ->or_where('customers.email_hash', $keyword_hash)
+                    ->or_where('customers.phone_hash', $keyword_hash)
+                    ->or_where('customers.mobile_hash', $keyword_hash)
+                    ->group_end();
+            }
+
+            if (config('phi_allow_plaintext_search', true)) {
+                $query->or_group_start()
+                    ->like('appointments.start_datetime', $keyword)
+                    ->or_like('appointments.end_datetime', $keyword)
+                    ->or_like('appointments.location', $keyword)
+                    ->or_like('appointments.hash', $keyword)
+                    ->or_like('appointments.notes', $keyword)
+                    ->or_like('services.name', $keyword)
+                    ->or_like('services.description', $keyword)
+                    ->or_like('providers.first_name', $keyword)
+                    ->or_like('providers.last_name', $keyword)
+                    ->or_like('providers.email', $keyword)
+                    ->or_like('providers.phone_number', $keyword)
+                    ->or_like('customers.first_name', $keyword)
+                    ->or_like('customers.last_name', $keyword)
+                    ->or_like('customers.email', $keyword)
+                    ->or_like('customers.phone_number', $keyword)
+                    ->group_end();
+            }
+
+            if (!$keyword_hash && !config('phi_allow_plaintext_search', true)) {
+                $query->where('1 = 0', null, false);
+            }
+        } else {
+            $query->group_start()
+                ->like('appointments.start_datetime', $keyword)
+                ->or_like('appointments.end_datetime', $keyword)
+                ->or_like('appointments.location', $keyword)
+                ->or_like('appointments.hash', $keyword)
+                ->or_like('appointments.notes', $keyword)
+                ->or_like('services.name', $keyword)
+                ->or_like('services.description', $keyword)
+                ->or_like('providers.first_name', $keyword)
+                ->or_like('providers.last_name', $keyword)
+                ->or_like('providers.email', $keyword)
+                ->or_like('providers.phone_number', $keyword)
+                ->or_like('customers.first_name', $keyword)
+                ->or_like('customers.last_name', $keyword)
+                ->or_like('customers.email', $keyword)
+                ->or_like('customers.phone_number', $keyword)
+                ->group_end();
+        }
+
+        $appointments = $query
             ->limit($limit)
             ->offset($offset)
             ->order_by($this->quote_order_by($order_by))
@@ -498,6 +579,7 @@ class Appointments_model extends EA_Model
 
         foreach ($appointments as &$appointment) {
             $this->cast($appointment);
+            $this->decrypt_phi_fields($appointment, $this->phi_fields);
         }
 
         return $appointments;
@@ -533,6 +615,9 @@ class Appointments_model extends EA_Model
                             'id' => $appointment['id_users_provider'] ?? ($appointment['providerId'] ?? null),
                         ])
                         ->row_array();
+                    if (!empty($appointment['provider'])) {
+                        $this->decrypt_phi_fields($appointment['provider'], $this->user_phi_fields);
+                    }
                     break;
 
                 case 'customer':
@@ -541,6 +626,9 @@ class Appointments_model extends EA_Model
                             'id' => $appointment['id_users_customer'] ?? ($appointment['customerId'] ?? null),
                         ])
                         ->row_array();
+                    if (!empty($appointment['customer'])) {
+                        $this->decrypt_phi_fields($appointment['customer'], $this->user_phi_fields);
+                    }
                     break;
 
                 default:
@@ -558,6 +646,8 @@ class Appointments_model extends EA_Model
      */
     public function api_encode(array &$appointment): void
     {
+        $this->decrypt_phi_fields($appointment, $this->phi_fields);
+
         $encoded_resource = [
             'id' => array_key_exists('id', $appointment) ? (int) $appointment['id'] : null,
             'book' => $appointment['book_datetime'],
