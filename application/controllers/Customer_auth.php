@@ -28,6 +28,9 @@ class Customer_auth extends EA_Controller
         $this->load->model('customers_model');
         $this->load->model('customer_auth_model');
         $this->load->model('customer_otp_model');
+        $this->load->model('form_assignments_model');
+        $this->load->model('forms_model');
+        $this->load->model('form_submissions_model');
         $this->load->model('settings_model');
         $this->load->library('audit_log');
         $this->load->library('email_messages');
@@ -128,6 +131,8 @@ class Customer_auth extends EA_Controller
                 throw new InvalidArgumentException('Invalid credentials provided.');
             }
 
+            $is_first_login = empty($auth['last_login_at']);
+
             $this->customer_auth_model->save([
                 'id' => $auth['id'],
                 'failed_attempts' => 0,
@@ -146,7 +151,11 @@ class Customer_auth extends EA_Controller
                 'customer_id' => (int) $auth['customer_id'],
             ]);
 
-            $return_url = session('customer_return_url') ?: site_url('dashboard');
+            if ($is_first_login) {
+                $this->send_profile_completion_email((int) $auth['customer_id'], (string) $auth['email']);
+            }
+
+            $return_url = $this->resolve_login_redirect($is_first_login);
             session(['customer_return_url' => null]);
 
             redirect($return_url);
@@ -223,7 +232,12 @@ class Customer_auth extends EA_Controller
                 'customer_id' => (int) $customer_id,
             ]);
 
-            redirect('customer/account?complete=1');
+            $this->send_profile_completion_email((int) $customer_id, $email);
+
+            $return_url = $this->resolve_login_redirect(true);
+            session(['customer_return_url' => null]);
+
+            redirect($return_url);
         } catch (Throwable $e) {
             $this->audit_log->write('customer.register.failed', [
                 'reason' => $e->getMessage(),
@@ -362,6 +376,8 @@ class Customer_auth extends EA_Controller
                 throw new RuntimeException('Customer account is unavailable.');
             }
 
+            $is_first_login = $created_account || empty($auth['last_login_at']);
+
             $this->session->sess_regenerate();
 
             session([
@@ -377,15 +393,22 @@ class Customer_auth extends EA_Controller
                 'customer_id' => (int) $auth['customer_id'],
             ]);
 
+            $this->customer_auth_model->save([
+                'id' => $auth['id'],
+                'last_login_at' => date('Y-m-d H:i:s'),
+            ]);
+
+            if ($is_first_login) {
+                $this->send_profile_completion_email((int) $auth['customer_id'], (string) $auth['email']);
+            }
+
             if ($login_mode === 'password' && empty($auth['password_hash'])) {
                 session(['customer_password_required' => true]);
                 redirect('customer/create_password');
                 return;
             }
 
-            $return_url = $created_account
-                ? site_url('customer/account?complete=1')
-                : (session('customer_return_url') ?: site_url('dashboard'));
+            $return_url = $this->resolve_login_redirect($is_first_login);
             session(['customer_return_url' => null]);
 
             redirect($return_url);
@@ -518,5 +541,80 @@ class Customer_auth extends EA_Controller
         }
 
         return $mode;
+    }
+
+    protected function resolve_login_redirect(bool $is_first_login): string
+    {
+        $return_url = session('customer_return_url');
+
+        if (!empty($return_url)) {
+            if (!$is_first_login || !$this->is_profile_redirect($return_url)) {
+                return $return_url;
+            }
+        }
+
+        if ($is_first_login) {
+            return site_url('booking');
+        }
+
+        return site_url('dashboard');
+    }
+
+    protected function is_profile_redirect(string $url): bool
+    {
+        $path = parse_url($url, PHP_URL_PATH) ?: '';
+
+        return str_contains($path, '/customer/account');
+    }
+
+    protected function send_profile_completion_email(int $customer_id, string $recipient_email): void
+    {
+        if (empty($recipient_email)) {
+            return;
+        }
+
+        $forms = $this->get_incomplete_forms($customer_id);
+
+        $settings = [
+            'company_name' => setting('company_name'),
+            'company_link' => setting('company_link'),
+            'company_email' => setting('company_email'),
+            'company_color' => setting('company_color'),
+        ];
+
+        $account_url = site_url('customer/account?complete=1');
+
+        $this->email_messages->send_customer_profile_completion($recipient_email, $settings, $account_url, $forms);
+    }
+
+    protected function get_incomplete_forms(int $customer_id): array
+    {
+        $assigned_rows = $this->form_assignments_model->find_for_role(DB_SLUG_CUSTOMER);
+
+        if (empty($assigned_rows)) {
+            return [];
+        }
+
+        $form_ids = array_map(fn ($row) => (int) $row['id_forms'], $assigned_rows);
+        $forms = $this->forms_model->find_by_ids($form_ids, true);
+
+        $incomplete = [];
+
+        foreach ($forms as $form) {
+            $submission = $this->form_submissions_model->find_for_user((int) $form['id'], $customer_id);
+
+            if ($submission) {
+                continue;
+            }
+
+            $slug = $form['slug'] ?? (string) $form['id'];
+            $incomplete[] = [
+                'id' => (int) $form['id'],
+                'name' => $form['name'],
+                'url' => site_url('customer/forms/' . $slug),
+            ];
+        }
+
+        return $incomplete;
     }
 }

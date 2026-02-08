@@ -28,7 +28,7 @@
                             </div>
                             <div class="row fields-row">
                                 <div class="col-12">
-                                <div class="form-group mb-5">
+                                    <div class="form-group mb-5">
                                     <label for="first-name" class="form-label">
                                         <?= lang('first_name') ?>
                                         <span class="text-danger">*</span>
@@ -239,8 +239,8 @@
                                     </div>
                                 </div>
                             </div>
-                        </section>
                         </div>
+                        </section>
 
                         <section class="rounded-xl border border-[var(--bs-border-color,#e2e8f0)] bg-white p-5 mb-5">
                             <div class="mb-4 flex items-center justify-between">
@@ -261,7 +261,6 @@
 
                             <div class="row">
                                 <div class="col-12">
-                                    <div>
                                     <div class="mb-3">
                                         <div class="form-check form-switch">
                                             <input class="form-check-input" type="checkbox" id="customer-notifications"
@@ -382,11 +381,9 @@
                                         <textarea id="disable-booking-message" cols="30" rows="10"
                                                   class="mb-3"></textarea>
                                     </div>
-                                    </div>
                                 </div>
                             </div>
                         </section>
-                        </div>
 
                         <?php slot('after_primary_fields'); ?>
                     </fieldset>

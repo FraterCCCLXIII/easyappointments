@@ -56,7 +56,7 @@ class Customer_forms extends EA_Controller
         $this->load->view('pages/customer_forms');
     }
 
-    public function view(int $form_id): void
+    public function view(string $form_key): void
     {
         $this->require_customer();
 
@@ -66,8 +66,14 @@ class Customer_forms extends EA_Controller
             $theme = 'default';
         }
 
+        $form = $this->resolve_form($form_key);
+
+        if (!$form) {
+            abort(404, 'Form not found.');
+        }
+
         script_vars([
-            'form_id' => $form_id,
+            'form_id' => (int) $form['id'],
         ]);
 
         html_vars([
@@ -100,6 +106,7 @@ class Customer_forms extends EA_Controller
                 $indexed[$form['id']] = [
                     'id' => $form['id'],
                     'name' => $form['name'],
+                    'slug' => $form['slug'] ?? null,
                     'status' => $submission ? 'complete' : 'incomplete',
                     'submitted_at' => $submission['submitted_at'] ?? null,
                 ];
@@ -118,6 +125,7 @@ class Customer_forms extends EA_Controller
                 $indexed[$form_id] = [
                     'id' => $form_id,
                     'name' => $row['name'] ?? 'Form',
+                    'slug' => $indexed[$form_id]['slug'] ?? null,
                     'status' => 'complete',
                     'submitted_at' => $row['submitted_at'] ?? null,
                 ];
@@ -298,5 +306,18 @@ class Customer_forms extends EA_Controller
         $forms = $this->forms_model->find_by_ids($form_ids, true);
 
         return !empty($forms);
+    }
+
+    protected function resolve_form(string $form_key): ?array
+    {
+        if (ctype_digit($form_key)) {
+            try {
+                return $this->forms_model->find((int) $form_key);
+            } catch (Throwable) {
+                return null;
+            }
+        }
+
+        return $this->forms_model->find_by_slug($form_key);
     }
 }

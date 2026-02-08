@@ -182,10 +182,10 @@ $route['customer/account/password/otp_request'] = 'customer_account/request_pass
 $route['customer/account/password/otp_confirm'] = 'customer_account/confirm_password_change_otp';
 $route['customer/bookings'] = 'customer_bookings/index';
 $route['customer/forms'] = 'customer_forms/index';
-$route['customer/forms/(:num)'] = 'customer_forms/view/$1';
 $route['customer/forms/list'] = 'customer_forms/list';
 $route['customer/forms/find'] = 'customer_forms/find';
 $route['customer/forms/submit'] = 'customer_forms/submit';
+$route['customer/forms/(:any)'] = 'customer_forms/view/$1';
 
 $route['forms_settings/create'] = 'forms_settings/create';
 $route['forms_settings/view/(:num)'] = 'forms_settings/view/$1';
