@@ -63,6 +63,26 @@ class Notifications
     ): void {
         try {
             $current_language = config('language');
+            $appointment_change_enabled = filter_var(
+                setting('customer_notifications', '1'),
+                FILTER_VALIDATE_BOOLEAN,
+            );
+            $notify_customer = filter_var(
+                setting('appointment_change_notify_customer', '1'),
+                FILTER_VALIDATE_BOOLEAN,
+            );
+            $notify_provider = filter_var(
+                setting('appointment_change_notify_provider', '1'),
+                FILTER_VALIDATE_BOOLEAN,
+            );
+            $notify_admin = filter_var(
+                setting('appointment_change_notify_admin', '0'),
+                FILTER_VALIDATE_BOOLEAN,
+            );
+            $notify_staff = filter_var(
+                setting('appointment_change_notify_staff', '0'),
+                FILTER_VALIDATE_BOOLEAN,
+            );
 
             $customer_link = site_url('booking/reschedule/' . $appointment['hash']);
 
@@ -72,7 +92,10 @@ class Notifications
 
             // Notify customer.
             $send_customer =
-                !empty($customer['email']) && filter_var(setting('customer_notifications'), FILTER_VALIDATE_BOOLEAN);
+                $appointment_change_enabled &&
+                $notify_customer &&
+                !empty($customer['email']) &&
+                filter_var(setting('customer_notifications'), FILTER_VALIDATE_BOOLEAN);
 
             if ($send_customer === true) {
                 config(['language' => $customer['language']]);
@@ -100,10 +123,13 @@ class Notifications
             }
 
             // Notify provider.
-            $send_provider = filter_var(
-                $this->CI->providers_model->get_setting($provider['id'], 'notifications'),
-                FILTER_VALIDATE_BOOLEAN,
-            );
+            $send_provider =
+                $appointment_change_enabled &&
+                $notify_provider &&
+                filter_var(
+                    $this->CI->providers_model->get_setting($provider['id'], 'notifications'),
+                    FILTER_VALIDATE_BOOLEAN,
+                );
 
             if ($send_provider === true) {
                 config(['language' => $provider['language']]);
@@ -137,6 +163,9 @@ class Notifications
                 if ($admin['settings']['notifications'] === '0') {
                     continue;
                 }
+                if (!$appointment_change_enabled || !$notify_admin) {
+                    continue;
+                }
 
                 config(['language' => $admin['language']]);
                 $this->CI->lang->load('translations');
@@ -167,6 +196,9 @@ class Notifications
 
             foreach ($secretaries as $secretary) {
                 if ($secretary['settings']['notifications'] === '0') {
+                    continue;
+                }
+                if (!$appointment_change_enabled || !$notify_staff) {
                     continue;
                 }
 
@@ -224,12 +256,35 @@ class Notifications
     ): void {
         try {
             $current_language = config('language');
-
-            // Notify provider.
-            $send_provider = filter_var(
-                $this->CI->providers_model->get_setting($provider['id'], 'notifications'),
+            $appointment_change_enabled = filter_var(
+                setting('customer_notifications', '1'),
                 FILTER_VALIDATE_BOOLEAN,
             );
+            $notify_customer = filter_var(
+                setting('appointment_change_notify_customer', '1'),
+                FILTER_VALIDATE_BOOLEAN,
+            );
+            $notify_provider = filter_var(
+                setting('appointment_change_notify_provider', '1'),
+                FILTER_VALIDATE_BOOLEAN,
+            );
+            $notify_admin = filter_var(
+                setting('appointment_change_notify_admin', '0'),
+                FILTER_VALIDATE_BOOLEAN,
+            );
+            $notify_staff = filter_var(
+                setting('appointment_change_notify_staff', '0'),
+                FILTER_VALIDATE_BOOLEAN,
+            );
+
+            // Notify provider.
+            $send_provider =
+                $appointment_change_enabled &&
+                $notify_provider &&
+                filter_var(
+                    $this->CI->providers_model->get_setting($provider['id'], 'notifications'),
+                    FILTER_VALIDATE_BOOLEAN,
+                );
 
             if ($send_provider === true) {
                 config(['language' => $provider['language']]);
@@ -253,7 +308,10 @@ class Notifications
 
             // Notify customer.
             $send_customer =
-                !empty($customer['email']) && filter_var(setting('customer_notifications'), FILTER_VALIDATE_BOOLEAN);
+                $appointment_change_enabled &&
+                $notify_customer &&
+                !empty($customer['email']) &&
+                filter_var(setting('customer_notifications'), FILTER_VALIDATE_BOOLEAN);
 
             if ($send_customer === true) {
                 config(['language' => $customer['language']]);
@@ -282,6 +340,9 @@ class Notifications
                 if ($admin['settings']['notifications'] === '0') {
                     continue;
                 }
+                if (!$appointment_change_enabled || !$notify_admin) {
+                    continue;
+                }
 
                 config(['language' => $admin['language']]);
                 $this->CI->lang->load('translations');
@@ -307,6 +368,9 @@ class Notifications
 
             foreach ($secretaries as $secretary) {
                 if ($secretary['settings']['notifications'] === '0') {
+                    continue;
+                }
+                if (!$appointment_change_enabled || !$notify_staff) {
                     continue;
                 }
 

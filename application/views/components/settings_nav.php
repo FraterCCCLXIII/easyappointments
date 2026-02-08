@@ -8,6 +8,7 @@ $current_route = $active_menu ?? uri_string();
 $active_route_map = [
     'general_settings' => 'general_settings',
     'booking_settings' => 'booking_settings',
+    'email_notifications_settings' => 'email_notifications_settings',
     'customer_profiles_settings' => 'customer_profiles_settings',
     'business_settings' => 'business_settings',
     'legal_settings' => 'legal_settings',
@@ -48,6 +49,18 @@ $active_route = $active_route_map[$current_route] ?? $current_route;
                         <i data-lucide="calendar" class="backend-sidebar-icon" aria-hidden="true"></i>
                     </span>
                     <span class="settings-nav-label backend-sidebar-label text-truncate"><?= lang('booking_settings') ?></span>
+                </a>
+            </div>
+            <div>
+                <a class="settings-nav-item-link backend-sidebar-link <?= $active_route === 'email_notifications_settings' ? 'active' : '' ?>"
+                   href="<?= site_url('email_notifications_settings') ?>"
+                   title="<?= e(lang('email_notifications')) ?>">
+                    <span class="settings-nav-icon backend-sidebar-icon">
+                        <i data-lucide="mail" class="backend-sidebar-icon" aria-hidden="true"></i>
+                    </span>
+                    <span class="settings-nav-label backend-sidebar-label text-truncate">
+                        <?= lang('email_notifications') ?>
+                    </span>
                 </a>
             </div>
             <div>
