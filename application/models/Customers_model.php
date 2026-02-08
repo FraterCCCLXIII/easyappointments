@@ -176,6 +176,73 @@ class Customers_model extends EA_Model
         }
     }
 
+    public function is_profile_complete(
+        array $customer,
+        array $custom_fields = [],
+        array $custom_field_values = []
+    ): bool
+    {
+        $required_fields = [
+            'first_name' => filter_var(setting('require_first_name'), FILTER_VALIDATE_BOOLEAN),
+            'last_name' => filter_var(setting('require_last_name'), FILTER_VALIDATE_BOOLEAN),
+            'email' => filter_var(setting('require_email'), FILTER_VALIDATE_BOOLEAN),
+            'phone_number' => filter_var(setting('require_phone_number'), FILTER_VALIDATE_BOOLEAN),
+            'address' => filter_var(setting('require_address'), FILTER_VALIDATE_BOOLEAN),
+            'city' => filter_var(setting('require_city'), FILTER_VALIDATE_BOOLEAN),
+            'zip_code' => filter_var(setting('require_zip_code'), FILTER_VALIDATE_BOOLEAN),
+        ];
+
+        foreach ($required_fields as $field => $required) {
+            if ($required && empty($customer[$field])) {
+                return false;
+            }
+        }
+
+        for ($i = 1; $i <= 5; $i++) {
+            if (!setting('require_custom_field_' . $i)) {
+                continue;
+            }
+
+            if (empty($customer['custom_field_' . $i])) {
+                return false;
+            }
+        }
+
+        foreach ($custom_fields as $field) {
+            if (empty($field['is_required'])) {
+                continue;
+            }
+
+            $field_id = (int) ($field['id'] ?? 0);
+            if (!$field_id) {
+                continue;
+            }
+
+            $value = $custom_field_values[$field_id] ?? null;
+            if ($this->is_custom_field_empty($value)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private function is_custom_field_empty($value): bool
+    {
+        if (is_array($value)) {
+            $normalized = array_values(array_filter(array_map(
+                fn ($item) => trim((string) $item),
+                $value
+            ), fn ($item) => $item !== ''));
+
+            return empty($normalized);
+        }
+
+        $string_value = is_string($value) ? trim($value) : '';
+
+        return $string_value === '';
+    }
+
     /**
      * Get all customers that match the provided criteria.
      *
