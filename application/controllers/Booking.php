@@ -84,6 +84,7 @@ class Booking extends EA_Controller
         $this->load->library('availability');
         $this->load->library('webhooks_client');
         $this->load->library('stripe_gateway');
+        $this->load->library('google_sync');
     }
 
     /**
@@ -145,13 +146,22 @@ class Booking extends EA_Controller
             return;
         }
 
+        $appointment = $results[0];
+        $add_to_google_url = '';
+
+        try {
+            $add_to_google_url = $this->google_sync->get_add_to_google_url($appointment['id']);
+        } catch (Throwable) {
+            $add_to_google_url = '';
+        }
+
         html_vars([
-            'appointment' => $results[0],
+            'appointment' => $appointment,
             'page_title' => lang('booking_complete'),
+            'add_to_google_url' => $add_to_google_url,
         ]);
 
         $session_id = request('session_id');
-        $appointment = $results[0];
 
         if ($session_id && $this->stripe_gateway->is_enabled()) {
             try {

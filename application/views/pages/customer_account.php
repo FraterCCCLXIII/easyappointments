@@ -5,21 +5,30 @@
     <div class="frame-container">
         <h2 class="frame-title">My Account</h2>
 
-        <?php if (vars('complete_profile')): ?>
+        <?php
+        $complete_profile = vars('complete_profile');
+        $profile_incomplete = vars('profile_incomplete');
+        $flash = vars('flash');
+        $complete_message = 'Please complete your profile before booking.';
+        $missing_message = 'Your profile is missing required information.';
+        $flash_message = is_array($flash) ? ($flash['message'] ?? '') : '';
+        $flash_is_duplicate = ($flash['type'] ?? '') === 'warning'
+            && in_array($flash_message, [$complete_message, $missing_message], true);
+        ?>
+
+        <?php if ($complete_profile): ?>
             <div class="alert alert-warning mb-4">
-                Please complete your profile before booking.
+                <?= $complete_message ?>
+            </div>
+        <?php elseif ($profile_incomplete): ?>
+            <div class="alert alert-warning mb-4">
+                <?= $missing_message ?>
             </div>
         <?php endif; ?>
 
-        <?php if (vars('profile_incomplete')): ?>
-            <div class="alert alert-warning mb-4">
-                Your profile is missing required information.
-            </div>
-        <?php endif; ?>
-
-        <?php if (vars('flash')): ?>
-            <div class="alert alert-<?= e(vars('flash')['type']) ?> mb-4">
-                <?= e(vars('flash')['message']) ?>
+        <?php if ($flash && !$flash_is_duplicate): ?>
+            <div class="alert alert-<?= e($flash['type']) ?> mb-4">
+                <?= e($flash['message']) ?>
             </div>
         <?php endif; ?>
 
@@ -49,7 +58,7 @@
         <div class="tab-content mt-6" id="account-tabs-content">
             <div class="tab-pane fade show active" id="profile" role="tabpanel">
                 <div class="row frame-content">
-                    <div class="col-12 col-lg-8 mx-auto">
+                    <div class="col-12 mx-auto px-0">
                         <h5 class="mb-3">Profile Details</h5>
                         <form method="post" action="<?= site_url('customer/account/update') ?>">
                             <input type="hidden" name="csrf_token" value="<?= e(vars('csrf_token')) ?>">
@@ -123,7 +132,7 @@
 
             <div class="tab-pane fade" id="security" role="tabpanel">
                 <div class="row frame-content">
-                    <div class="col-12 col-lg-8 mx-auto">
+                    <div class="col-12 mx-auto px-0">
                         <h5 class="mb-3">Update Email</h5>
                         <form method="post" action="<?= site_url('customer/account/email') ?>" class="mb-5"
                               id="customer-email-form">
@@ -166,7 +175,7 @@
 
             <div class="tab-pane fade" id="billing" role="tabpanel">
                 <div class="row frame-content">
-                    <div class="col-12 col-lg-8 mx-auto">
+                    <div class="col-12 mx-auto px-0">
                         <?php if (vars('stripe_enabled') && !empty(vars('customer')['stripe_customer_id'])): ?>
                             <div class="card mb-5 border">
                                 <div class="card-body d-flex justify-content-between align-items-center py-4">

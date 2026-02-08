@@ -243,6 +243,42 @@ class Email_messages
     }
 
     /**
+     * Send a profile completion email to a customer.
+     *
+     * @param string $recipient_email
+     * @param array $settings
+     * @param string $account_url
+     * @param array $forms
+     *
+     * @throws Exception
+     */
+    public function send_customer_profile_completion(
+        string $recipient_email,
+        array $settings,
+        string $account_url,
+        array $forms = [],
+    ): void {
+        $subject = lang('customer_profile_completion_subject');
+        $message = lang('customer_profile_completion_message');
+
+        $html = $this->CI->load->view(
+            'emails/customer_profile_completion_email',
+            [
+                'subject' => $subject,
+                'message' => $message,
+                'settings' => $settings,
+                'account_url' => $account_url,
+                'forms' => $forms,
+            ],
+            true,
+        );
+
+        $php_mailer = $this->get_php_mailer($recipient_email, $subject, $html);
+
+        $php_mailer->send();
+    }
+
+    /**
      * Create PHP Mailer instance based on the email configuration.
      *
      * @param string|null $recipient_email

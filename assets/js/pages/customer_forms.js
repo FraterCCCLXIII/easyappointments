@@ -55,7 +55,7 @@ App.Pages.CustomerForms = (function () {
                         class: 'px-4 py-3 text-right',
                         html: $('<a/>', {
                             class: 'btn btn-outline-secondary btn-sm',
-                            href: App.Utils.Url.siteUrl(`customer/forms/${form.id}`),
+                            href: App.Utils.Url.siteUrl(`customer/forms/${form.slug || form.id}`),
                             text: 'View',
                         }),
                     }),
