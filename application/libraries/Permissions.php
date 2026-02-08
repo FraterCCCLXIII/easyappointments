@@ -43,7 +43,7 @@ class Permissions
     /**
      * Check if a user is allowed to manage the provided customer.
      *
-     * The "limit_customer_access" setting changes the access permissions to customer entries. In order for a provider
+     * The limit customer access settings change permissions to customer entries. In order for a provider
      * or a secretary to be able to make changes to a customer, they will first need to at least have a single
      * appointment with them.
      *
@@ -58,13 +58,18 @@ class Permissions
 
         $role_slug = $this->CI->roles_model->value($role_id, 'slug');
 
-        $limit_customer_access = setting('limit_customer_access');
+        $limit_provider_customer_access = setting('limit_provider_customer_access');
+        $limit_secretary_customer_access = setting('limit_secretary_customer_access');
 
-        if ($role_slug === DB_SLUG_ADMIN || !$limit_customer_access) {
+        if ($role_slug === DB_SLUG_ADMIN) {
             return true;
         }
 
         if ($role_slug === DB_SLUG_PROVIDER) {
+            if (!$limit_provider_customer_access) {
+                return true;
+            }
+
             return $this->CI->appointments_model
                 ->query()
                 ->where(['id_users_provider' => $user_id, 'id_users_customer' => $customer_id])
@@ -73,6 +78,10 @@ class Permissions
         }
 
         if ($role_slug === DB_SLUG_SECRETARY) {
+            if (!$limit_secretary_customer_access) {
+                return true;
+            }
+
             $secretary = $this->CI->secretaries_model->find($user_id);
 
             foreach ($secretary['providers'] as $secretary_provider_id) {

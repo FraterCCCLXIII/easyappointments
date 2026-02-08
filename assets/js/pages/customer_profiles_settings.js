@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------------
  * Easy!Appointments - Online Appointment Scheduler
  *
- * @package     EasyAppointments
+ * @package     Easy!Appointments
  * @author      A.Tselegidis <alextselegidis@gmail.com>
  * @copyright   Copyright (c) Alex Tselegidis
  * @license     https://opensource.org/licenses/GPL-3.0 - GPLv3
@@ -10,24 +10,20 @@
  * ---------------------------------------------------------------------------- */
 
 /**
- * Booking settings page.
+ * Customer profiles settings page.
  *
- * This module implements the functionality of the booking settings page.
+ * This module implements the functionality of the customer profiles settings page.
  */
-App.Pages.BookingSettings = (function () {
-    let $bookingSettings = $('#booking-settings');
+App.Pages.CustomerProfilesSettings = (function () {
+    let $customerProfilesSettings = $('#customer-profiles-settings');
     let $saveSettings = $('#save-settings');
-    let $disableBooking = $('#disable-booking');
-    let $disableBookingMessage = $('#disable-booking-message');
     let $customFieldsList = $('#custom-fields-list');
     let $addCustomField = $('#add-custom-field-setting');
     let $customFieldsDebug = $('#custom-fields-debug');
 
     function refreshSelectors() {
-        $bookingSettings = $('#booking-settings');
+        $customerProfilesSettings = $('#customer-profiles-settings');
         $saveSettings = $('#save-settings');
-        $disableBooking = $('#disable-booking');
-        $disableBookingMessage = $('#disable-booking-message');
         $customFieldsList = $('#custom-fields-list');
         $addCustomField = $('#add-custom-field-setting');
         $customFieldsDebug = $('#custom-fields-debug');
@@ -87,20 +83,13 @@ App.Pages.BookingSettings = (function () {
         return normalizeOptions(options).join('\n');
     }
 
-    /**
-     * Check if the form has invalid values.
-     *
-     * @return {Boolean}
-     */
     function isInvalid() {
         try {
-            $('#booking-settings .is-invalid').removeClass('is-invalid');
-
-            // Validate required fields.
+            $('#customer-profiles-settings .is-invalid').removeClass('is-invalid');
 
             let missingRequiredFields = false;
 
-            $('#booking-settings .required').each((index, requiredField) => {
+            $('#customer-profiles-settings .required').each((index, requiredField) => {
                 const $requiredField = $(requiredField);
 
                 if (!$requiredField.val()) {
@@ -113,23 +102,16 @@ App.Pages.BookingSettings = (function () {
                 throw new Error(lang('fields_are_required'));
             }
 
-            const hasFieldControls =
-                $('.display-switch').length > 0 || $('.custom-field-displayed').length > 0;
+            const hasLegacyDisplayed = $('.display-switch:checked').length > 0;
+            const hasDynamicDisplayed = $('.custom-field-displayed:checked').length > 0;
+            if (!hasLegacyDisplayed && !hasDynamicDisplayed) {
+                throw new Error(lang('at_least_one_field'));
+            }
 
-            if (hasFieldControls) {
-                // Ensure there is at least one field displayed.
-                const hasLegacyDisplayed = $('.display-switch:checked').length > 0;
-                const hasDynamicDisplayed = $('.custom-field-displayed:checked').length > 0;
-                if (!hasLegacyDisplayed && !hasDynamicDisplayed) {
-                    throw new Error(lang('at_least_one_field'));
-                }
-
-                // Ensure there is at least one field required.
-                const hasLegacyRequired = $('.require-switch:checked').length > 0;
-                const hasDynamicRequired = $('.custom-field-required:checked').length > 0;
-                if (!hasLegacyRequired && !hasDynamicRequired) {
-                    throw new Error(lang('at_least_one_field_required'));
-                }
+            const hasLegacyRequired = $('.require-switch:checked').length > 0;
+            const hasDynamicRequired = $('.custom-field-required:checked').length > 0;
+            if (!hasLegacyRequired && !hasDynamicRequired) {
+                throw new Error(lang('at_least_one_field_required'));
             }
 
             return false;
@@ -139,51 +121,31 @@ App.Pages.BookingSettings = (function () {
         }
     }
 
-    /**
-     * Apply the booking settings into the page.
-     *
-     * @param {Object} bookingSettings
-     */
-    function deserialize(bookingSettings) {
-        bookingSettings.forEach((bookingSetting) => {
-            if (bookingSetting.name === 'disable_booking_message') {
-                $disableBookingMessage.trumbowyg('html', bookingSetting.value);
-                return;
-            }
-
-            const $field = $('[data-field="' + bookingSetting.name + '"]');
+    function deserialize(settings) {
+        settings.forEach((setting) => {
+            const $field = $('[data-field="' + setting.name + '"]');
 
             if ($field.is(':checkbox')) {
-                $field.prop('checked', Boolean(Number(bookingSetting.value)));
+                $field.prop('checked', Boolean(Number(setting.value)));
             } else {
-                $field.val(bookingSetting.value);
+                $field.val(setting.value);
             }
         });
     }
 
-    /**
-     * Serialize the page values into an array.
-     *
-     * @returns {Array}
-     */
     function serialize() {
-        const bookingSettings = [];
+        const settings = [];
 
         $('[data-field]').each((index, field) => {
             const $field = $(field);
 
-            bookingSettings.push({
+            settings.push({
                 name: $field.data('field'),
                 value: $field.is(':checkbox') ? Number($field.prop('checked')) : $field.val(),
             });
         });
 
-        bookingSettings.push({
-            name: 'disable_booking_message',
-            value: $disableBookingMessage.trumbowyg('html'),
-        });
-
-        return bookingSettings;
+        return settings;
     }
 
     function createCustomFieldCard(field = {}) {
@@ -201,106 +163,83 @@ App.Pages.BookingSettings = (function () {
             class: 'btn btn-link p-0 text-slate-400 custom-field-handle',
             html: '<i class="fas fa-grip-vertical"></i>',
             title: 'Reorder',
-            draggable: true,
         });
 
-        const $content = $('<div/>', { class: 'flex-grow-1' });
-        const $label = $('<label/>', {
-            class: 'form-label',
-            text: 'Custom Field',
-        });
-        const $input = $('<input/>', {
+        const $label = $('<input/>', {
             type: 'text',
             class: 'form-control custom-field-label',
-            placeholder: 'Field label',
+            placeholder: 'Label',
             value: field.label || '',
         });
 
-        const $typeLabel = $('<label/>', {
-            class: 'form-label mt-2',
-            text: 'Field type',
+        const $type = $('<select/>', {
+            class: 'form-select custom-field-type',
         });
-        const $typeSelect = $('<select/>', {
-            class: 'form-select form-select-sm custom-field-type',
-        });
+
         customFieldTypeOptions.forEach((option) => {
-            $typeSelect.append(
-                $('<option/>', {
-                    value: option.value,
-                    text: option.label,
-                    selected: option.value === fieldType,
-                }),
-            );
+            $('<option/>', {
+                value: option.value,
+                text: option.label,
+                selected: option.value === fieldType,
+            }).appendTo($type);
         });
 
-        $content.append($label, $input, $typeLabel, $typeSelect);
-
-        if (fieldTypeRequiresOptions(fieldType)) {
-            const $optionsLabel = $('<label/>', {
-                class: 'form-label mt-2',
-                text: 'Options (one per line)',
-            });
-            const $optionsInput = $('<textarea/>', {
-                class: 'form-control custom-field-options',
-                rows: 3,
-                placeholder: 'Option 1\nOption 2',
-                val: formatOptions(options),
-            });
-            $content.append($optionsLabel, $optionsInput);
-        }
-
-        const $top = $('<div/>', { class: 'd-flex gap-3 align-items-start' });
-        $top.append($handle, $content);
-
-        const $actions = $('<div/>', {
-            class: 'mt-3 d-flex align-items-center justify-content-between border-top pt-2',
+        const $options = $('<textarea/>', {
+            class: 'form-control custom-field-options',
+            rows: 4,
+            placeholder: 'Options (one per line)',
+            value: formatOptions(options),
         });
 
-        const $leftActions = $('<div/>', { class: 'd-flex align-items-center gap-3' });
-        const $displayWrap = $('<div/>', { class: 'form-check form-switch mb-0' });
-        const $displayInput = $('<input/>', {
+        const $displaySwitch = $('<input/>', {
             type: 'checkbox',
             class: 'form-check-input custom-field-displayed',
-            checked: Boolean(field.is_displayed ?? true),
+            checked: Boolean(Number(field.is_displayed)),
         });
-        const $displayLabel = $('<label/>', {
-            class: 'form-check-label text-sm',
-            text: 'Display',
-        });
-        $displayWrap.append($displayInput, $displayLabel);
 
-        const $requireWrap = $('<div/>', { class: 'form-check form-switch mb-0' });
-        const $requireInput = $('<input/>', {
+        const $requireSwitch = $('<input/>', {
             type: 'checkbox',
             class: 'form-check-input custom-field-required',
-            checked: Boolean(field.is_required),
+            checked: Boolean(Number(field.is_required)),
         });
-        const $requireLabel = $('<label/>', {
-            class: 'form-check-label text-sm',
-            text: 'Require',
-        });
-        $requireWrap.append($requireInput, $requireLabel);
 
-        $leftActions.append($displayWrap, $requireWrap);
+        const $top = $('<div/>', { class: 'd-flex align-items-start gap-3' });
+        const $labelGroup = $('<div/>', { class: 'flex-grow-1' });
+        const $row = $('<div/>', { class: 'd-flex gap-2' });
+        const $switches = $('<div/>', { class: 'd-flex gap-3 mt-2' });
 
-        const $rightActions = $('<div/>', { class: 'd-flex align-items-center gap-2' });
+        $labelGroup.append($label);
+        $row.append($type);
+
+        if (fieldTypeRequiresOptions(fieldType)) {
+            $row.append($options);
+        }
+
+        const $displayWrap = $('<label/>', { class: 'form-check d-flex align-items-center gap-2' });
+        $displayWrap.append($displaySwitch, $('<span/>', { text: 'Display' }));
+
+        const $requireWrap = $('<label/>', { class: 'form-check d-flex align-items-center gap-2' });
+        $requireWrap.append($requireSwitch, $('<span/>', { text: 'Required' }));
+
+        $switches.append($displayWrap, $requireWrap);
+
+        const $actions = $('<div/>', { class: 'd-flex align-items-center gap-2' });
         const $duplicate = $('<button/>', {
             type: 'button',
             class: 'btn btn-outline-secondary btn-sm custom-field-duplicate',
-            html: '<i class="fas fa-copy"></i>',
-            title: 'Duplicate',
+            text: 'Duplicate',
         });
         const $remove = $('<button/>', {
             type: 'button',
             class: 'btn btn-outline-danger btn-sm custom-field-remove',
-            html: '<i class="fas fa-trash"></i>',
-            title: 'Delete',
+            text: 'Remove',
         });
-        $rightActions.append($duplicate, $remove);
 
-        $actions.append($leftActions, $rightActions);
+        $actions.append($duplicate, $remove);
 
-        $card.append($top, $actions);
+        $top.append($handle, $labelGroup, $actions);
+
+        $card.append($top, $row, $switches);
 
         return $card;
     }
@@ -343,18 +282,11 @@ App.Pages.BookingSettings = (function () {
         return fields;
     }
 
-    /**
-     * Update the UI based on the display switch state.
-     *
-     * @param {jQuery} $displaySwitch
-     */
     function updateDisplaySwitch($displaySwitch) {
         const isChecked = $displaySwitch.prop('checked');
-
         const $formGroup = $displaySwitch.closest('.form-group');
 
         $formGroup.find('.require-switch').prop('disabled', !isChecked);
-
         $formGroup.find('.form-label, .form-control').toggleClass('opacity-25', !isChecked);
 
         if (!isChecked) {
@@ -363,16 +295,9 @@ App.Pages.BookingSettings = (function () {
         }
     }
 
-    /**
-     * Update the UI based on the require switch state.
-     *
-     * @param {jQuery} $requireSwitch
-     */
     function updateRequireSwitch($requireSwitch) {
         const isChecked = $requireSwitch.prop('checked');
-
         const $formGroup = $requireSwitch.closest('.form-group');
-
         $formGroup.find('.text-danger').toggle(isChecked);
     }
 
@@ -396,37 +321,27 @@ App.Pages.BookingSettings = (function () {
         }
     }
 
-    /**
-     * Update the UI based on the initial values.
-     */
     function applyInitialState() {
-        $bookingSettings.find('.display-switch').each((index, displaySwitchEl) => {
-            const $displaySwitch = $(displaySwitchEl);
-            updateDisplaySwitch($displaySwitch);
+        $customerProfilesSettings.find('.display-switch').each((index, displaySwitchEl) => {
+            updateDisplaySwitch($(displaySwitchEl));
         });
 
-        $bookingSettings.find('.require-switch').each((index, requireSwitchEl) => {
-            const $requireSwitch = $(requireSwitchEl);
-            updateRequireSwitch($requireSwitch);
+        $customerProfilesSettings.find('.require-switch').each((index, requireSwitchEl) => {
+            updateRequireSwitch($(requireSwitchEl));
         });
-
-        $disableBookingMessage.closest('.form-group').prop('hidden', !$disableBooking.prop('checked'));
     }
 
-    /**
-     * Save the account information.
-     */
     function onSaveSettingsClick() {
         if (isInvalid()) {
             return;
         }
 
-        const bookingSettings = serialize();
+        const settings = serialize();
         const customFields = serializeCustomFields();
 
-        writeDebug(`debug: saving settings (${bookingSettings.length}) fields (${customFields.length})`);
+        writeDebug(`debug: saving settings (${settings.length}) fields (${customFields.length})`);
 
-        App.Http.BookingSettings.save(bookingSettings, customFields)
+        App.Http.CustomerProfilesSettings.save(settings, customFields)
             .done(() => {
                 App.Layouts.Backend.displayNotification(lang('settings_saved'));
                 writeDebug('debug: save success');
@@ -437,43 +352,20 @@ App.Pages.BookingSettings = (function () {
             });
     }
 
-    /**
-     * Update the UI.
-     *
-     * @param {jQuery} event
-     */
     function onDisplaySwitchClick(event) {
-        const $displaySwitch = $(event.target);
-
-        updateDisplaySwitch($displaySwitch);
+        updateDisplaySwitch($(event.target));
     }
 
-    /**
-     * Update the UI.
-     *
-     * @param {Event} event
-     */
     function onRequireSwitchClick(event) {
-        const $requireSwitch = $(event.target);
-
-        updateRequireSwitch($requireSwitch);
+        updateRequireSwitch($(event.target));
     }
 
     function onDynamicDisplaySwitchClick(event) {
-        const $displaySwitch = $(event.target);
-        updateDynamicDisplaySwitch($displaySwitch);
+        updateDynamicDisplaySwitch($(event.target));
     }
 
     function onDynamicRequireSwitchClick(event) {
-        const $requireSwitch = $(event.target);
-        updateDynamicRequireSwitch($requireSwitch);
-    }
-
-    /**
-     * Toggle the message container.
-     */
-    function onDisableBookingClick() {
-        $disableBookingMessage.closest('.form-group').prop('hidden', !$disableBooking.prop('checked'));
+        updateDynamicRequireSwitch($(event.target));
     }
 
     function onAddCustomFieldClick() {
@@ -483,40 +375,17 @@ App.Pages.BookingSettings = (function () {
             return;
         }
         $list.append(createCustomFieldCard());
-        const count = $list.find('.custom-field-card').length;
-        writeDebug(`debug: added custom field, total ${count}`);
     }
 
     function enableCustomFieldDragAndDrop() {
-        let dragging = null;
-
-        getCustomFieldsList().on('dragstart', '.custom-field-handle', (event) => {
-            dragging = $(event.currentTarget).closest('.custom-field-card').get(0);
-            $(dragging).addClass('border-primary');
-            event.originalEvent.dataTransfer.effectAllowed = 'move';
-            event.originalEvent.dataTransfer.setData('text/plain', 'reorder');
-        });
-
-        getCustomFieldsList().on('dragend', '.custom-field-handle', () => {
-            if (dragging) {
-                $(dragging).removeClass('border-primary');
-            }
-            dragging = null;
-        });
-
-        getCustomFieldsList().on('dragover', '.custom-field-card', (event) => {
-            event.preventDefault();
-            if (!dragging || dragging === event.currentTarget) {
-                return;
-            }
-            const $target = $(event.currentTarget);
-            const targetRect = event.currentTarget.getBoundingClientRect();
-            const offset = event.originalEvent.clientY - targetRect.top;
-            if (offset > targetRect.height / 2) {
-                $target.after(dragging);
-            } else {
-                $target.before(dragging);
-            }
+        const $list = getCustomFieldsList();
+        if (!$list.length || typeof $list.sortable !== 'function') {
+            return;
+        }
+        $list.sortable({
+            handle: '.custom-field-handle',
+            axis: 'y',
+            placeholder: 'custom-field-placeholder',
         });
     }
 
@@ -563,9 +432,6 @@ App.Pages.BookingSettings = (function () {
         });
     }
 
-    /**
-     * Initialize the module.
-     */
     let hasInitialized = false;
 
     function initialize() {
@@ -574,14 +440,12 @@ App.Pages.BookingSettings = (function () {
         }
         hasInitialized = true;
         refreshSelectors();
-        const bookingSettings = vars('booking_settings');
-        writeDebug('debug: booking_settings.js initialize start');
+        const settings = vars('customer_profile_settings');
+        writeDebug('debug: customer_profiles_settings.js initialize start');
 
         $saveSettings.off('click').on('click', onSaveSettingsClick);
-
-        $disableBooking.off('click').on('click', onDisableBookingClick);
         $addCustomField.off('click').on('click', onAddCustomFieldClick);
-        $bookingSettings
+        $customerProfilesSettings
             .off('click', '.display-switch', onDisplaySwitchClick)
             .off('click', '.require-switch', onRequireSwitchClick)
             .off('click', '.custom-field-displayed', onDynamicDisplaySwitchClick)
@@ -591,9 +455,7 @@ App.Pages.BookingSettings = (function () {
             .on('click', '.custom-field-displayed', onDynamicDisplaySwitchClick)
             .on('click', '.custom-field-required', onDynamicRequireSwitchClick);
 
-        $disableBookingMessage.trumbowyg();
-
-        deserialize(bookingSettings);
+        deserialize(settings || []);
         const initialFields = vars('custom_fields');
         renderCustomFields(Array.isArray(initialFields) ? initialFields : []);
         addCustomFieldEventListeners();
@@ -606,20 +468,20 @@ App.Pages.BookingSettings = (function () {
 
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', () => {
-            writeDebug('debug: booking_settings.js loaded');
+            writeDebug('debug: customer_profiles_settings.js loaded');
             try {
                 initialize();
             } catch (error) {
-                writeDebug(`debug: booking_settings.js error: ${error?.message || error}`);
+                writeDebug(`debug: customer_profiles_settings.js error: ${error?.message || error}`);
                 throw error;
             }
         });
     } else {
-        writeDebug('debug: booking_settings.js loaded (late)');
+        writeDebug('debug: customer_profiles_settings.js loaded (late)');
         try {
             initialize();
         } catch (error) {
-            writeDebug(`debug: booking_settings.js error: ${error?.message || error}`);
+            writeDebug(`debug: customer_profiles_settings.js error: ${error?.message || error}`);
             throw error;
         }
     }

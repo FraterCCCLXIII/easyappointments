@@ -8,6 +8,7 @@ $current_route = $active_menu ?? uri_string();
 $active_route_map = [
     'general_settings' => 'general_settings',
     'booking_settings' => 'booking_settings',
+    'customer_profiles_settings' => 'customer_profiles_settings',
     'business_settings' => 'business_settings',
     'legal_settings' => 'legal_settings',
     'forms_settings' => 'forms_settings',
@@ -47,6 +48,16 @@ $active_route = $active_route_map[$current_route] ?? $current_route;
                         <i data-lucide="calendar" class="backend-sidebar-icon" aria-hidden="true"></i>
                     </span>
                     <span class="settings-nav-label backend-sidebar-label text-truncate"><?= lang('booking_settings') ?></span>
+                </a>
+            </div>
+            <div>
+                <a class="settings-nav-item-link backend-sidebar-link <?= $active_route === 'customer_profiles_settings' ? 'active' : '' ?>"
+                   href="<?= site_url('customer_profiles_settings') ?>"
+                   title="<?= e(lang('customer_profiles_settings')) ?>">
+                    <span class="settings-nav-icon backend-sidebar-icon">
+                        <i data-lucide="id-card" class="backend-sidebar-icon" aria-hidden="true"></i>
+                    </span>
+                    <span class="settings-nav-label backend-sidebar-label text-truncate"><?= lang('customer_profiles_settings') ?></span>
                 </a>
             </div>
             <div>
