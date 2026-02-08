@@ -28,7 +28,6 @@ App.Pages.Customers = (function () {
     const $timezone = $('#timezone');
     const $language = $('#language');
     const $ldapDn = $('#ldap-dn');
-    const $customFieldInputs = $('.custom-field-input');
     const $notes = $('#notes');
     const $formMessage = $('#form-message');
     const $customerAppointments = $('#customer-appointments');
@@ -76,15 +75,58 @@ App.Pages.Customers = (function () {
     let userFilesManager;
     let userFormsManager;
 
+    function parseMultiValue(value) {
+        if (Array.isArray(value)) {
+            return value.map((item) => String(item));
+        }
+        if (typeof value === 'string' && value) {
+            try {
+                const decoded = JSON.parse(value);
+                if (Array.isArray(decoded)) {
+                    return decoded.map((item) => String(item));
+                }
+            } catch (error) {
+                return [value];
+            }
+        }
+        return [];
+    }
+
     function getCustomFieldValues($container = $customers) {
         const values = {};
-        $container.find('.custom-field-input').each((index, input) => {
-            const $input = $(input);
-            const fieldId = $input.data('custom-field-id');
+        $container.find('.custom-field-item[data-custom-field-id]').each((index, item) => {
+            const $item = $(item);
+            const fieldId = $item.data('custom-field-id');
+            const fieldType = $item.data('field-type') || 'input';
             if (!fieldId) {
                 return;
             }
-            values[fieldId] = $input.val();
+
+            if (fieldType === 'checkboxes') {
+                const selected = $item
+                    .find('input[type="checkbox"]:checked')
+                    .map((_, input) => $(input).val())
+                    .get();
+                values[fieldId] = selected;
+                return;
+            }
+
+            if (fieldType === 'radio') {
+                values[fieldId] = $item.find('input[type="radio"]:checked').val() || '';
+                return;
+            }
+
+            if (fieldType === 'dropdown') {
+                values[fieldId] = $item.find('select').val() || '';
+                return;
+            }
+
+            if (fieldType === 'date') {
+                values[fieldId] = $item.find('input[type="date"]').val() || '';
+                return;
+            }
+
+            values[fieldId] = $item.find('.custom-field-input').val() || '';
         });
         return values;
     }
@@ -93,15 +135,45 @@ App.Pages.Customers = (function () {
         if (!values) {
             return;
         }
-        $container.find('.custom-field-input').each((index, input) => {
-            const $input = $(input);
-            const fieldId = $input.data('custom-field-id');
-            if (!fieldId) {
+        $container.find('.custom-field-item[data-custom-field-id]').each((index, item) => {
+            const $item = $(item);
+            const fieldId = $item.data('custom-field-id');
+            const fieldType = $item.data('field-type') || 'input';
+
+            if (!fieldId || !Object.prototype.hasOwnProperty.call(values, fieldId)) {
                 return;
             }
-            if (Object.prototype.hasOwnProperty.call(values, fieldId)) {
-                $input.val(values[fieldId]);
+
+            const incoming = values[fieldId];
+
+            if (fieldType === 'checkboxes') {
+                const selected = parseMultiValue(incoming);
+                $item.find('input[type="checkbox"]').each((_, input) => {
+                    const $input = $(input);
+                    $input.prop('checked', selected.includes(String($input.val())));
+                });
+                return;
             }
+
+            if (fieldType === 'radio') {
+                $item.find('input[type="radio"]').each((_, input) => {
+                    const $input = $(input);
+                    $input.prop('checked', String($input.val()) === String(incoming));
+                });
+                return;
+            }
+
+            if (fieldType === 'dropdown') {
+                $item.find('select').val(incoming);
+                return;
+            }
+
+            if (fieldType === 'date') {
+                $item.find('input[type="date"]').val(incoming);
+                return;
+            }
+
+            $item.find('.custom-field-input').val(incoming);
         });
     }
 

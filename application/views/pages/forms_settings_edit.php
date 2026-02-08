@@ -104,6 +104,22 @@
                             <i class="fas fa-i-cursor me-2"></i>
                             Add input
                         </button>
+                        <button type="button" id="add-form-dropdown" class="btn btn-outline-secondary btn-sm">
+                            <i class="fas fa-caret-down me-2"></i>
+                            Add dropdown
+                        </button>
+                        <button type="button" id="add-form-radio" class="btn btn-outline-secondary btn-sm">
+                            <i class="far fa-dot-circle me-2"></i>
+                            Add radio
+                        </button>
+                        <button type="button" id="add-form-checkboxes" class="btn btn-outline-secondary btn-sm">
+                            <i class="far fa-check-square me-2"></i>
+                            Add checkboxes
+                        </button>
+                        <button type="button" id="add-form-date" class="btn btn-outline-secondary btn-sm">
+                            <i class="far fa-calendar-alt me-2"></i>
+                            Add date
+                        </button>
                     </div>
                 </div>
             </section>

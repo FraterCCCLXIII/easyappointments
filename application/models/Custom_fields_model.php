@@ -20,6 +20,9 @@
  */
 class Custom_fields_model extends EA_Model
 {
+    private const FIELD_TYPES = ['input', 'dropdown', 'radio', 'checkboxes', 'date'];
+    private const FIELD_TYPES_WITH_OPTIONS = ['dropdown', 'radio', 'checkboxes'];
+
     protected array $casts = [
         'id' => 'integer',
         'is_required' => 'boolean',
@@ -41,6 +44,8 @@ class Custom_fields_model extends EA_Model
 
         foreach ($fields as &$field) {
             $this->cast($field);
+            $field['field_type'] = $this->normalize_field_type($field['field_type'] ?? null);
+            $field['options'] = $this->decode_options($field['options'] ?? null, $field['field_type']);
         }
 
         return $fields;
@@ -68,12 +73,18 @@ class Custom_fields_model extends EA_Model
         $incoming_ids = [];
 
         foreach ($fields as $field) {
+            $field_type = $this->normalize_field_type($field['field_type'] ?? null);
+            $options = $this->normalize_options($field['options'] ?? null);
             $data = [
                 'label' => $field['label'] ?? '',
                 'is_required' => (int) ($field['is_required'] ?? 0),
                 'is_displayed' => (int) ($field['is_displayed'] ?? 0),
                 'is_active' => 1,
                 'sort_order' => (int) ($field['sort_order'] ?? 0),
+                'field_type' => $field_type,
+                'options' => $this->field_type_requires_options($field_type)
+                    ? json_encode($options, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)
+                    : null,
                 'update_datetime' => date('Y-m-d H:i:s'),
             ];
 
@@ -92,5 +103,62 @@ class Custom_fields_model extends EA_Model
                 $this->db->update('custom_fields', ['is_active' => 0], ['id' => (int) $existing_id]);
             }
         }
+    }
+
+    private function normalize_field_type(?string $field_type): string
+    {
+        $normalized = strtolower(trim((string) ($field_type ?? '')));
+
+        return in_array($normalized, self::FIELD_TYPES, true) ? $normalized : 'input';
+    }
+
+    private function field_type_requires_options(string $field_type): bool
+    {
+        return in_array($field_type, self::FIELD_TYPES_WITH_OPTIONS, true);
+    }
+
+    private function normalize_options($options): array
+    {
+        if (is_string($options)) {
+            $decoded = json_decode($options, true);
+            if (is_array($decoded)) {
+                $options = $decoded;
+            } else {
+                $options = preg_split('/\r\n|\r|\n/', $options);
+            }
+        }
+
+        if (!is_array($options)) {
+            return [];
+        }
+
+        $normalized = array_map(
+            fn ($option) => trim((string) $option),
+            $options
+        );
+
+        return array_values(array_filter($normalized, fn ($option) => $option !== ''));
+    }
+
+    private function decode_options($options, string $field_type): array
+    {
+        if (!$this->field_type_requires_options($field_type)) {
+            return [];
+        }
+
+        if (is_array($options)) {
+            return $this->normalize_options($options);
+        }
+
+        if (!is_string($options) || $options === '') {
+            return [];
+        }
+
+        $decoded = json_decode($options, true);
+        if (is_array($decoded)) {
+            return $this->normalize_options($decoded);
+        }
+
+        return $this->normalize_options($options);
     }
 }

@@ -23,6 +23,10 @@ App.Pages.FormsSettingsEdit = (function () {
     const $deleteForm = $('#delete-form');
     const $addFormText = $('#add-form-text');
     const $addFormInput = $('#add-form-input');
+    const $addFormDropdown = $('#add-form-dropdown');
+    const $addFormRadio = $('#add-form-radio');
+    const $addFormCheckboxes = $('#add-form-checkboxes');
+    const $addFormDate = $('#add-form-date');
     const $message = $('#forms-message');
     const $previewButton = $('#preview-form');
     const $previewModal = $('#form-preview-modal');
@@ -53,9 +57,56 @@ App.Pages.FormsSettingsEdit = (function () {
         $userTypesToggle.text(selected.map((value) => value.charAt(0).toUpperCase() + value.slice(1)).join(', '));
     }
 
+    const fieldTypeOptions = [
+        { value: 'input', label: 'Input' },
+        { value: 'text', label: 'Text block' },
+        { value: 'dropdown', label: 'Dropdown' },
+        { value: 'radio', label: 'Radio' },
+        { value: 'checkboxes', label: 'Checkboxes' },
+        { value: 'date', label: 'Date' },
+    ];
+
+    function normalizeFieldType(fieldType) {
+        const normalized = String(fieldType || '').toLowerCase();
+        return fieldTypeOptions.some((option) => option.value === normalized) ? normalized : 'input';
+    }
+
+    function fieldTypeRequiresOptions(fieldType) {
+        return ['dropdown', 'radio', 'checkboxes'].includes(fieldType);
+    }
+
+    function fieldTypeSupportsRequired(fieldType) {
+        return ['input', 'dropdown', 'radio', 'checkboxes', 'date'].includes(fieldType);
+    }
+
+    function normalizeOptions(options) {
+        if (Array.isArray(options)) {
+            return options.map((option) => String(option).trim()).filter(Boolean);
+        }
+        if (typeof options === 'string') {
+            try {
+                const decoded = JSON.parse(options);
+                if (Array.isArray(decoded)) {
+                    return decoded.map((option) => String(option).trim()).filter(Boolean);
+                }
+            } catch (error) {
+                return options
+                    .split(/\r?\n/)
+                    .map((option) => option.trim())
+                    .filter(Boolean);
+            }
+        }
+        return [];
+    }
+
+    function formatOptions(options) {
+        return normalizeOptions(options).join('\n');
+    }
+
     function createFieldCard(field = {}) {
         const fieldId = field.id || '';
-        const fieldType = field.field_type || 'input';
+        const fieldType = normalizeFieldType(field.field_type);
+        const options = normalizeOptions(field.options);
         const $card = $('<div/>', {
             class: 'form-field-card rounded-xl border border-[var(--bs-border-color,#e2e8f0)] bg-white p-3',
             'data-field-id': fieldId,
@@ -71,7 +122,7 @@ App.Pages.FormsSettingsEdit = (function () {
         });
 
         const $content = $('<div/>', { class: 'flex-grow-1' });
-        const labelText = fieldType === 'text' ? 'Text block' : 'Input Field';
+        const labelText = fieldType === 'text' ? 'Text block' : 'Field label';
 
         const $label = $('<label/>', {
             class: 'form-label',
@@ -92,7 +143,40 @@ App.Pages.FormsSettingsEdit = (function () {
                   value: field.label || '',
               });
 
-        $content.append($label, $input);
+        const $typeLabel = $('<label/>', {
+            class: 'form-label mt-2',
+            text: 'Field type',
+        });
+
+        const $typeSelect = $('<select/>', {
+            class: 'form-select form-select-sm form-field-type',
+        });
+
+        fieldTypeOptions.forEach((option) => {
+            $typeSelect.append(
+                $('<option/>', {
+                    value: option.value,
+                    text: option.label,
+                    selected: option.value === fieldType,
+                }),
+            );
+        });
+
+        $content.append($label, $input, $typeLabel, $typeSelect);
+
+        if (fieldTypeRequiresOptions(fieldType)) {
+            const $optionsLabel = $('<label/>', {
+                class: 'form-label mt-2',
+                text: 'Options (one per line)',
+            });
+            const $optionsInput = $('<textarea/>', {
+                class: 'form-control form-field-options',
+                rows: 3,
+                placeholder: 'Option 1\nOption 2',
+                val: formatOptions(options),
+            });
+            $content.append($optionsLabel, $optionsInput);
+        }
 
         const $top = $('<div/>', { class: 'd-flex gap-3 align-items-start' });
         $top.append($handle, $content);
@@ -102,7 +186,7 @@ App.Pages.FormsSettingsEdit = (function () {
         });
 
         const $leftActions = $('<div/>', { class: 'd-flex align-items-center gap-3' });
-        if (fieldType === 'input') {
+        if (fieldTypeSupportsRequired(fieldType)) {
             const $required = $('<div/>', {
                 class: 'form-check form-switch mb-0',
             });
@@ -152,7 +236,8 @@ App.Pages.FormsSettingsEdit = (function () {
     }
 
     function renderPreviewField(field) {
-        if ((field.field_type || 'input') === 'text') {
+        const fieldType = normalizeFieldType(field.field_type);
+        if (fieldType === 'text') {
             return $('<div/>', {
                 class: 'rounded-xl border border-[var(--bs-border-color,#e2e8f0)] bg-slate-50/60 p-3 text-sm text-slate-600',
                 html: field.label || '',
@@ -164,11 +249,67 @@ App.Pages.FormsSettingsEdit = (function () {
             class: 'form-label',
             text: field.label,
         });
-        const $input = $('<input/>', {
-            type: 'text',
-            class: 'form-control',
-            disabled: true,
-        });
+        const options = normalizeOptions(field.options);
+        let $input;
+
+        if (fieldType === 'dropdown') {
+            $input = $('<select/>', { class: 'form-select', disabled: true });
+            $input.append($('<option/>', { value: '', text: '' }));
+            options.forEach((option) => {
+                $input.append($('<option/>', { value: option, text: option }));
+            });
+        } else if (fieldType === 'radio') {
+            $input = $('<div/>', { class: 'd-flex flex-column gap-2' });
+            options.forEach((option, index) => {
+                const optionId = `preview-radio-${field.id || 'field'}-${index}`;
+                const $wrap = $('<div/>', { class: 'form-check' });
+                const $radio = $('<input/>', {
+                    type: 'radio',
+                    class: 'form-check-input',
+                    disabled: true,
+                    id: optionId,
+                });
+                const $radioLabel = $('<label/>', {
+                    class: 'form-check-label',
+                    text: option,
+                    for: optionId,
+                });
+                $wrap.append($radio, $radioLabel);
+                $input.append($wrap);
+            });
+        } else if (fieldType === 'checkboxes') {
+            $input = $('<div/>', { class: 'd-flex flex-column gap-2' });
+            options.forEach((option, index) => {
+                const optionId = `preview-checkbox-${field.id || 'field'}-${index}`;
+                const $wrap = $('<div/>', { class: 'form-check' });
+                const $checkbox = $('<input/>', {
+                    type: 'checkbox',
+                    class: 'form-check-input',
+                    disabled: true,
+                    id: optionId,
+                });
+                const $checkboxLabel = $('<label/>', {
+                    class: 'form-check-label',
+                    text: option,
+                    for: optionId,
+                });
+                $wrap.append($checkbox, $checkboxLabel);
+                $input.append($wrap);
+            });
+        } else if (fieldType === 'date') {
+            $input = $('<input/>', {
+                type: 'date',
+                class: 'form-control',
+                disabled: true,
+            });
+        } else {
+            $input = $('<input/>', {
+                type: 'text',
+                class: 'form-control',
+                disabled: true,
+            });
+        }
+
         $wrapper.append($label, $input);
         return $wrapper;
     }
@@ -205,7 +346,7 @@ App.Pages.FormsSettingsEdit = (function () {
         const fields = [];
         $formFields.find('.form-field-card').each((index, card) => {
             const $card = $(card);
-            const fieldType = $card.data('field-type') || 'input';
+            const fieldType = normalizeFieldType($card.data('field-type') || 'input');
             const $labelInput = $card.find('.form-field-label');
             const label = fieldType === 'text'
                 ? $labelInput.trumbowyg('html').trim()
@@ -214,12 +355,16 @@ App.Pages.FormsSettingsEdit = (function () {
                 return;
             }
             const required = $card.find('.form-field-required').prop('checked');
+            const options = fieldTypeRequiresOptions(fieldType)
+                ? normalizeOptions($card.find('.form-field-options').val() || '')
+                : [];
             fields.push({
                 id: $card.data('field-id') || undefined,
                 label,
                 field_type: fieldType,
-                is_required: fieldType === 'input' && required ? 1 : 0,
+                is_required: fieldTypeSupportsRequired(fieldType) && required ? 1 : 0,
                 sort_order: index,
+                options,
             });
         });
 
@@ -354,28 +499,64 @@ App.Pages.FormsSettingsEdit = (function () {
         $saveForm.on('click', onSaveForm);
         $deleteForm.on('click', onDeleteForm);
         $previewButton.on('click', openPreview);
-        $addFormText.on('click', () => {
+        $formsSettings.on('click', '#add-form-text', () => {
             const $card = createFieldCard({ field_type: 'text' });
             $formFields.append($card);
             initializeTextBlocks($card);
         });
-        $addFormInput.on('click', () => {
+        $formsSettings.on('click', '#add-form-input', () => {
             $formFields.append(createFieldCard({ field_type: 'input' }));
+        });
+        $formsSettings.on('click', '#add-form-dropdown', () => {
+            $formFields.append(createFieldCard({ field_type: 'dropdown' }));
+        });
+        $formsSettings.on('click', '#add-form-radio', () => {
+            $formFields.append(createFieldCard({ field_type: 'radio' }));
+        });
+        $formsSettings.on('click', '#add-form-checkboxes', () => {
+            $formFields.append(createFieldCard({ field_type: 'checkboxes' }));
+        });
+        $formsSettings.on('click', '#add-form-date', () => {
+            $formFields.append(createFieldCard({ field_type: 'date' }));
+        });
+        $formFields.on('change', '.form-field-type', (event) => {
+            const $card = $(event.currentTarget).closest('.form-field-card');
+            const nextType = normalizeFieldType($(event.currentTarget).val());
+            const fieldType = normalizeFieldType($card.data('field-type') || 'input');
+            const label = fieldType === 'text'
+                ? $card.find('.form-field-label').trumbowyg('html')
+                : $card.find('.form-field-label').val();
+            const required = $card.find('.form-field-required').prop('checked');
+            const options = normalizeOptions($card.find('.form-field-options').val() || '');
+            const fieldId = $card.data('field-id') || undefined;
+            const $clone = createFieldCard({
+                id: fieldId,
+                field_type: nextType,
+                label,
+                is_required: required,
+                options,
+            });
+            $card.replaceWith($clone);
+            if (nextType === 'text') {
+                initializeTextBlocks($clone);
+            }
         });
         $formFields.on('click', '.form-field-remove', (event) => {
             $(event.currentTarget).closest('.form-field-card').remove();
         });
         $formFields.on('click', '.form-field-duplicate', (event) => {
             const $card = $(event.currentTarget).closest('.form-field-card');
-            const fieldType = $card.data('field-type') || 'input';
+            const fieldType = normalizeFieldType($card.data('field-type') || 'input');
             const label = fieldType === 'text'
                 ? $card.find('.form-field-label').trumbowyg('html')
                 : $card.find('.form-field-label').val();
             const required = $card.find('.form-field-required').prop('checked');
+            const options = normalizeOptions($card.find('.form-field-options').val() || '');
             const $clone = createFieldCard({
                 field_type: fieldType,
                 label,
                 is_required: required,
+                options,
             });
             $card.after($clone);
             if (fieldType === 'text') {
