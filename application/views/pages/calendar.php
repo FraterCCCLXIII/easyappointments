@@ -5,11 +5,11 @@
 <div class="container-fluid backend-page" id="calendar-page">
     <div id="calendar-toolbar" class="mb-6 animate-fade-in">
         <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div class="flex items-center gap-4">
-                <h1 class="text-2xl font-semibold text-slate-900">
+            <div class="flex items-center gap-3">
+                <h1 class="text-2xl font-semibold text-slate-900 leading-none">
                     <?= lang('calendar') ?>
                 </h1>
-                <div id="calendar-filter">
+                <div id="calendar-filter" class="flex items-center">
                     <select id="select-filter-item"
                             class="form-select"
                             data-tippy-content="<?= lang('select_filter_item_hint') ?>"
@@ -19,9 +19,9 @@
                 </div>
             </div>
 
-            <div id="calendar-actions" class="flex flex-wrap items-center gap-2 sm:justify-end">
-                <div id="calendar-header-controls" class="flex flex-wrap items-center gap-2"></div>
-                <div class="ea-button-group">
+            <div id="calendar-actions" class="flex flex-wrap items-center gap-3 sm:justify-end">
+                <div id="calendar-header-controls" class="flex flex-wrap items-center gap-3"></div>
+                <div class="ea-button-group flex items-center gap-1">
                 <?php if (can('add', PRIV_APPOINTMENTS)): ?>
                     <div class="dropdown d-sm-inline-block">
                         <button class="btn"

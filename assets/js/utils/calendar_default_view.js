@@ -1227,6 +1227,11 @@ App.Utils.CalendarDefaultView = (function () {
             return;
         }
 
+        // Skip if already wrapped
+        if ($calendarViewButton.closest('.view-toggle-wrapper').length) {
+            return;
+        }
+
         $calendarViewButton
             .attr('title', lang('default'))
             .attr('aria-label', lang('default'))
@@ -1236,13 +1241,10 @@ App.Utils.CalendarDefaultView = (function () {
         $tableViewButton
             .attr('title', lang('table'))
             .attr('aria-label', lang('table'))
-            .html('<i data-lucide="table" class="h-4 w-4"></i>');
+            .html('<i data-lucide="list" class="h-4 w-4"></i>');
 
-        const $toolbarChunk = $calendarViewButton.closest('.fc-toolbar-chunk');
-        $toolbarChunk.addClass('calendar-view-toggle-group');
-        
-        // Wrap both buttons in a button group
-        $calendarViewButton.add($tableViewButton).wrapAll('<div class="fc-button-group calendar-view-toggle-buttons"></div>');
+        // Wrap both buttons in a unified toggle group
+        $calendarViewButton.add($tableViewButton).wrapAll('<div class="view-toggle-wrapper"></div>');
 
         if (window.lucide) {
             window.lucide.createIcons();
