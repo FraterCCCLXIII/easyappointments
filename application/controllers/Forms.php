@@ -38,7 +38,9 @@ class Forms extends EA_Controller
         $this->load->model('form_submission_fields_model');
         $this->load->model('roles_model');
         $this->load->model('users_model');
+        $this->load->model('customers_model');
         $this->load->library('permissions');
+        $this->load->library('email_messages');
     }
 
     public function list(): void
@@ -539,7 +541,7 @@ class Forms extends EA_Controller
             $user_type = (string) request('user_type');
             $form_id = (int) request('form_id');
 
-            $this->authorize_record_access($user_id, $user_type, true);
+            $this->authorize_record_access($user_id, $user_type, false);
 
             $submission = $this->form_submissions_model->find_for_user($form_id, $user_id);
             if (!$submission) {
@@ -551,6 +553,33 @@ class Forms extends EA_Controller
             $this->db->delete('form_submission_fields', ['id_form_submissions' => $submission['id']]);
             $this->db->delete('form_submissions', ['id' => $submission['id']]);
             $this->db->trans_complete();
+
+            json_response(['status' => 'success']);
+        } catch (Throwable $e) {
+            json_exception($e);
+        }
+    }
+
+    public function send_reminder(): void
+    {
+        try {
+            $user_id = (int) request('user_id');
+            $user_type = (string) request('user_type');
+
+            $this->authorize_record_access($user_id, $user_type, true);
+
+            if ($user_type !== 'customer') {
+                throw new InvalidArgumentException('Reminders are only available for customers.');
+            }
+
+            $customer = $this->customers_model->find($user_id);
+            if (!$customer) {
+                throw new RuntimeException('Customer not found.');
+            }
+
+            $recipient_email = $customer['email'] ?? '';
+
+            $this->send_profile_completion_email($user_id, $recipient_email);
 
             json_response(['status' => 'success']);
         } catch (Throwable $e) {
@@ -598,5 +627,57 @@ class Forms extends EA_Controller
         }
 
         return $role_slug;
+    }
+
+    protected function send_profile_completion_email(int $customer_id, string $recipient_email): void
+    {
+        if (empty($recipient_email)) {
+            return;
+        }
+
+        $forms = $this->get_incomplete_forms($customer_id);
+
+        $settings = [
+            'company_name' => setting('company_name'),
+            'company_link' => setting('company_link'),
+            'company_email' => setting('company_email'),
+            'company_logo_email_png' => setting('company_logo_email_png'),
+            'company_color' => setting('company_color'),
+        ];
+
+        $account_url = site_url('customer/account?complete=1');
+
+        $this->email_messages->send_customer_profile_completion($recipient_email, $settings, $account_url, $forms);
+    }
+
+    protected function get_incomplete_forms(int $customer_id): array
+    {
+        $assigned_rows = $this->form_assignments_model->find_for_role(DB_SLUG_CUSTOMER);
+
+        if (empty($assigned_rows)) {
+            return [];
+        }
+
+        $form_ids = array_map(fn ($row) => (int) $row['id_forms'], $assigned_rows);
+        $forms = $this->forms_model->find_by_ids($form_ids, true);
+
+        $incomplete = [];
+
+        foreach ($forms as $form) {
+            $submission = $this->form_submissions_model->find_for_user((int) $form['id'], $customer_id);
+
+            if ($submission) {
+                continue;
+            }
+
+            $slug = $form['slug'] ?? (string) $form['id'];
+            $incomplete[] = [
+                'id' => (int) $form['id'],
+                'name' => $form['name'],
+                'url' => site_url('customer/forms/' . $slug),
+            ];
+        }
+
+        return $incomplete;
     }
 }

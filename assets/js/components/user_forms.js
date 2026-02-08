@@ -80,10 +80,16 @@ App.Components.UserForms = (function () {
 
     function create($panel, options) {
         const $tbody = $panel.find('.user-forms-body');
+        const $reminder = $panel.find('.user-forms-reminder');
         const canReset = options.canReset;
+        const canRemind = options.canRemind !== false;
+        const isCustomer = options.userType === 'customer';
 
         function reset() {
             renderEmpty($tbody);
+            if ($reminder.length) {
+                $reminder.prop('disabled', true);
+            }
         }
 
         function refresh() {
@@ -91,6 +97,10 @@ App.Components.UserForms = (function () {
             if (!userId) {
                 reset();
                 return;
+            }
+
+            if ($reminder.length) {
+                $reminder.prop('disabled', !(canRemind && isCustomer));
             }
 
             App.Http.Forms.listForRecord(userId, options.userType)
@@ -106,6 +116,34 @@ App.Components.UserForms = (function () {
                     App.Layouts.Backend.displayNotification(lang('unexpected_issues'));
                 });
         }
+
+        $panel.on('click', '.user-forms-reminder', () => {
+            const userId = options.getUserId();
+            if (!userId || !isCustomer || !canRemind) {
+                return;
+            }
+
+            if (!window.confirm('Send a profile completion reminder to this customer?')) {
+                return;
+            }
+
+            if (!App?.Http?.Forms?.sendReminder) {
+                App.Layouts.Backend.displayNotification('Reminder service is unavailable.');
+                return;
+            }
+
+            App.Layouts.Backend.displayNotification('Sending reminder...');
+
+            App.Http.Forms.sendReminder(userId, options.userType)
+                .done(() => {
+                    App.Layouts.Backend.displayNotification('Reminder sent.');
+                })
+                .fail((xhr) => {
+                    App.Layouts.Backend.displayNotification(
+                        xhr.responseJSON?.message || 'Failed to send reminder.',
+                    );
+                });
+        });
 
         $panel.on('click', '.user-forms-reset', (event) => {
             const formId = Number($(event.currentTarget).data('form-id'));
