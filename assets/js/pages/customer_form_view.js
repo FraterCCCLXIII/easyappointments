@@ -31,6 +31,50 @@ App.Pages.CustomerFormView = (function () {
         $message.addClass('d-none').removeClass('alert-danger alert-success').text('');
     }
 
+    function normalizeFieldType(fieldType) {
+        const normalized = String(fieldType || '').toLowerCase();
+        return ['input', 'text', 'dropdown', 'radio', 'checkboxes', 'date'].includes(normalized)
+            ? normalized
+            : 'input';
+    }
+
+    function normalizeOptions(options) {
+        if (Array.isArray(options)) {
+            return options.map((option) => String(option).trim()).filter(Boolean);
+        }
+        if (typeof options === 'string') {
+            try {
+                const decoded = JSON.parse(options);
+                if (Array.isArray(decoded)) {
+                    return decoded.map((option) => String(option).trim()).filter(Boolean);
+                }
+            } catch (error) {
+                return options
+                    .split(/\r?\n/)
+                    .map((option) => option.trim())
+                    .filter(Boolean);
+            }
+        }
+        return [];
+    }
+
+    function parseMultiValue(value) {
+        if (Array.isArray(value)) {
+            return value.map((item) => String(item));
+        }
+        if (typeof value === 'string' && value) {
+            try {
+                const decoded = JSON.parse(value);
+                if (Array.isArray(decoded)) {
+                    return decoded.map((item) => String(item));
+                }
+            } catch (error) {
+                return [value];
+            }
+        }
+        return [];
+    }
+
     function renderTextBlock(field) {
         return $('<div/>', {
             class: 'rounded-xl border border-[var(--bs-border-color,#e2e8f0)] bg-slate-50/60 p-3 text-sm text-slate-600',
@@ -39,21 +83,98 @@ App.Pages.CustomerFormView = (function () {
     }
 
     function renderFieldInput(field, value = '', readOnly = false) {
-        const $wrapper = $('<div/>', { class: 'form-field' });
+        const fieldType = normalizeFieldType(field.field_type);
+        const fieldId = field.id ?? field.field_id;
+        const $wrapper = $('<div/>', {
+            class: 'form-field',
+            'data-field-id': fieldId,
+            'data-field-type': fieldType,
+            'data-required': field.is_required ? 1 : 0,
+        });
         const $label = $('<label/>', {
             class: 'form-label',
             text: field.label,
         });
+        const options = normalizeOptions(field.options);
+        let $input;
 
-        const $input = $('<input/>', {
-            type: 'text',
-            class: 'form-control form-response-input',
-            value: value,
-            disabled: readOnly,
-            'data-field-id': field.id ?? field.field_id,
-        });
+        if (fieldType === 'dropdown') {
+            $input = $('<select/>', {
+                class: 'form-select form-response-input',
+                disabled: readOnly,
+            });
+            if (!field.is_required) {
+                $input.append($('<option/>', { value: '', text: '' }));
+            }
+            options.forEach((option) => {
+                $input.append($('<option/>', { value: option, text: option }));
+            });
+            $input.val(value);
+        } else if (fieldType === 'radio') {
+            $input = $('<div/>', { class: 'd-flex flex-column gap-2' });
+            options.forEach((option, index) => {
+                const optionId = `customer-form-radio-${fieldId}-${index}`;
+                const $wrap = $('<div/>', { class: 'form-check' });
+                const $radio = $('<input/>', {
+                    type: 'radio',
+                    id: optionId,
+                    name: `customer-form-${fieldId}`,
+                    class: 'form-check-input form-response-input',
+                    value: option,
+                    checked: String(value) === String(option),
+                    disabled: readOnly,
+                    'data-field-id': fieldId,
+                });
+                const $radioLabel = $('<label/>', {
+                    class: 'form-check-label',
+                    text: option,
+                    for: optionId,
+                });
+                $wrap.append($radio, $radioLabel);
+                $input.append($wrap);
+            });
+        } else if (fieldType === 'checkboxes') {
+            const selected = parseMultiValue(value);
+            $input = $('<div/>', { class: 'd-flex flex-column gap-2' });
+            options.forEach((option, index) => {
+                const optionId = `customer-form-checkbox-${fieldId}-${index}`;
+                const $wrap = $('<div/>', { class: 'form-check' });
+                const $checkbox = $('<input/>', {
+                    type: 'checkbox',
+                    id: optionId,
+                    class: 'form-check-input form-response-input',
+                    value: option,
+                    checked: selected.includes(String(option)),
+                    disabled: readOnly,
+                    'data-field-id': fieldId,
+                });
+                const $checkboxLabel = $('<label/>', {
+                    class: 'form-check-label',
+                    text: option,
+                    for: optionId,
+                });
+                $wrap.append($checkbox, $checkboxLabel);
+                $input.append($wrap);
+            });
+        } else if (fieldType === 'date') {
+            $input = $('<input/>', {
+                type: 'date',
+                class: 'form-control form-response-input',
+                value: value,
+                disabled: readOnly,
+                'data-field-id': fieldId,
+            });
+        } else {
+            $input = $('<input/>', {
+                type: 'text',
+                class: 'form-control form-response-input',
+                value: value,
+                disabled: readOnly,
+                'data-field-id': fieldId,
+            });
+        }
 
-        if (field.is_required && !readOnly) {
+        if (field.is_required && !readOnly && fieldType !== 'text') {
             $input.addClass('required');
         }
 
@@ -62,7 +183,7 @@ App.Pages.CustomerFormView = (function () {
     }
 
     function renderField(field, value = '', readOnly = false) {
-        if ((field.field_type || 'input') === 'text') {
+        if (normalizeFieldType(field.field_type) === 'text') {
             return renderTextBlock(field);
         }
         return renderFieldInput(field, value, readOnly);
@@ -90,23 +211,41 @@ App.Pages.CustomerFormView = (function () {
         const responses = [];
         let hasErrors = false;
 
-        $fields.find('.form-response-input').each((_, input) => {
-            const $input = $(input);
-            const value = $input.val().trim();
-            const fieldId = Number($input.data('field-id'));
-            const required = $input.hasClass('required');
+        $fields.find('.form-field[data-field-id]').each((_, wrapper) => {
+            const $wrapper = $(wrapper);
+            const fieldId = Number($wrapper.data('field-id'));
+            const fieldType = normalizeFieldType($wrapper.data('field-type'));
+            const required = Number($wrapper.data('required')) === 1;
+            const $inputs = $wrapper.find('.form-response-input');
 
-            $input.removeClass('is-invalid');
+            $inputs.removeClass('is-invalid');
 
-            if (required && !value) {
-                $input.addClass('is-invalid');
-                hasErrors = true;
+            if (fieldType === 'checkboxes') {
+                const selected = $inputs.filter(':checked').map((_, input) => $(input).val()).get();
+                if (required && !selected.length) {
+                    $inputs.addClass('is-invalid');
+                    hasErrors = true;
+                }
+                responses.push({ field_id: fieldId, value: selected });
+                return;
             }
 
-            responses.push({
-                field_id: fieldId,
-                value,
-            });
+            if (fieldType === 'radio') {
+                const selected = $inputs.filter(':checked').val() || '';
+                if (required && !selected) {
+                    $inputs.addClass('is-invalid');
+                    hasErrors = true;
+                }
+                responses.push({ field_id: fieldId, value: selected });
+                return;
+            }
+
+            const value = ($inputs.first().val() || '').toString().trim();
+            if (required && !value) {
+                $inputs.addClass('is-invalid');
+                hasErrors = true;
+            }
+            responses.push({ field_id: fieldId, value });
         });
 
         if (hasErrors) {

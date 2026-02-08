@@ -34,7 +34,7 @@ class Customer_custom_field_values_model extends EA_Model
         $values = [];
         foreach ($rows as $row) {
             $this->decrypt_phi_fields($row, $this->phi_fields);
-            $values[(int) $row['id_custom_fields']] = $row['value'];
+            $values[(int) $row['id_custom_fields']] = $this->decode_value($row['value'] ?? null);
         }
 
         return $values;
@@ -44,9 +44,9 @@ class Customer_custom_field_values_model extends EA_Model
     {
         foreach ($values as $field_id => $value) {
             $field_id = (int) $field_id;
-            $value = is_string($value) ? trim($value) : '';
+            [$value, $is_empty] = $this->normalize_value($value);
 
-            if ($value === '') {
+            if ($is_empty) {
                 $this->db->delete('customer_custom_field_values', [
                     'id_users' => $user_id,
                     'id_custom_fields' => $field_id,
@@ -80,5 +80,42 @@ class Customer_custom_field_values_model extends EA_Model
                 $this->db->insert('customer_custom_field_values', $data);
             }
         }
+    }
+
+    private function normalize_value($value): array
+    {
+        if (is_array($value)) {
+            $normalized = array_values(array_filter(array_map(
+                fn ($item) => trim((string) $item),
+                $value
+            ), fn ($item) => $item !== ''));
+
+            if (!$normalized) {
+                return ['', true];
+            }
+
+            return [
+                json_encode($normalized, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
+                false,
+            ];
+        }
+
+        $string_value = is_string($value) ? trim($value) : '';
+
+        return [$string_value, $string_value === ''];
+    }
+
+    private function decode_value($value)
+    {
+        if (!is_string($value) || $value === '') {
+            return $value ?? '';
+        }
+
+        $decoded = json_decode($value, true);
+        if (is_array($decoded)) {
+            return $decoded;
+        }
+
+        return $value;
     }
 }

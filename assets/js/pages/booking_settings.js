@@ -46,6 +46,47 @@ App.Pages.BookingSettings = (function () {
         return $customFieldsList.length ? $customFieldsList : $('#custom-fields-list');
     }
 
+    const customFieldTypeOptions = [
+        { value: 'input', label: 'Text input' },
+        { value: 'dropdown', label: 'Dropdown' },
+        { value: 'radio', label: 'Radio' },
+        { value: 'checkboxes', label: 'Checkboxes' },
+        { value: 'date', label: 'Date' },
+    ];
+
+    function normalizeFieldType(fieldType) {
+        const normalized = String(fieldType || '').toLowerCase();
+        return customFieldTypeOptions.some((option) => option.value === normalized) ? normalized : 'input';
+    }
+
+    function fieldTypeRequiresOptions(fieldType) {
+        return ['dropdown', 'radio', 'checkboxes'].includes(fieldType);
+    }
+
+    function normalizeOptions(options) {
+        if (Array.isArray(options)) {
+            return options.map((option) => String(option).trim()).filter(Boolean);
+        }
+        if (typeof options === 'string') {
+            try {
+                const decoded = JSON.parse(options);
+                if (Array.isArray(decoded)) {
+                    return decoded.map((option) => String(option).trim()).filter(Boolean);
+                }
+            } catch (error) {
+                return options
+                    .split(/\r?\n/)
+                    .map((option) => option.trim())
+                    .filter(Boolean);
+            }
+        }
+        return [];
+    }
+
+    function formatOptions(options) {
+        return normalizeOptions(options).join('\n');
+    }
+
     /**
      * Check if the form has invalid values.
      *
@@ -144,9 +185,12 @@ App.Pages.BookingSettings = (function () {
 
     function createCustomFieldCard(field = {}) {
         const fieldId = field.id || '';
+        const fieldType = normalizeFieldType(field.field_type);
+        const options = normalizeOptions(field.options);
         const $card = $('<div/>', {
             class: 'custom-field-card rounded-xl border border-[var(--bs-border-color,#e2e8f0)] bg-white p-3',
             'data-field-id': fieldId,
+            'data-field-type': fieldType,
         });
 
         const $handle = $('<button/>', {
@@ -169,7 +213,38 @@ App.Pages.BookingSettings = (function () {
             value: field.label || '',
         });
 
-        $content.append($label, $input);
+        const $typeLabel = $('<label/>', {
+            class: 'form-label mt-2',
+            text: 'Field type',
+        });
+        const $typeSelect = $('<select/>', {
+            class: 'form-select form-select-sm custom-field-type',
+        });
+        customFieldTypeOptions.forEach((option) => {
+            $typeSelect.append(
+                $('<option/>', {
+                    value: option.value,
+                    text: option.label,
+                    selected: option.value === fieldType,
+                }),
+            );
+        });
+
+        $content.append($label, $input, $typeLabel, $typeSelect);
+
+        if (fieldTypeRequiresOptions(fieldType)) {
+            const $optionsLabel = $('<label/>', {
+                class: 'form-label mt-2',
+                text: 'Options (one per line)',
+            });
+            const $optionsInput = $('<textarea/>', {
+                class: 'form-control custom-field-options',
+                rows: 3,
+                placeholder: 'Option 1\nOption 2',
+                val: formatOptions(options),
+            });
+            $content.append($optionsLabel, $optionsInput);
+        }
 
         const $top = $('<div/>', { class: 'd-flex gap-3 align-items-start' });
         $top.append($handle, $content);
@@ -247,12 +322,18 @@ App.Pages.BookingSettings = (function () {
             if (!label) {
                 return;
             }
+            const fieldType = $card.data('field-type') || 'input';
+            const options = fieldTypeRequiresOptions(fieldType)
+                ? normalizeOptions($card.find('.custom-field-options').val() || '')
+                : [];
             fields.push({
                 id: $card.data('field-id') || undefined,
                 label,
                 is_required: $card.find('.custom-field-required').prop('checked') ? 1 : 0,
                 is_displayed: $card.find('.custom-field-displayed').prop('checked') ? 1 : 0,
                 sort_order: index,
+                field_type: fieldType,
+                options,
             });
         });
 
@@ -437,6 +518,25 @@ App.Pages.BookingSettings = (function () {
     }
 
     function addCustomFieldEventListeners() {
+        getCustomFieldsList().on('change', '.custom-field-type', (event) => {
+            const $card = $(event.currentTarget).closest('.custom-field-card');
+            const nextType = normalizeFieldType($(event.currentTarget).val());
+            const label = $card.find('.custom-field-label').val();
+            const isRequired = $card.find('.custom-field-required').prop('checked');
+            const isDisplayed = $card.find('.custom-field-displayed').prop('checked');
+            const options = normalizeOptions($card.find('.custom-field-options').val() || '');
+            const fieldId = $card.data('field-id') || undefined;
+            const $replacement = createCustomFieldCard({
+                id: fieldId,
+                label,
+                is_required: isRequired,
+                is_displayed: isDisplayed,
+                field_type: nextType,
+                options,
+            });
+            $card.replaceWith($replacement);
+        });
+
         getCustomFieldsList().on('click', '.custom-field-remove', (event) => {
             $(event.currentTarget).closest('.custom-field-card').remove();
         });
@@ -446,11 +546,15 @@ App.Pages.BookingSettings = (function () {
             const label = $card.find('.custom-field-label').val();
             const isRequired = $card.find('.custom-field-required').prop('checked');
             const isDisplayed = $card.find('.custom-field-displayed').prop('checked');
+            const fieldType = $card.data('field-type') || 'input';
+            const options = normalizeOptions($card.find('.custom-field-options').val() || '');
             $card.after(
                 createCustomFieldCard({
                     label,
                     is_required: isRequired,
                     is_displayed: isDisplayed,
+                    field_type: fieldType,
+                    options,
                 }),
             );
         });

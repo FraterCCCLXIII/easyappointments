@@ -288,15 +288,33 @@ class Forms extends EA_Controller
                 ]);
             }
             $input_fields = array_values(array_filter($fields, function ($field) {
-                return ($field['field_type'] ?? 'input') === 'input';
+                return $this->is_response_field($field);
             }));
             $responses_by_field = [];
+            $fields_by_id = [];
+            foreach ($input_fields as $field) {
+                if (!empty($field['id'])) {
+                    $fields_by_id[(int) $field['id']] = $field;
+                }
+            }
+
             foreach ($responses as $response) {
-                $responses_by_field[(int) $response['field_id']] = trim((string) ($response['value'] ?? ''));
+                $field_id = (int) ($response['field_id'] ?? 0);
+                if (!$field_id || !isset($fields_by_id[$field_id])) {
+                    continue;
+                }
+                $responses_by_field[$field_id] = $response['value'] ?? null;
             }
 
             foreach ($input_fields as $field) {
-                if ($field['is_required'] && empty($responses_by_field[(int) $field['id']])) {
+                $field_id = (int) $field['id'];
+                [$normalized, $is_empty] = $this->normalize_response_value(
+                    $responses_by_field[$field_id] ?? null,
+                    (string) ($field['field_type'] ?? 'input')
+                );
+                $responses_by_field[$field_id] = $normalized;
+
+                if ($field['is_required'] && $is_empty) {
                     throw new InvalidArgumentException('All required fields must be completed.');
                 }
             }
@@ -309,6 +327,7 @@ class Forms extends EA_Controller
                     'field_type' => $field['field_type'] ?? 'input',
                     'is_required' => (int) ($field['is_required'] ?? 0),
                     'sort_order' => (int) ($field['sort_order'] ?? 0),
+                    'options' => $field['options'] ?? [],
                 ];
             }, $fields);
 
@@ -334,6 +353,35 @@ class Forms extends EA_Controller
         } catch (Throwable $e) {
             json_exception($e);
         }
+    }
+
+    private function is_response_field(array $field): bool
+    {
+        return ($field['field_type'] ?? 'input') !== 'text';
+    }
+
+    private function normalize_response_value($value, string $field_type): array
+    {
+        if ($field_type === 'checkboxes') {
+            $values = is_array($value) ? $value : [$value];
+            $normalized = array_values(array_filter(array_map(
+                fn ($item) => trim((string) $item),
+                $values
+            ), fn ($item) => $item !== ''));
+
+            if (!$normalized) {
+                return ['', true];
+            }
+
+            return [
+                json_encode($normalized, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
+                false,
+            ];
+        }
+
+        $string_value = is_string($value) ? trim($value) : '';
+
+        return [$string_value, $string_value === ''];
     }
 
     public function list_for_record(): void

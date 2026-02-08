@@ -36,7 +36,6 @@ App.Pages.Booking = (function () {
     const $availableHours = $('#available-hours');
     const $bookAppointmentSubmit = $('#book-appointment-submit');
     const $deletePersonalInformation = $('#delete-personal-information');
-    const $customFieldInputs = $('.custom-field-input');
     const $displayBookingSelection = $('.display-booking-selection');
     const tippy = window.tippy;
     const moment = window.moment;
@@ -504,9 +503,29 @@ App.Pages.Booking = (function () {
 
     function areRequiredFieldsFilled() {
         let isValid = true;
+        const checkedGroups = new Set();
 
         $('#wizard-frame-3 .required:visible').each((index, requiredField) => {
-            if (!$(requiredField).val()) {
+            const $requiredField = $(requiredField);
+            const fieldType = ($requiredField.attr('type') || '').toLowerCase();
+            const fieldId = $requiredField.data('custom-field-id') || $requiredField.attr('name');
+
+            if (fieldType === 'checkbox' || fieldType === 'radio') {
+                if (!fieldId || checkedGroups.has(fieldId)) {
+                    return;
+                }
+
+                const $group = $('#wizard-frame-3')
+                    .find(`[data-custom-field-id="${fieldId}"][type="${fieldType}"]`);
+                if (!$group.filter(':checked').length) {
+                    isValid = false;
+                    return false;
+                }
+                checkedGroups.add(fieldId);
+                return;
+            }
+
+            if (!$requiredField.val()) {
                 isValid = false;
                 return false;
             }
@@ -1407,15 +1426,59 @@ App.Pages.Booking = (function () {
         }
     }
 
+    function parseMultiValue(value) {
+        if (Array.isArray(value)) {
+            return value.map((item) => String(item));
+        }
+        if (typeof value === 'string' && value) {
+            try {
+                const decoded = JSON.parse(value);
+                if (Array.isArray(decoded)) {
+                    return decoded.map((item) => String(item));
+                }
+            } catch (error) {
+                return [value];
+            }
+        }
+        return [];
+    }
+
     function getCustomFieldPayload() {
         const values = {};
-        $customFieldInputs.each((index, input) => {
-            const $input = $(input);
-            const fieldId = $input.data('custom-field-id');
+        $('#wizard-frame-3 .custom-field-item[data-custom-field-id]').each((index, item) => {
+            const $item = $(item);
+            const fieldId = $item.data('custom-field-id');
+            const fieldType = $item.data('field-type') || 'input';
+
             if (!fieldId) {
                 return;
             }
-            values[fieldId] = $input.val();
+
+            if (fieldType === 'checkboxes') {
+                const selected = $item
+                    .find('input[type="checkbox"]:checked')
+                    .map((_, input) => $(input).val())
+                    .get();
+                values[fieldId] = selected;
+                return;
+            }
+
+            if (fieldType === 'radio') {
+                values[fieldId] = $item.find('input[type="radio"]:checked').val() || '';
+                return;
+            }
+
+            if (fieldType === 'dropdown') {
+                values[fieldId] = $item.find('select').val() || '';
+                return;
+            }
+
+            if (fieldType === 'date') {
+                values[fieldId] = $item.find('input[type="date"]').val() || '';
+                return;
+            }
+
+            values[fieldId] = $item.find('.custom-field-input').val() || '';
         });
         return values;
     }
@@ -1424,15 +1487,45 @@ App.Pages.Booking = (function () {
         if (!values) {
             return;
         }
-        $customFieldInputs.each((index, input) => {
-            const $input = $(input);
-            const fieldId = $input.data('custom-field-id');
-            if (!fieldId) {
+        $('#wizard-frame-3 .custom-field-item[data-custom-field-id]').each((index, item) => {
+            const $item = $(item);
+            const fieldId = $item.data('custom-field-id');
+            const fieldType = $item.data('field-type') || 'input';
+
+            if (!fieldId || !Object.prototype.hasOwnProperty.call(values, fieldId)) {
                 return;
             }
-            if (Object.prototype.hasOwnProperty.call(values, fieldId)) {
-                $input.val(values[fieldId]);
+
+            const incoming = values[fieldId];
+
+            if (fieldType === 'checkboxes') {
+                const selected = parseMultiValue(incoming);
+                $item.find('input[type="checkbox"]').each((_, input) => {
+                    const $input = $(input);
+                    $input.prop('checked', selected.includes(String($input.val())));
+                });
+                return;
             }
+
+            if (fieldType === 'radio') {
+                $item.find('input[type="radio"]').each((_, input) => {
+                    const $input = $(input);
+                    $input.prop('checked', String($input.val()) === String(incoming));
+                });
+                return;
+            }
+
+            if (fieldType === 'dropdown') {
+                $item.find('select').val(incoming);
+                return;
+            }
+
+            if (fieldType === 'date') {
+                $item.find('input[type="date"]').val(incoming);
+                return;
+            }
+
+            $item.find('.custom-field-input').val(incoming);
         });
     }
 
