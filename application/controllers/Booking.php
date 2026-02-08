@@ -693,6 +693,7 @@ class Booking extends EA_Controller
                 'company_name' => setting('company_name'),
                 'company_link' => setting('company_link'),
                 'company_email' => setting('company_email'),
+                'company_logo_email_png' => setting('company_logo_email_png'),
                 'company_color' =>
                     !empty($company_color) && $company_color != DEFAULT_COMPANY_COLOR ? $company_color : null,
                 'date_format' => setting('date_format'),

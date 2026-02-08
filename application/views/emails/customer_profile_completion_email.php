@@ -18,9 +18,14 @@
 <div class="email-container" style="width: 650px; border: 1px solid var(--bs-border-color, #e2e8f0); margin: 30px auto;">
     <div id="header"
          style="background-color: <?= $settings['company_color'] ?? '#429a82' ?>; height: 45px; padding: 10px 15px;">
-        <strong id="logo" style="color: white; font-size: 20px; margin-top: 10px; display: inline-block">
-            <?= e($settings['company_name']) ?>
-        </strong>
+        <?php if (!empty($settings['company_logo_email_png'])): ?>
+            <img src="<?= e($settings['company_logo_email_png']) ?>" alt="<?= e($settings['company_name']) ?>"
+                 style="height: 28px; display: inline-block; vertical-align: middle;">
+        <?php else: ?>
+            <strong id="logo" style="color: white; font-size: 20px; margin-top: 10px; display: inline-block">
+                <?= e($settings['company_name']) ?>
+            </strong>
+        <?php endif; ?>
     </div>
 
     <div id="content" style="padding: 10px 15px; min-height: 320px">
