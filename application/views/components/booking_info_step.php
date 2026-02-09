@@ -21,7 +21,7 @@
  */
 ?>
 
-<div id="wizard-frame-3" class="wizard-frame booking-section" style="display:none;">
+<div id="wizard-frame-4" class="wizard-frame booking-section" style="display:none;">
     <div class="frame-container">
 
         <h2 class="frame-title booking-frame-title"><?= lang('customer_information') ?></h2>
@@ -146,7 +146,7 @@
 
     <div class="command-buttons mt-6">
         <div class="booking-frame-content">
-            <button type="button" id="button-next-3" class="button-next booking-button" data-step_index="3">
+            <button type="button" id="button-next-4" class="button-next booking-button" data-step_index="4">
                 <?= lang('next') ?>
                 <i class="fas fa-chevron-right ml-2"></i>
             </button>

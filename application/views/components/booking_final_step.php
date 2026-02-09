@@ -8,7 +8,7 @@
  */
 ?>
 
-<div id="wizard-frame-4" class="wizard-frame booking-section" style="display:none;">
+<div id="wizard-frame-5" class="wizard-frame booking-section" style="display:none;">
     <div class="frame-container">
         <h2 class="frame-title booking-frame-title"><?= lang('appointment_confirmation') ?></h2>
 

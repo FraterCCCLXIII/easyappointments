@@ -105,6 +105,52 @@ If you have problems installing or configuring the application visit the
 You can also report problems on the [issues page](https://github.com/alextselegidis/easyappointments/issues)
 and help the development progress.
 
+## Service Area ZIPs (Admin + Provider)
+
+This feature lets you restrict provider availability by ZIP code and filter providers during booking.
+
+Setup (Admin):
+
+- Go to `Admin Settings` -> `Service Areas`.
+- Enter one ZIP per line. Optional label format: `ZIP | Label`.
+- Set `Default country code` for ZIPs without a country prefix.
+- (Optional) Import GeoNames data to auto-fill city/state labels.
+
+Provider Preferences:
+
+- Providers see `Account` -> `Service Areas`.
+- Select ZIPs they service or enable `All service areas`.
+
+Service Configuration:
+
+- Edit a service and enable `Only show providers in service area`.
+- When enabled, providers are filtered by the customer's ZIP during booking.
+
+Booking Behavior:
+
+- If ZIP is missing, a prompt asks for a ZIP before showing providers.
+- If no providers match the ZIP, a "not serviced" message is shown with a link to update address.
+
+GeoNames Import (optional):
+
+Use the console command to import postal code metadata:
+
+```bash
+php index.php console geonames_import /path/to/allCountries.txt
+php index.php console geonames_import /path/to/allCountries.txt truncate
+```
+
+Docker:
+
+```bash
+docker compose exec -T php-fpm php index.php console geonames_import /path/to/allCountries.txt
+docker compose exec -T php-fpm php index.php console geonames_import /path/to/allCountries.txt truncate
+```
+
+Migrations:
+
+- Run `php index.php console migrate` (or Docker equivalent) after pulling updates.
+
 ## TODO
 
 - Migrate remaining customer-facing pages from Bootstrap to Tailwind after booking flow rollout.

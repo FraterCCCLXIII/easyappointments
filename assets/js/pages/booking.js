@@ -205,7 +205,7 @@ App.Pages.Booking = (function () {
     const wizardState = {
         storageKey: `EasyAppointments.BookingWizardStep.${window.location.pathname}`,
         minStep: 1,
-        maxStep: 4,
+        maxStep: 5,
         get: function () {
             try {
                 const stored = window.sessionStorage.getItem(this.storageKey);
@@ -419,23 +419,20 @@ App.Pages.Booking = (function () {
                 }
 
                 $('.active-step').removeClass('active-step');
-                $('#step-2').addClass('active-step');
+                $('#step-3').addClass('active-step');
                 $('#wizard-frame-1').hide();
-                $('#wizard-frame-2').fadeIn();
+                $('#wizard-frame-2').hide();
+                $('#wizard-frame-3').fadeIn();
+                wizardState.set(3);
+                updateNextButtons();
 
-                $selectService.closest('.wizard-frame').find('.button-next').trigger('click');
-
-                $(document).find('.book-step:first').hide();
+                const $bookSteps = $(document).find('.book-step');
+                $bookSteps.eq(0).hide();
+                $bookSteps.eq(1).hide();
 
                 $(document).find('.button-back:first').css('visibility', 'hidden');
 
-                $(document)
-                    .find('.book-step:not(:first)')
-                    .each((index, bookStepEl) =>
-                        $(bookStepEl)
-                            .find('strong')
-                            .text(index + 1),
-                    );
+                updateStepIndicators();
             } else {
                 $('#wizard-frame-1')
                     .css({
@@ -511,7 +508,7 @@ App.Pages.Booking = (function () {
         let isValid = true;
         const checkedGroups = new Set();
 
-        $('#wizard-frame-3 .required:visible').each((index, requiredField) => {
+        $('#wizard-frame-4 .required:visible').each((index, requiredField) => {
             const $requiredField = $(requiredField);
             const fieldType = ($requiredField.attr('type') || '').toLowerCase();
             const fieldId = $requiredField.data('custom-field-id') || $requiredField.attr('name');
@@ -521,7 +518,7 @@ App.Pages.Booking = (function () {
                     return;
                 }
 
-                const $group = $('#wizard-frame-3')
+                const $group = $('#wizard-frame-4')
                     .find(`[data-custom-field-id="${fieldId}"][type="${fieldType}"]`);
                 if (!$group.filter(':checked').length) {
                     isValid = false;
@@ -542,14 +539,18 @@ App.Pages.Booking = (function () {
 
     function isNextEnabledForStep(stepIndex) {
         if (stepIndex === 1) {
-            return Boolean($selectProvider.val());
+            return Boolean($selectService.val());
         }
 
         if (stepIndex === 2) {
-            return Boolean($('.selected-hour').length);
+            return Boolean($selectProvider.val());
         }
 
         if (stepIndex === 3) {
+            return Boolean($('.selected-hour').length);
+        }
+
+        if (stepIndex === 4) {
             return areRequiredFieldsFilled();
         }
 
@@ -568,42 +569,59 @@ App.Pages.Booking = (function () {
         });
     }
 
+    function updateStepIndicators() {
+        $(document).find('.book-step:visible').each((index, bookStepEl) => {
+            $(bookStepEl).find('strong').text(index + 1);
+        });
+    }
+
     function getHighestRestorableStep() {
         let maxStep = 1;
 
+        $('#step-4').show();
+
         if (!isNextEnabledForStep(1)) {
+            updateStepIndicators();
             return maxStep;
         }
 
         maxStep = 2;
 
         if (!isNextEnabledForStep(2)) {
+            updateStepIndicators();
             return maxStep;
         }
 
         maxStep = 3;
 
-        // Skip step 3 (Customer Information) if the profile is complete.
+        if (!isNextEnabledForStep(3)) {
+            updateStepIndicators();
+            return maxStep;
+        }
+
+        maxStep = 4;
+
+        // Skip step 4 (Customer Information) if the profile is complete.
         if (vars('customer_logged_in') && vars('customer_data')) {
             const customer = vars('customer_data');
             const isComplete = customer.first_name && customer.last_name && customer.address;
             if (isComplete) {
-                maxStep = 4;
-                
-                // Hide step 3 in the breadcrumbs if it's skipped
-                $('#step-3').hide();
-                // Renumber step 4 to 3
-                $('#step-4 strong').text('3');
-                
+                maxStep = 5;
+
+                // Hide step 4 in the breadcrumbs if it's skipped.
+                $('#step-4').hide();
+                updateStepIndicators();
                 return maxStep;
             }
         }
 
-        if (!isNextEnabledForStep(3)) {
+        if (!isNextEnabledForStep(4)) {
+            updateStepIndicators();
             return maxStep;
         }
 
-        return 4;
+        updateStepIndicators();
+        return 5;
     }
 
     function getCurrentWizardStep() {
@@ -671,17 +689,17 @@ App.Pages.Booking = (function () {
             targetStep = maxStep;
         }
 
-        // If targetStep is 3 but profile is complete, jump to 4.
-        if (targetStep === 3 && vars('customer_logged_in') && vars('customer_data')) {
+        // If targetStep is 4 but profile is complete, jump to 5.
+        if (targetStep === 4 && vars('customer_logged_in') && vars('customer_data')) {
             const customer = vars('customer_data');
             const isComplete = customer.first_name && customer.last_name && customer.address;
             if (isComplete) {
-                targetStep = 4;
+                targetStep = 5;
                 App.Pages.Booking.updateConfirmFrame();
             }
         }
 
-        if (targetStep === 1 && !$('#step-1').is(':visible')) {
+        if (targetStep <= 2 && !$('#step-' + targetStep).is(':visible')) {
             targetStep = currentStep || 1;
         }
 
@@ -906,9 +924,9 @@ App.Pages.Booking = (function () {
     function optimizeContactInfoDisplay() {
         // If a column has only one control shown then move the control to the other column.
 
-        const $firstCol = $('#wizard-frame-3 .field-col:first');
+        const $firstCol = $('#wizard-frame-4 .field-col:first');
         const $firstColControls = $firstCol.find('.form-control');
-        const $secondCol = $('#wizard-frame-3 .field-col:last');
+        const $secondCol = $('#wizard-frame-4 .field-col:last');
         const $secondColControls = $secondCol.find('.form-control');
 
         if ($firstColControls.length === 1 && $secondColControls.length > 1) {
@@ -925,7 +943,7 @@ App.Pages.Booking = (function () {
 
         // Hide columns that do not have any controls displayed.
 
-        const $fieldCols = $(document).find('#wizard-frame-3 .field-col');
+        const $fieldCols = $(document).find('#wizard-frame-4 .field-col');
 
         $fieldCols.each((index, fieldColEl) => {
             const $fieldCol = $(fieldColEl);
@@ -1025,16 +1043,16 @@ App.Pages.Booking = (function () {
 
         if ($serviceAreaAddZip.length) {
             $serviceAreaAddZip.on('click', () => {
-                if (showWizardStep(3, { animate: true })) {
-                    wizardState.set(3);
+                if (showWizardStep(4, { animate: true })) {
+                    wizardState.set(4);
                 }
             });
         }
 
         if ($serviceAreaUpdateAddress.length) {
             $serviceAreaUpdateAddress.on('click', () => {
-                if (showWizardStep(3, { animate: true })) {
-                    wizardState.set(3);
+                if (showWizardStep(4, { animate: true })) {
+                    wizardState.set(4);
                 }
             });
         }
@@ -1070,13 +1088,18 @@ App.Pages.Booking = (function () {
         $('.button-next').on('click', (event) => {
             const $target = $(event.currentTarget);
 
-            // If we are on the first step and there is no provider selected do not continue with the next step.
-            if ($target.attr('data-step_index') === '1' && !$selectProvider.val()) {
+            // If we are on the first step and there is no service selected do not continue with the next step.
+            if ($target.attr('data-step_index') === '1' && !$selectService.val()) {
                 return;
             }
 
-            // If we are on the 2nd tab then the user should have an appointment hour selected.
-            if ($target.attr('data-step_index') === '2') {
+            // If we are on the 2nd step and there is no provider selected do not continue with the next step.
+            if ($target.attr('data-step_index') === '2' && !$selectProvider.val()) {
+                return;
+            }
+
+            // If we are on the 3rd step then the user should have an appointment hour selected.
+            if ($target.attr('data-step_index') === '3') {
                 if (!$('.selected-hour').length) {
                     if (!$('#select-hour-prompt').length) {
                         $('<div/>', {
@@ -1089,9 +1112,9 @@ App.Pages.Booking = (function () {
                 }
             }
 
-            // If we are on the 3rd tab then we will need to validate the user's input before proceeding to the next
+            // If we are on the 4th step then we will need to validate the user's input before proceeding to the next
             // step.
-            if ($target.attr('data-step_index') === '3') {
+            if ($target.attr('data-step_index') === '4') {
                 if (!App.Pages.Booking.validateCustomerForm()) {
                     return; // Validation failed, do not continue.
                 } else {
@@ -1102,12 +1125,12 @@ App.Pages.Booking = (function () {
             // Display the next step tab (uses jquery animation effect).
             let nextTabIndex = parseInt($target.attr('data-step_index')) + 1;
 
-            // Skip step 3 (Customer Information) if the profile is complete.
-            if (nextTabIndex === 3 && vars('customer_logged_in') && vars('customer_data')) {
+            // Skip step 4 (Customer Information) if the profile is complete.
+            if (nextTabIndex === 4 && vars('customer_logged_in') && vars('customer_data')) {
                 const customer = vars('customer_data');
                 const isComplete = customer.first_name && customer.last_name && customer.address;
                 if (isComplete) {
-                    nextTabIndex = 4;
+                    nextTabIndex = 5;
                     App.Pages.Booking.updateConfirmFrame();
                 }
             }
@@ -1137,7 +1160,7 @@ App.Pages.Booking = (function () {
             const $activeFrame = $('.wizard-frame:visible');
             const frameId = $activeFrame.attr('id');
 
-            // Only intercept if we are in the booking wizard (frames 2, 3, 4)
+            // Only intercept if we are in the booking wizard (frames 2, 3, 4, 5)
             if (frameId && frameId.startsWith('wizard-frame-') && frameId !== 'wizard-frame-1') {
                 event.preventDefault();
                 event.stopPropagation();
@@ -1145,12 +1168,12 @@ App.Pages.Booking = (function () {
                 const currentStepIndex = parseInt(frameId.replace('wizard-frame-', ''));
                 let prevTabIndex = currentStepIndex - 1;
 
-                // Skip step 3 (Customer Information) if the profile is complete when going back.
-                if (prevTabIndex === 3 && vars('customer_logged_in') && vars('customer_data')) {
+                // Skip step 4 (Customer Information) if the profile is complete when going back.
+                if (prevTabIndex === 4 && vars('customer_logged_in') && vars('customer_data')) {
                     const customer = vars('customer_data');
                     const isComplete = customer.first_name && customer.last_name && customer.address;
                     if (isComplete) {
-                        prevTabIndex = 2;
+                        prevTabIndex = 3;
                         App.Pages.Booking.updateConfirmFrame();
                     }
                 }
@@ -1183,7 +1206,7 @@ App.Pages.Booking = (function () {
             updateNextButtons();
         });
 
-        $('#wizard-frame-3').on('input change', '.required', () => {
+        $('#wizard-frame-4').on('input change', '.required', () => {
             updateNextButtons();
         });
 
@@ -1315,8 +1338,8 @@ App.Pages.Booking = (function () {
      * @return {Boolean} Returns the validation result.
      */
     function validateCustomerForm() {
-        $('#wizard-frame-3 .is-invalid').removeClass('is-invalid');
-        $('#wizard-frame-3 label.text-danger').removeClass('text-danger');
+        $('#wizard-frame-4 .is-invalid').removeClass('is-invalid');
+        $('#wizard-frame-4 label.text-danger').removeClass('text-danger');
 
         // Validate required fields.
         let missingRequiredField = false;
@@ -1619,7 +1642,7 @@ App.Pages.Booking = (function () {
 
     function getCustomFieldPayload() {
         const values = {};
-        $('#wizard-frame-3 .custom-field-item[data-custom-field-id]').each((index, item) => {
+        $('#wizard-frame-4 .custom-field-item[data-custom-field-id]').each((index, item) => {
             const $item = $(item);
             const fieldId = $item.data('custom-field-id');
             const fieldType = $item.data('field-type') || 'input';
@@ -1661,7 +1684,7 @@ App.Pages.Booking = (function () {
         if (!values) {
             return;
         }
-        $('#wizard-frame-3 .custom-field-item[data-custom-field-id]').each((index, item) => {
+        $('#wizard-frame-4 .custom-field-item[data-custom-field-id]').each((index, item) => {
             const $item = $(item);
             const fieldId = $item.data('custom-field-id');
             const fieldType = $item.data('field-type') || 'input';

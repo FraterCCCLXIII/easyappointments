@@ -10,9 +10,13 @@
     'display_delete_personal_information' => vars('display_delete_personal_information'),
 ]); ?>
 
-<!-- Select Service & Provider -->
+<!-- Select Service -->
 
 <?php component('booking_type_step', ['available_services' => vars('available_services')]); ?>
+
+<!-- Select Provider -->
+
+<?php component('booking_provider_step'); ?>
 
 <!-- Pick An Appointment Date -->
 
