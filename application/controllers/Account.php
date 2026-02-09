@@ -95,6 +95,7 @@ class Account extends EA_Controller
         $show_forms_nav = $this->has_assigned_forms();
         $role_slug = session('role_slug');
         $show_service_area_nav = $role_slug === DB_SLUG_PROVIDER;
+        $show_availability_nav = $role_slug === DB_SLUG_PROVIDER;
 
         script_vars([
             'account' => $account,
@@ -107,6 +108,7 @@ class Account extends EA_Controller
             'grouped_timezones' => $this->timezones->to_grouped_array(),
             'show_forms_nav' => $show_forms_nav,
             'show_service_area_nav' => $show_service_area_nav,
+            'show_availability_nav' => $show_availability_nav,
         ]);
 
         $this->load->view('pages/account');
@@ -131,6 +133,7 @@ class Account extends EA_Controller
         $show_forms_nav = $this->has_assigned_forms();
         $role_slug = session('role_slug');
         $show_service_area_nav = $role_slug === DB_SLUG_PROVIDER;
+        $show_availability_nav = $role_slug === DB_SLUG_PROVIDER;
 
         html_vars([
             'page_title' => lang('forms'),
@@ -138,6 +141,7 @@ class Account extends EA_Controller
             'user_display_name' => $this->accounts->get_user_display_name($user_id),
             'show_forms_nav' => $show_forms_nav,
             'show_service_area_nav' => $show_service_area_nav,
+            'show_availability_nav' => $show_availability_nav,
         ]);
 
         $this->load->view('pages/account_forms');
@@ -162,6 +166,7 @@ class Account extends EA_Controller
         $show_forms_nav = $this->has_assigned_forms();
         $role_slug = session('role_slug');
         $show_service_area_nav = $role_slug === DB_SLUG_PROVIDER;
+        $show_availability_nav = $role_slug === DB_SLUG_PROVIDER;
 
         script_vars([
             'form_id' => $form_id,
@@ -173,6 +178,7 @@ class Account extends EA_Controller
             'user_display_name' => $this->accounts->get_user_display_name($user_id),
             'show_forms_nav' => $show_forms_nav,
             'show_service_area_nav' => $show_service_area_nav,
+            'show_availability_nav' => $show_availability_nav,
         ]);
 
         $this->load->view('pages/account_form_view');
@@ -200,6 +206,7 @@ class Account extends EA_Controller
 
         $show_forms_nav = $this->has_assigned_forms();
         $show_service_area_nav = true;
+        $show_availability_nav = true;
 
         script_vars([
             'service_area_zips' => $this->service_area_zips_model->get_with_labels(),
@@ -213,6 +220,7 @@ class Account extends EA_Controller
             'user_display_name' => $this->accounts->get_user_display_name($user_id),
             'show_forms_nav' => $show_forms_nav,
             'show_service_area_nav' => $show_service_area_nav,
+            'show_availability_nav' => $show_availability_nav,
         ]);
 
         $this->load->view('pages/account_service_areas');
@@ -237,6 +245,76 @@ class Account extends EA_Controller
             }
 
             $this->provider_service_area_zips_model->sync_for_provider($user_id, $zip_ids);
+
+            response();
+        } catch (Throwable $e) {
+            json_exception($e);
+        }
+    }
+
+    public function availability(): void
+    {
+        session(['dest_url' => site_url('account/availability')]);
+
+        $user_id = session('user_id');
+
+        if (cannot('view', PRIV_USER_SETTINGS)) {
+            if ($user_id) {
+                abort(403, 'Forbidden');
+            }
+
+            redirect('login');
+
+            return;
+        }
+
+        if (session('role_slug') !== DB_SLUG_PROVIDER) {
+            abort(403, 'Forbidden');
+        }
+
+        $provider = $this->providers_model->find((int) $user_id);
+        $show_forms_nav = $this->has_assigned_forms();
+
+        script_vars([
+            'working_plan' => $provider['settings']['working_plan'] ?? null,
+            'working_plan_exceptions' => $provider['settings']['working_plan_exceptions'] ?? null,
+            'company_working_plan' => setting('company_working_plan'),
+            'date_format' => setting('date_format'),
+            'time_format' => setting('time_format'),
+            'first_weekday' => setting('first_weekday'),
+        ]);
+
+        html_vars([
+            'page_title' => lang('availability'),
+            'active_menu' => PRIV_SYSTEM_SETTINGS,
+            'user_display_name' => $this->accounts->get_user_display_name($user_id),
+            'show_forms_nav' => $show_forms_nav,
+            'show_service_area_nav' => true,
+            'show_availability_nav' => true,
+        ]);
+
+        $this->load->view('pages/account_availability');
+    }
+
+    public function save_availability(): void
+    {
+        try {
+            if (cannot('edit', PRIV_USER_SETTINGS)) {
+                throw new RuntimeException('You do not have the required permissions for this task.');
+            }
+
+            if (session('role_slug') !== DB_SLUG_PROVIDER) {
+                abort(403, 'Forbidden');
+            }
+
+            $user_id = (int) session('user_id');
+            $working_plan = request('working_plan', setting('company_working_plan'));
+            $working_plan_exceptions = request('working_plan_exceptions', '{}');
+
+            $this->providers_model->set_settings($user_id, [
+                'working_plan' => $working_plan,
+                'working_plan_exceptions' => $working_plan_exceptions,
+            ]);
 
             response();
         } catch (Throwable $e) {

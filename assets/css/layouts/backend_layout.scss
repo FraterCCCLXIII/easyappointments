@@ -773,6 +773,16 @@ h6,
         width: auto;
         max-width: none;
     }
+
+    #providers-page #providers {
+        flex-wrap: nowrap;
+        align-items: flex-start;
+    }
+
+    #providers-page #providers .record-details,
+    #providers-page #providers #filter-providers {
+        min-width: 0;
+    }
 }
 
 @media (max-width: 767.98px) {
@@ -2000,6 +2010,16 @@ body .form-horizontal .controls {
     background: none;
     padding: 0;
     margin: 0;
+}
+
+#providers-page #providers .working-plan-view {
+    overflow-x: auto;
+    min-width: 0;
+}
+
+#providers-page #providers .working-plan-view table {
+    width: 100%;
+    max-width: 100%;
 }
 
 #providers-page #providers .switch-view .nav-item {

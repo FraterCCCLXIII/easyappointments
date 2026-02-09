@@ -5,10 +5,12 @@
  * @var string $active_nav
  * @var bool $show_forms_nav
  * @var bool $show_service_area_nav
+ * @var bool $show_availability_nav
  */
 $active_nav = $active_nav ?? 'account';
 $show_forms_nav = $show_forms_nav ?? false;
 $show_service_area_nav = $show_service_area_nav ?? false;
+$show_availability_nav = $show_availability_nav ?? false;
 ?>
 
 <div class="settings-nav-panel-inner d-flex flex-column">
@@ -47,6 +49,20 @@ $show_service_area_nav = $show_service_area_nav ?? false;
                         </span>
                         <span class="settings-nav-label backend-sidebar-label text-truncate">
                             <?= lang('service_area_preferences') ?>
+                        </span>
+                    </a>
+                </div>
+            <?php endif; ?>
+            <?php if ($show_availability_nav): ?>
+                <div>
+                    <a class="settings-nav-item-link backend-sidebar-link <?= $active_nav === 'account/availability' ? 'active' : '' ?>"
+                       href="<?= site_url('account/availability') ?>"
+                       title="<?= e(lang('availability')) ?>">
+                        <span class="settings-nav-icon backend-sidebar-icon">
+                            <i data-lucide="calendar-clock" class="backend-sidebar-icon" aria-hidden="true"></i>
+                        </span>
+                        <span class="settings-nav-label backend-sidebar-label text-truncate">
+                            <?= lang('availability') ?>
                         </span>
                     </a>
                 </div>

@@ -71,9 +71,30 @@ App.Http.Account = (function () {
         return $.post(url, data);
     }
 
+    /**
+     * Save provider availability.
+     *
+     * @param {String} workingPlan
+     * @param {String} workingPlanExceptions
+     *
+     * @return {Object}
+     */
+    function saveAvailability(workingPlan, workingPlanExceptions) {
+        const url = App.Utils.Url.siteUrl('account/save_availability');
+
+        const data = {
+            csrf_token: vars('csrf_token'),
+            working_plan: workingPlan,
+            working_plan_exceptions: workingPlanExceptions,
+        };
+
+        return $.post(url, data);
+    }
+
     return {
         save,
         validateUsername,
         saveServiceAreas,
+        saveAvailability,
     };
 })();

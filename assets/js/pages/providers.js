@@ -55,7 +55,7 @@ App.Pages.Providers = (function () {
     let userFormsManager;
     let serviceAreaZipIds = [];
 
-    function setRecordDetailsVisible(visible) {
+    function setRecordDetailsVisible(visible, source = 'unknown') {
         const $recordDetails = $providers.find('.record-details');
 
         if (visible) {
@@ -63,6 +63,13 @@ App.Pages.Providers = (function () {
         } else {
             $recordDetails.hide();
         }
+
+        const isVisible = $recordDetails.is(':visible');
+        console.debug('[Providers] record-details visibility', {
+            source,
+            requested: visible,
+            actual: isVisible,
+        });
     }
 
     function updateProviderSummary(record = null) {
@@ -256,7 +263,7 @@ App.Pages.Providers = (function () {
          */
         $providers.on('click', '#add-provider', () => {
             App.Pages.Providers.resetForm();
-            setRecordDetailsVisible(true);
+            setRecordDetailsVisible(true, 'add-provider');
             $filterProviders.find('button').prop('disabled', true);
             $filterProviders.find('.results').css('color', '#AAA');
             $('#provider-actions-group').addClass('d-none').removeClass('d-flex');
@@ -430,6 +437,16 @@ App.Pages.Providers = (function () {
             $serviceAreaAll.prop('checked', isAllSelected);
             syncServiceAreaInputs();
         });
+
+        $providers.on('click', '#provider-tabs [data-bs-toggle="pill"]', (event) => {
+            const target = event.currentTarget;
+            const targetId = target?.getAttribute('data-bs-target') || target?.getAttribute('href');
+            console.debug('[Providers] tab click', {
+                targetId,
+                id: target?.id,
+            });
+            setRecordDetailsVisible(true, 'tab-click');
+        });
     }
 
     /**
@@ -569,7 +586,7 @@ App.Pages.Providers = (function () {
         $('#providers .working-plan-exceptions tbody').empty();
         renderBookings([]);
         updateProviderSummary();
-        setRecordDetailsVisible(false);
+        setRecordDetailsVisible(false, 'reset-form');
 
         if (userFilesManager) {
             userFilesManager.reset();
@@ -766,7 +783,7 @@ App.Pages.Providers = (function () {
                 const shouldShow = show || !selectId;
                 App.Pages.Providers.select(defaultId, shouldShow);
             } else {
-                setRecordDetailsVisible(false);
+                setRecordDetailsVisible(false, 'filter-empty');
             }
         });
     }
@@ -822,7 +839,7 @@ App.Pages.Providers = (function () {
                 .then((provider) => {
                     App.Pages.Providers.display(provider);
                     $('#edit-provider, #delete-provider').prop('disabled', false);
-                    setRecordDetailsVisible(true);
+                    setRecordDetailsVisible(true, 'select-show');
                 })
                 .fail(() => {
                     App.Layouts.Backend.displayNotification(lang('no_records_found'));
@@ -839,7 +856,7 @@ App.Pages.Providers = (function () {
             .then((provider) => {
                 App.Pages.Providers.display(provider);
                 $('#edit-provider, #delete-provider').prop('disabled', false);
-                setRecordDetailsVisible(true);
+                setRecordDetailsVisible(true, 'selectBySlug-show');
                 updateProfileUrl(provider?.slug, true);
                 if (provider?.slug) {
                     $filterProviders.find('.selected').removeClass('selected');
@@ -874,6 +891,23 @@ App.Pages.Providers = (function () {
         workingPlanManager.addEventListeners();
 
         App.Pages.Providers.resetForm();
+        const recordDetailsElement = $providers.find('.record-details')[0];
+        if (recordDetailsElement) {
+            const observer = new MutationObserver((mutations) => {
+                mutations.forEach((mutation) => {
+                    if (mutation.type === 'attributes') {
+                        const target = mutation.target;
+                        console.debug('[Providers] record-details attribute change', {
+                            attributeName: mutation.attributeName,
+                            className: target.className,
+                            style: target.getAttribute('style'),
+                            isVisible: $(target).is(':visible'),
+                        });
+                    }
+                });
+            });
+            observer.observe(recordDetailsElement, { attributes: true, attributeFilter: ['style', 'class'] });
+        }
         userFilesManager = App.Components.UserFiles.create($providerFilesPanel, {
             userType: 'provider',
             getUserId: () => $id.val(),

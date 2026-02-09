@@ -9,6 +9,7 @@
                 'active_nav' => 'account/forms',
                 'show_forms_nav' => vars('show_forms_nav', false),
                 'show_service_area_nav' => vars('show_service_area_nav', false),
+                'show_availability_nav' => vars('show_availability_nav', false),
             ]); ?>
         </div>
         <div class="col-sm-9 settings-content">
