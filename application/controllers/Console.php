@@ -40,6 +40,7 @@ class Console extends EA_Controller
 
         $this->load->model('admins_model');
         $this->load->model('customers_model');
+        $this->load->model('geonames_postal_codes_model');
         $this->load->model('providers_model');
         $this->load->model('services_model');
         $this->load->model('settings_model');
@@ -184,10 +185,90 @@ class Console extends EA_Controller
             '⇾ php index.php console install',
             '⇾ php index.php console backup',
             '⇾ php index.php console sync',
+            '⇾ php index.php console geonames_import /path/to/zip.txt [truncate]',
             '',
             '',
         ];
 
         response(implode(PHP_EOL, $help));
+    }
+
+    /**
+     * Import GeoNames postal codes dataset.
+     *
+     * Usage:
+     *
+     * php index.php console geonames_import /path/to/zip.txt
+     * php index.php console geonames_import /path/to/zip.txt truncate
+     */
+    public function geonames_import(): void
+    {
+        $path = $GLOBALS['argv'][3] ?? null;
+        $truncate = in_array('truncate', $GLOBALS['argv'], true);
+
+        if (!$path || !is_readable($path)) {
+            response(
+                PHP_EOL .
+                'Usage: php index.php console geonames_import /path/to/zip.txt [truncate]' .
+                PHP_EOL .
+                PHP_EOL,
+            );
+        }
+
+        if ($truncate) {
+            $this->geonames_postal_codes_model->truncate();
+        }
+
+        $handle = fopen($path, 'r');
+        if (!$handle) {
+            response(PHP_EOL . 'Unable to read GeoNames file.' . PHP_EOL . PHP_EOL);
+        }
+
+        $batch = [];
+        $batch_size = 1000;
+
+        while (($line = fgets($handle)) !== false) {
+            $line = trim($line);
+            if ($line === '') {
+                continue;
+            }
+
+            $columns = explode("\t", $line);
+            if (count($columns) < 11) {
+                continue;
+            }
+
+            $country_code = strtoupper(trim($columns[0] ?? ''));
+            $postal_code = strtoupper(trim($columns[1] ?? ''));
+
+            if ($country_code === '' || $postal_code === '') {
+                continue;
+            }
+
+            $batch[] = [
+                'country_code' => $country_code,
+                'postal_code' => $postal_code,
+                'place_name' => trim($columns[2] ?? ''),
+                'admin_name1' => trim($columns[3] ?? ''),
+                'admin_code1' => trim($columns[4] ?? ''),
+                'admin_name2' => trim($columns[5] ?? ''),
+                'admin_code2' => trim($columns[6] ?? ''),
+                'latitude' => isset($columns[9]) ? (float) $columns[9] : null,
+                'longitude' => isset($columns[10]) ? (float) $columns[10] : null,
+            ];
+
+            if (count($batch) >= $batch_size) {
+                $this->geonames_postal_codes_model->insert_batch($batch);
+                $batch = [];
+            }
+        }
+
+        fclose($handle);
+
+        if (!empty($batch)) {
+            $this->geonames_postal_codes_model->insert_batch($batch);
+        }
+
+        response(PHP_EOL . 'GeoNames import completed.' . PHP_EOL . PHP_EOL);
     }
 }

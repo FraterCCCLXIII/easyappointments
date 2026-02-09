@@ -36,6 +36,8 @@ App.Pages.Providers = (function () {
     const $passwordConfirmation = $('#password-confirm');
     const $notifications = $('#notifications');
     const $calendarView = $('#calendar-view');
+    const $serviceAreaZipsContainer = $('#provider-service-area-zips');
+    const $serviceAreaAll = $('#provider-service-area-all');
     const $filterProviders = $('#filter-providers');
     const $summaryName = $('#provider-summary-name');
     const $summaryEmail = $('#provider-summary-email');
@@ -51,6 +53,7 @@ App.Pages.Providers = (function () {
     let workingPlanManager;
     let userFilesManager;
     let userFormsManager;
+    let serviceAreaZipIds = [];
 
     function setRecordDetailsVisible(visible) {
         const $recordDetails = $providers.find('.record-details');
@@ -172,6 +175,12 @@ App.Pages.Providers = (function () {
         });
     }
 
+    function syncServiceAreaInputs() {
+        const isAllSelected = $serviceAreaAll.prop('checked');
+        const isAllDisabled = $serviceAreaAll.prop('disabled');
+        $serviceAreaZipsContainer.find('input:checkbox').prop('disabled', isAllSelected || isAllDisabled);
+    }
+
     function loadBookings(providerId) {
         if (!providerId) {
             renderBookings([]);
@@ -238,11 +247,7 @@ App.Pages.Providers = (function () {
             const providerId = $(event.currentTarget).attr('data-id');
             const provider = filterResults.find((filterResult) => Number(filterResult.id) === Number(providerId));
 
-            App.Pages.Providers.display(provider);
-            $filterProviders.find('.selected').removeClass('selected');
-            $(event.currentTarget).addClass('selected');
-            $('#edit-provider, #delete-provider').prop('disabled', false);
-            setRecordDetailsVisible(true);
+            App.Pages.Providers.select(providerId, true);
             updateProfileUrl(provider?.slug);
         });
 
@@ -265,6 +270,8 @@ App.Pages.Providers = (function () {
                 )
                 .prop('disabled', false);
             $('#provider-services input:checkbox').prop('disabled', false);
+            $serviceAreaAll.prop('disabled', false);
+            syncServiceAreaInputs();
 
             // Apply default working plan
             const companyWorkingPlan = JSON.parse(vars('company_working_plan'));
@@ -284,6 +291,8 @@ App.Pages.Providers = (function () {
             $providers.find('.record-details .form-label span').prop('hidden', false);
             $('#password, #password-confirm').removeClass('required');
             $('#provider-services input:checkbox').prop('disabled', false);
+            $serviceAreaAll.prop('disabled', false);
+            syncServiceAreaInputs();
             $providers
                 .find(
                     '.add-break, .edit-break, .delete-break, .add-working-plan-exception, .edit-working-plan-exception, .delete-working-plan-exception, #reset-working-plan',
@@ -354,6 +363,17 @@ App.Pages.Providers = (function () {
                 }
             });
 
+            if ($serviceAreaAll.prop('checked')) {
+                provider.service_area_zip_ids = [...serviceAreaZipIds];
+            } else {
+                provider.service_area_zip_ids = [];
+                $serviceAreaZipsContainer.find('input:checkbox').each((index, checkboxEl) => {
+                    if ($(checkboxEl).prop('checked')) {
+                        provider.service_area_zip_ids.push($(checkboxEl).attr('data-id'));
+                    }
+                });
+            }
+
             // Include password if changed.
             if ($password.val() !== '') {
                 provider.settings.password = $password.val();
@@ -394,6 +414,21 @@ App.Pages.Providers = (function () {
             const companyWorkingPlan = JSON.parse(vars('company_working_plan'));
             workingPlanManager.setup(companyWorkingPlan);
             workingPlanManager.timepickers(false);
+        });
+
+        $providers.on('change', '#provider-service-area-all', (event) => {
+            const isChecked = $(event.currentTarget).prop('checked');
+            $serviceAreaZipsContainer.find('input:checkbox')
+                .prop('checked', isChecked)
+                .prop('disabled', isChecked);
+        });
+
+        $providers.on('change', '#provider-service-area-zips input:checkbox', () => {
+            const total = $serviceAreaZipsContainer.find('input:checkbox').length;
+            const selected = $serviceAreaZipsContainer.find('input:checkbox:checked').length;
+            const isAllSelected = total > 0 && selected === total;
+            $serviceAreaAll.prop('checked', isAllSelected);
+            syncServiceAreaInputs();
         });
     }
 
@@ -512,6 +547,8 @@ App.Pages.Providers = (function () {
         $providers.find('.record-details #timezone').val(vars('default_timezone'));
         $providers.find('.record-details #is-private').prop('checked', false);
         $providers.find('.record-details #notifications').prop('checked', true);
+        $serviceAreaAll.prop('disabled', true).prop('checked', false);
+        $serviceAreaZipsContainer.find('input:checkbox').prop('checked', false).prop('disabled', true);
         $providers.find('.add-break, .add-working-plan-exception, #reset-working-plan').prop('disabled', true);
 
         workingPlanManager.timepickers(true);
@@ -567,6 +604,15 @@ App.Pages.Providers = (function () {
         $username.val(provider.settings.username);
         $calendarView.val(provider.settings.calendar_view);
         $notifications.prop('checked', Boolean(Number(provider.settings.notifications)));
+        const providerZipIds = provider.service_area_zip_ids || [];
+        const isAllSelected = serviceAreaZipIds.length && providerZipIds.length >= serviceAreaZipIds.length;
+        $serviceAreaAll.prop('disabled', true).prop('checked', isAllSelected);
+        $serviceAreaZipsContainer.find('input:checkbox').each((index, checkboxEl) => {
+            const $checkbox = $(checkboxEl);
+            const zipId = Number($checkbox.attr('data-id'));
+            $checkbox.prop('checked', isAllSelected || providerZipIds.includes(zipId));
+        });
+        syncServiceAreaInputs();
         updateProviderSummary();
 
         if (userFilesManager) {
@@ -629,12 +675,28 @@ App.Pages.Providers = (function () {
         });
 
         // Display working plan
-        const workingPlan = JSON.parse(provider.settings.working_plan);
-        workingPlanManager.setup(workingPlan);
+        let workingPlan = null;
+        try {
+            workingPlan = JSON.parse(provider.settings.working_plan);
+        } catch (error) {
+            try {
+                workingPlan = JSON.parse(vars('company_working_plan'));
+            } catch (fallbackError) {
+                workingPlan = null;
+            }
+        }
+        if (workingPlan) {
+            workingPlanManager.setup(workingPlan);
+        }
         $('.working-plan').find('input').prop('disabled', true);
         $('.breaks').find('.edit-break, .delete-break').prop('disabled', true);
         $providers.find('.working-plan-exceptions tbody').empty();
-        const workingPlanExceptions = JSON.parse(provider.settings.working_plan_exceptions);
+        let workingPlanExceptions = [];
+        try {
+            workingPlanExceptions = JSON.parse(provider.settings.working_plan_exceptions || '[]');
+        } catch (error) {
+            workingPlanExceptions = [];
+        }
         workingPlanManager.setupWorkingPlanExceptions(workingPlanExceptions);
         $('.working-plan-exceptions')
             .find('.edit-working-plan-exception, .delete-working-plan-exception')
@@ -756,12 +818,15 @@ App.Pages.Providers = (function () {
 
         // Display record in form (if display = true).
         if (show) {
-            const provider = filterResults.find((filterResult) => Number(filterResult.id) === Number(id));
-
-            App.Pages.Providers.display(provider);
-
-            $('#edit-provider, #delete-provider').prop('disabled', false);
-            setRecordDetailsVisible(true);
+            App.Http.Providers.find(id)
+                .then((provider) => {
+                    App.Pages.Providers.display(provider);
+                    $('#edit-provider, #delete-provider').prop('disabled', false);
+                    setRecordDetailsVisible(true);
+                })
+                .fail(() => {
+                    App.Layouts.Backend.displayNotification(lang('no_records_found'));
+                });
         }
     }
 
@@ -853,6 +918,33 @@ App.Pages.Providers = (function () {
                     }),
                 ],
             }).appendTo('#provider-services');
+        });
+
+        $serviceAreaZipsContainer.empty();
+        const serviceAreaZips = vars('service_area_zips') || [];
+        serviceAreaZipIds = serviceAreaZips.map((zip) => Number(zip.id));
+        serviceAreaZips.forEach((zip) => {
+            const checkboxId = `provider-service-area-zip-${zip.id}`;
+            const label = zip.display_label ? ` - ${zip.display_label}` : '';
+            $('<div/>', {
+                'class': 'form-check',
+                'html': [
+                    $('<input/>', {
+                        'id': checkboxId,
+                        'class': 'form-check-input',
+                        'type': 'checkbox',
+                        'data-id': zip.id,
+                        'prop': {
+                            'disabled': true,
+                        },
+                    }),
+                    $('<label/>', {
+                        'class': 'form-check-label',
+                        'for': checkboxId,
+                        'text': `${zip.postal_code}${label}`,
+                    }),
+                ],
+            }).appendTo($serviceAreaZipsContainer);
         });
     }
 

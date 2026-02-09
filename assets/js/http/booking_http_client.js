@@ -404,6 +404,26 @@ App.Http.Booking = (function () {
     }
 
     /**
+     * Get provider ids for service-area filtering.
+     *
+     * @param {Number} serviceId
+     * @param {String} zipCode
+     * @param {String|null} countryCode
+     */
+    function serviceAreaProviders(serviceId, zipCode, countryCode = null) {
+        const url = App.Utils.Url.siteUrl('booking/service_area_providers');
+
+        const data = {
+            csrf_token: vars('csrf_token'),
+            service_id: serviceId,
+            zip_code: zipCode,
+            country_code: countryCode || undefined,
+        };
+
+        return $.post(url, data);
+    }
+
+    /**
      * Delete personal information.
      *
      * @param {Number} customerToken Customer unique token.
@@ -426,6 +446,7 @@ App.Http.Booking = (function () {
         getAvailableHours,
         getUnavailableDates,
         applyPreviousUnavailableDates,
+        serviceAreaProviders,
         deletePersonalInformation,
     };
 })();

@@ -72,7 +72,9 @@ class Providers extends EA_Controller
         $this->load->model('form_assignments_model');
         $this->load->model('forms_model');
         $this->load->model('providers_model');
+        $this->load->model('provider_service_area_zips_model');
         $this->load->model('secretaries_model');
+        $this->load->model('service_area_zips_model');
         $this->load->model('services_model');
         $this->load->model('roles_model');
 
@@ -128,6 +130,7 @@ class Providers extends EA_Controller
             'default_language' => setting('default_language'),
             'default_timezone' => setting('default_timezone'),
             'selected_record_slug' => $selected_slug,
+            'service_area_zips' => $this->service_area_zips_model->get_with_labels(),
         ]);
 
         html_vars([
@@ -276,6 +279,7 @@ class Providers extends EA_Controller
             }
 
             $provider = request('provider');
+            $service_area_zip_ids = $provider['service_area_zip_ids'] ?? [];
 
             $this->providers_model->only($provider, $this->allowed_provider_fields);
 
@@ -286,6 +290,8 @@ class Providers extends EA_Controller
             $this->providers_model->optional($provider['settings'], $this->optional_provider_setting_fields);
 
             $provider_id = $this->providers_model->save($provider);
+            $this->provider_service_area_zips_model
+                ->sync_for_provider((int) $provider_id, (array) $service_area_zip_ids);
 
             $provider = $this->providers_model->find($provider_id);
 
@@ -313,6 +319,8 @@ class Providers extends EA_Controller
             $provider_id = request('provider_id');
 
             $provider = $this->providers_model->find($provider_id);
+        $provider['service_area_zip_ids'] = $this->provider_service_area_zips_model
+            ->get_zip_ids_for_provider((int) $provider_id);
 
             json_response($provider);
         } catch (Throwable $e) {
@@ -337,6 +345,8 @@ class Providers extends EA_Controller
             }
 
             $provider = $this->providers_model->find_by_slug($slug);
+            $provider['service_area_zip_ids'] = $this->provider_service_area_zips_model
+                ->get_zip_ids_for_provider((int) $provider['id']);
 
             json_response($provider);
         } catch (Throwable $e) {
@@ -365,6 +375,8 @@ class Providers extends EA_Controller
             $this->providers_model->optional($provider['settings'], $this->optional_provider_setting_fields);
 
             $provider_id = $this->providers_model->save($provider);
+            $this->provider_service_area_zips_model
+                ->sync_for_provider((int) $provider_id, (array) $service_area_zip_ids);
 
             $provider = $this->providers_model->find($provider_id);
 

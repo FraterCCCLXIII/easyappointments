@@ -128,6 +128,13 @@
                             <?= lang('working_plan') ?>
                         </button>
                     </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="booking-tab-line" id="provider-area-preferences-tab" data-bs-toggle="pill"
+                                data-bs-target="#provider-area-preferences" type="button" role="tab"
+                                aria-selected="false" tabindex="-1">
+                            <?= lang('area_preferences') ?>
+                        </button>
+                    </li>
                     <?php if (vars('show_provider_forms_tab', false)): ?>
                         <li class="nav-item" role="presentation">
                             <button class="booking-tab-line" id="provider-forms-tab" data-bs-toggle="pill"
@@ -462,6 +469,32 @@
                     </div>
                 </div>
 
+                <div class="tab-pane fade" id="provider-area-preferences" role="tabpanel"
+                     aria-labelledby="provider-area-preferences-tab">
+                    <div class="rounded-xl border border-[var(--bs-border-color,#e2e8f0)] bg-white p-4">
+                        <h6 class="mb-3 fw-medium text-muted text-uppercase small">
+                            <?= lang('service_area_provider_zip_list') ?>
+                        </h6>
+
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="provider-service-area-all" disabled>
+                                <label class="form-check-label" for="provider-service-area-all">
+                                    <?= lang('service_area_provider_all') ?>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div id="provider-service-area-zips" class="d-flex flex-column gap-2" aria-live="polite">
+                            <!-- JS -->
+                        </div>
+
+                        <div class="form-text text-muted">
+                            <small><?= lang('service_area_provider_zip_list_hint') ?></small>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="working-plan-view tab-pane fade clearfix" id="working-plan">
                     <div class="rounded-xl border border-[var(--bs-border-color,#e2e8f0)] bg-white p-4">
                         <h4 class="text-dark mb-3 fw-medium fs-4">
@@ -572,7 +605,7 @@
 <script src="<?= asset_url('assets/js/http/user_files_http_client.js') ?>"></script>
 <script src="<?= asset_url('assets/js/components/user_forms.js') ?>"></script>
 <script src="<?= asset_url('assets/js/components/user_files.js') ?>"></script>
-<script src="<?= asset_url('assets/js/pages/providers.js') ?>"></script>
+<script src="<?= base_url('assets/js/pages/providers.js') ?>?v=<?= time() ?>"></script>
 
 <?php end_section('scripts'); ?>
 

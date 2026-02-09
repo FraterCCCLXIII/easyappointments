@@ -186,6 +186,22 @@
                     </div>
                 </div>
 
+                <div class="border rounded mb-3 p-3">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="service-area-only">
+
+                        <label class="form-check-label" for="service-area-only">
+                            <?= lang('service_area_only') ?>
+                        </label>
+                    </div>
+
+                    <div class="form-text text-muted">
+                        <small>
+                            <?= lang('service_area_only_hint') ?>
+                        </small>
+                    </div>
+                </div>
+
                 <div class="mb-3">
                     <label class="form-label" for="description">
                         <?= lang('description') ?>

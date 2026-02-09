@@ -53,8 +53,27 @@ App.Http.Account = (function () {
         return $.post(url, data);
     }
 
+    /**
+     * Save provider service areas.
+     *
+     * @param {Array} serviceAreaZipIds
+     *
+     * @return {Object}
+     */
+    function saveServiceAreas(serviceAreaZipIds) {
+        const url = App.Utils.Url.siteUrl('account/save_service_areas');
+
+        const data = {
+            csrf_token: vars('csrf_token'),
+            service_area_zip_ids: serviceAreaZipIds,
+        };
+
+        return $.post(url, data);
+    }
+
     return {
         save,
         validateUsername,
+        saveServiceAreas,
     };
 })();

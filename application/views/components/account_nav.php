@@ -4,9 +4,11 @@
  *
  * @var string $active_nav
  * @var bool $show_forms_nav
+ * @var bool $show_service_area_nav
  */
 $active_nav = $active_nav ?? 'account';
 $show_forms_nav = $show_forms_nav ?? false;
+$show_service_area_nav = $show_service_area_nav ?? false;
 ?>
 
 <div class="settings-nav-panel-inner d-flex flex-column">
@@ -32,6 +34,20 @@ $show_forms_nav = $show_forms_nav ?? false;
                             <i data-lucide="list" class="backend-sidebar-icon" aria-hidden="true"></i>
                     </span>
                         <span class="settings-nav-label backend-sidebar-label text-truncate">Forms</span>
+                    </a>
+                </div>
+            <?php endif; ?>
+            <?php if ($show_service_area_nav): ?>
+                <div>
+                    <a class="settings-nav-item-link backend-sidebar-link <?= $active_nav === 'account/service_areas' ? 'active' : '' ?>"
+                       href="<?= site_url('account/service_areas') ?>"
+                       title="<?= e(lang('service_area_preferences')) ?>">
+                        <span class="settings-nav-icon backend-sidebar-icon">
+                            <i data-lucide="map" class="backend-sidebar-icon" aria-hidden="true"></i>
+                        </span>
+                        <span class="settings-nav-label backend-sidebar-label text-truncate">
+                            <?= lang('service_area_preferences') ?>
+                        </span>
                     </a>
                 </div>
             <?php endif; ?>

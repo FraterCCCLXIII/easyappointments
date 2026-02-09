@@ -70,6 +70,7 @@ class Booking extends EA_Controller
         $this->load->model('service_categories_model');
         $this->load->model('services_model');
         $this->load->model('customers_model');
+        $this->load->model('provider_service_area_zips_model');
         $this->load->model('customer_auth_model');
         $this->load->model('custom_fields_model');
         $this->load->model('customer_custom_field_values_model');
@@ -436,6 +437,7 @@ class Booking extends EA_Controller
             'custom_field_values' => $custom_field_values,
             'default_language' => setting('default_language'),
             'default_timezone' => setting('default_timezone'),
+            'default_service_area_country' => setting('default_service_area_country', 'US'),
             'customer_logged_in' => customer_logged_in(),
         ]);
 
@@ -1035,6 +1037,40 @@ class Booking extends EA_Controller
             }
 
             json_response($unavailable_dates);
+        } catch (Throwable $e) {
+            json_exception($e);
+        }
+    }
+
+    /**
+     * Get providers that serve the requested ZIP.
+     */
+    public function service_area_providers(): void
+    {
+        try {
+            $service_id = (int) request('service_id');
+            $zip_code = strtoupper(trim((string) request('zip_code', '')));
+            $country_code = strtoupper(
+                trim((string) request('country_code', setting('default_service_area_country', 'US'))),
+            );
+
+            if (!$service_id || !$zip_code) {
+                json_response(['provider_ids' => []]);
+                return;
+            }
+
+            $service = $this->services_model->find($service_id);
+            $service_area_only = filter_var($service['service_area_only'] ?? false, FILTER_VALIDATE_BOOLEAN);
+
+            if (!$service_area_only) {
+                json_response(['provider_ids' => []]);
+                return;
+            }
+
+            $provider_ids = $this->provider_service_area_zips_model
+                ->get_provider_ids_for_zip($country_code, $zip_code);
+
+            json_response(['provider_ids' => $provider_ids]);
         } catch (Throwable $e) {
             json_exception($e);
         }

@@ -37,6 +37,10 @@ App.Pages.Booking = (function () {
     const $bookAppointmentSubmit = $('#book-appointment-submit');
     const $deletePersonalInformation = $('#delete-personal-information');
     const $displayBookingSelection = $('.display-booking-selection');
+    const $serviceAreaZipRequired = $('#service-area-zip-required');
+    const $serviceAreaNoProviders = $('#service-area-no-providers');
+    const $serviceAreaAddZip = $('#service-area-add-zip');
+    const $serviceAreaUpdateAddress = $('#service-area-update-address');
     const tippy = window.tippy;
     const moment = window.moment;
 
@@ -196,6 +200,7 @@ App.Pages.Booking = (function () {
      * @type {Boolean}
      */
     let manageMode = vars('manage_mode') || false;
+    let serviceAreaProviderIds = null;
 
     const wizardState = {
         storageKey: `EasyAppointments.BookingWizardStep.${window.location.pathname}`,
@@ -389,9 +394,10 @@ App.Pages.Booking = (function () {
                 // Select a service of this provider in order to make the provider available in the select box.
                 for (const index in vars('available_providers')) {
                     const provider = vars('available_providers')[index];
+                    const providerServiceIds = normalizeProviderServiceIds(provider);
 
-                    if (Number(provider.id) === Number(selectedProviderId) && provider.services.length > 0) {
-                        $selectService.val(provider.services[0]).trigger('change');
+                    if (Number(provider.id) === Number(selectedProviderId) && providerServiceIds.length > 0) {
+                        $selectService.val(providerServiceIds[0]).trigger('change');
                     }
                 }
             }
@@ -716,6 +722,174 @@ App.Pages.Booking = (function () {
         updateNextButtons();
     }
 
+    function getSelectedService() {
+        const serviceId = $selectService.val();
+        if (!serviceId) {
+            return null;
+        }
+
+        return (vars('available_services') || []).find(
+            (service) => Number(service.id) === Number(serviceId),
+        );
+    }
+
+    function isServiceAreaOnlyService(service) {
+        if (!service) {
+            return false;
+        }
+
+        const value =
+            service.service_area_only ??
+            service.serviceAreaOnly ??
+            service.service_area ??
+            service.serviceArea ??
+            null;
+
+        if (typeof value === 'boolean') {
+            return value;
+        }
+
+        if (typeof value === 'number') {
+            return value === 1;
+        }
+
+        if (typeof value === 'string') {
+            const normalized = value.trim().toLowerCase();
+            return normalized === '1' || normalized === 'true' || normalized === 'yes';
+        }
+
+        return false;
+    }
+
+    function normalizeProviderServiceIds(provider) {
+        const rawServices = provider?.services;
+
+        if (Array.isArray(rawServices)) {
+            return rawServices
+                .map((service) => {
+                    if (typeof service === 'object' && service !== null) {
+                        return service.id ?? service.id_services ?? service.service_id ?? null;
+                    }
+                    return service;
+                })
+                .map((serviceId) => Number(serviceId))
+                .filter((serviceId) => Number.isFinite(serviceId));
+        }
+
+        if (typeof rawServices === 'string') {
+            try {
+                const parsed = JSON.parse(rawServices);
+                if (Array.isArray(parsed)) {
+                    return parsed
+                        .map((serviceId) => Number(serviceId))
+                        .filter((serviceId) => Number.isFinite(serviceId));
+                }
+            } catch (error) {
+                // Ignore JSON parse failures and fall back to CSV parsing.
+            }
+
+            return rawServices
+                .split(',')
+                .map((serviceId) => Number(serviceId.trim()))
+                .filter((serviceId) => Number.isFinite(serviceId));
+        }
+
+        return [];
+    }
+
+    function updateServiceAreaProviders(serviceId) {
+        const service = getSelectedService();
+        if (!service || !isServiceAreaOnlyService(service)) {
+            serviceAreaProviderIds = null;
+            updateServiceAreaScreens();
+            return $.Deferred().resolve().promise();
+        }
+
+        const zipCode = ($zipCode.val() || '').trim();
+        if (!zipCode) {
+            serviceAreaProviderIds = [];
+            updateServiceAreaScreens();
+            return $.Deferred().resolve().promise();
+        }
+
+        const countryCode = vars('default_service_area_country') || 'US';
+        return App.Http.Booking.serviceAreaProviders(serviceId, zipCode, countryCode).then((response) => {
+            serviceAreaProviderIds = response.provider_ids || [];
+            updateServiceAreaScreens();
+        });
+    }
+
+    function renderProvidersForService(serviceId) {
+        $selectProvider.empty();
+        $selectProvider.append(new Option(lang('please_select'), ''));
+
+        vars('available_providers').forEach((provider) => {
+            const providerServiceIds = normalizeProviderServiceIds(provider);
+            const canServeService = providerServiceIds.some(
+                (providerServiceId) => Number(providerServiceId) === Number(serviceId),
+            );
+
+            if (!canServeService) {
+                return;
+            }
+
+            if (Array.isArray(serviceAreaProviderIds)) {
+                const providerId = Number(provider.id);
+                if (!serviceAreaProviderIds.includes(providerId)) {
+                    return;
+                }
+            }
+
+            $selectProvider.append(new Option(provider.first_name + ' ' + provider.last_name, provider.id));
+        });
+
+        const providerOptionCount = $selectProvider.find('option').length;
+
+        if (providerOptionCount === 2) {
+            $selectProvider.find('option[value=""]').remove();
+        }
+
+        const service = getSelectedService();
+        const allowAnyProvider = !service || !isServiceAreaOnlyService(service);
+        if (providerOptionCount > 2 && allowAnyProvider && Boolean(Number(vars('display_any_provider')))) {
+            $(new Option(lang('any_provider'), 'any-provider')).insertAfter($selectProvider.find('option:first'));
+        }
+
+        renderProviderCards();
+        updateServiceAreaScreens();
+    }
+
+    function updateServiceAreaScreens() {
+        const service = getSelectedService();
+        const isServiceAreaOnly = isServiceAreaOnlyService(service);
+        const zipCode = ($zipCode.val() || '').trim();
+
+        if (!isServiceAreaOnly) {
+            $serviceAreaZipRequired.addClass('hidden');
+            $serviceAreaNoProviders.addClass('hidden');
+            $providerCardList.removeClass('hidden');
+            return;
+        }
+
+        if (!zipCode) {
+            $serviceAreaZipRequired.removeClass('hidden');
+            $serviceAreaNoProviders.addClass('hidden');
+            $providerCardList.addClass('hidden');
+            return;
+        }
+
+        if (Array.isArray(serviceAreaProviderIds) && serviceAreaProviderIds.length === 0) {
+            $serviceAreaZipRequired.addClass('hidden');
+            $serviceAreaNoProviders.removeClass('hidden');
+            $providerCardList.addClass('hidden');
+            return;
+        }
+
+        $serviceAreaZipRequired.addClass('hidden');
+        $serviceAreaNoProviders.addClass('hidden');
+        $providerCardList.removeClass('hidden');
+    }
+
     function prefillFromQueryParam(field, param) {
         const $target = $(field);
 
@@ -821,42 +995,15 @@ App.Pages.Booking = (function () {
                 $providerCardContainer.attr('aria-hidden', (!shouldShowProviders).toString());
             }
 
-            $selectProvider.empty();
+            updateServiceAreaProviders(serviceId).then(() => {
+                renderProvidersForService(serviceId);
 
-            $selectProvider.append(new Option(lang('please_select'), ''));
-
-            vars('available_providers').forEach((provider) => {
-                // If the current provider is able to provide the selected service, add him to the list box.
-                const canServeService =
-                    provider.services.filter((providerServiceId) => Number(providerServiceId) === Number(serviceId))
-                        .length > 0;
-
-                if (canServeService) {
-                    $selectProvider.append(new Option(provider.first_name + ' ' + provider.last_name, provider.id));
-                }
+                App.Http.Booking.getUnavailableDates(
+                    $selectProvider.val(),
+                    $target.val(),
+                    moment(App.Utils.UI.getDateTimePickerValue($selectDate)).format('YYYY-MM-DD'),
+                );
             });
-
-            const providerOptionCount = $selectProvider.find('option').length;
-
-            // Remove the "Please Select" option, if there is only one provider available
-
-            if (providerOptionCount === 2) {
-                $selectProvider.find('option[value=""]').remove();
-            }
-
-            // Add the "Any Provider" entry
-
-            if (providerOptionCount > 2 && Boolean(Number(vars('display_any_provider')))) {
-                $(new Option(lang('any_provider'), 'any-provider')).insertAfter($selectProvider.find('option:first'));
-            }
-
-            renderProviderCards();
-
-            App.Http.Booking.getUnavailableDates(
-                $selectProvider.val(),
-                $target.val(),
-                moment(App.Utils.UI.getDateTimePickerValue($selectDate)).format('YYYY-MM-DD'),
-            );
 
             App.Pages.Booking.updateConfirmFrame();
 
@@ -864,6 +1011,33 @@ App.Pages.Booking = (function () {
             syncServiceCardSelection(serviceId);
             updateNextButtons();
         });
+
+        $zipCode.on('input', () => {
+            const serviceId = $selectService.val();
+            if (!serviceId) {
+                return;
+            }
+
+            updateServiceAreaProviders(serviceId).then(() => {
+                renderProvidersForService(serviceId);
+            });
+        });
+
+        if ($serviceAreaAddZip.length) {
+            $serviceAreaAddZip.on('click', () => {
+                if (showWizardStep(3, { animate: true })) {
+                    wizardState.set(3);
+                }
+            });
+        }
+
+        if ($serviceAreaUpdateAddress.length) {
+            $serviceAreaUpdateAddress.on('click', () => {
+                if (showWizardStep(3, { animate: true })) {
+                    wizardState.set(3);
+                }
+            });
+        }
 
         $serviceCardList.on('click', '.service-card', (event) => {
             const $card = $(event.currentTarget);

@@ -8,6 +8,7 @@
             <?php component('account_nav', [
                 'active_nav' => 'account',
                 'show_forms_nav' => vars('show_forms_nav', false),
+                'show_service_area_nav' => vars('show_service_area_nav', false),
             ]); ?>
         </div>
         <div class="col-sm-9 settings-content">

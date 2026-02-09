@@ -60,8 +60,10 @@ class Account extends EA_Controller
         $this->load->model('forms_model');
         $this->load->model('services_model');
         $this->load->model('providers_model');
+        $this->load->model('provider_service_area_zips_model');
         $this->load->model('roles_model');
         $this->load->model('settings_model');
+        $this->load->model('service_area_zips_model');
 
         $this->load->library('accounts');
         $this->load->library('google_sync');
@@ -91,6 +93,8 @@ class Account extends EA_Controller
 
         $account = $this->users_model->find($user_id);
         $show_forms_nav = $this->has_assigned_forms();
+        $role_slug = session('role_slug');
+        $show_service_area_nav = $role_slug === DB_SLUG_PROVIDER;
 
         script_vars([
             'account' => $account,
@@ -102,6 +106,7 @@ class Account extends EA_Controller
             'user_display_name' => $this->accounts->get_user_display_name($user_id),
             'grouped_timezones' => $this->timezones->to_grouped_array(),
             'show_forms_nav' => $show_forms_nav,
+            'show_service_area_nav' => $show_service_area_nav,
         ]);
 
         $this->load->view('pages/account');
@@ -124,12 +129,15 @@ class Account extends EA_Controller
         }
 
         $show_forms_nav = $this->has_assigned_forms();
+        $role_slug = session('role_slug');
+        $show_service_area_nav = $role_slug === DB_SLUG_PROVIDER;
 
         html_vars([
             'page_title' => lang('forms'),
             'active_menu' => PRIV_SYSTEM_SETTINGS,
             'user_display_name' => $this->accounts->get_user_display_name($user_id),
             'show_forms_nav' => $show_forms_nav,
+            'show_service_area_nav' => $show_service_area_nav,
         ]);
 
         $this->load->view('pages/account_forms');
@@ -152,6 +160,8 @@ class Account extends EA_Controller
         }
 
         $show_forms_nav = $this->has_assigned_forms();
+        $role_slug = session('role_slug');
+        $show_service_area_nav = $role_slug === DB_SLUG_PROVIDER;
 
         script_vars([
             'form_id' => $form_id,
@@ -162,9 +172,76 @@ class Account extends EA_Controller
             'active_menu' => PRIV_SYSTEM_SETTINGS,
             'user_display_name' => $this->accounts->get_user_display_name($user_id),
             'show_forms_nav' => $show_forms_nav,
+            'show_service_area_nav' => $show_service_area_nav,
         ]);
 
         $this->load->view('pages/account_form_view');
+    }
+
+    public function service_areas(): void
+    {
+        session(['dest_url' => site_url('account/service_areas')]);
+
+        $user_id = session('user_id');
+
+        if (cannot('view', PRIV_USER_SETTINGS)) {
+            if ($user_id) {
+                abort(403, 'Forbidden');
+            }
+
+            redirect('login');
+
+            return;
+        }
+
+        if (session('role_slug') !== DB_SLUG_PROVIDER) {
+            abort(403, 'Forbidden');
+        }
+
+        $show_forms_nav = $this->has_assigned_forms();
+        $show_service_area_nav = true;
+
+        script_vars([
+            'service_area_zips' => $this->service_area_zips_model->get_with_labels(),
+            'service_area_zip_ids' => $this->provider_service_area_zips_model
+                ->get_zip_ids_for_provider((int) $user_id),
+        ]);
+
+        html_vars([
+            'page_title' => lang('service_area_preferences'),
+            'active_menu' => PRIV_SYSTEM_SETTINGS,
+            'user_display_name' => $this->accounts->get_user_display_name($user_id),
+            'show_forms_nav' => $show_forms_nav,
+            'show_service_area_nav' => $show_service_area_nav,
+        ]);
+
+        $this->load->view('pages/account_service_areas');
+    }
+
+    public function save_service_areas(): void
+    {
+        try {
+            if (cannot('edit', PRIV_USER_SETTINGS)) {
+                throw new RuntimeException('You do not have the required permissions for this task.');
+            }
+
+            if (session('role_slug') !== DB_SLUG_PROVIDER) {
+                abort(403, 'Forbidden');
+            }
+
+            $user_id = (int) session('user_id');
+            $zip_ids = request('service_area_zip_ids', []);
+
+            if (!is_array($zip_ids)) {
+                $zip_ids = [];
+            }
+
+            $this->provider_service_area_zips_model->sync_for_provider($user_id, $zip_ids);
+
+            response();
+        } catch (Throwable $e) {
+            json_exception($e);
+        }
     }
 
     protected function has_assigned_forms(): bool

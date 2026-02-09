@@ -49,7 +49,9 @@ App.Utils.WorkingPlan = (function () {
          */
         setup(workingPlan) {
             const weekDayId = App.Utils.Date.getWeekdayId(vars('first_weekday'));
-            const workingPlanSorted = App.Utils.Date.sortWeekDictionary(workingPlan, weekDayId);
+            const normalizedWorkingPlan =
+                workingPlan && typeof workingPlan === 'object' ? workingPlan : {};
+            const workingPlanSorted = App.Utils.Date.sortWeekDictionary(normalizedWorkingPlan, weekDayId);
 
             $('.working-plan tbody').empty();
             $('.breaks tbody').empty();
@@ -60,6 +62,7 @@ App.Utils.WorkingPlan = (function () {
             $.each(
                 workingPlanSorted,
                 function (index, workingDay) {
+                    const hasWorkingHours = Boolean(workingDay && workingDay.start && workingDay.end);
                     const day = this.convertValueToDay(index);
 
                     const dayDisplayName = App.Utils.String.upperCaseFirstLetter(day);
@@ -104,20 +107,21 @@ App.Utils.WorkingPlan = (function () {
                         ],
                     }).appendTo('.working-plan tbody');
 
-                    if (workingDay) {
+                    if (hasWorkingHours) {
                         $('#' + index).prop('checked', true);
-                        $('#' + index + '-start').val(
-                            moment(workingDay.start, 'HH:mm').format(timeFormat).toLowerCase(),
+                        $('#' + index + '-start').val(moment(workingDay.start, 'HH:mm').format(timeFormat).toLowerCase());
+                        $('#' + index + '-end').val(
+                            moment(workingDay.end, 'HH:mm').format(timeFormat).toLowerCase(),
                         );
-                        $('#' + index + '-end').val(moment(workingDay.end, 'HH:mm').format(timeFormat).toLowerCase());
 
                         // Sort day's breaks according to the starting hour
-                        workingDay.breaks.sort(function (break1, break2) {
+                        const dayBreaks = Array.isArray(workingDay.breaks) ? workingDay.breaks : [];
+                        dayBreaks.sort(function (break1, break2) {
                             // We can do a direct string comparison since we have time based on 24 hours clock.
                             return break1.start.localeCompare(break2.start);
                         });
 
-                        workingDay.breaks.forEach(function (workingDayBreak) {
+                        dayBreaks.forEach(function (workingDayBreak) {
                             $('<tr/>', {
                                 'html': [
                                     $('<td/>', {
