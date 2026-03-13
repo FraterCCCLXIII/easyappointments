@@ -294,9 +294,9 @@ body {
 
 .month.selected,
 .date.selected {
-    background: #439a82;
+    background: var(--bs-primary, #439a82);
     color: #fff;
-    border-color: #439a82;
+    border-color: var(--bs-primary, #439a82);
 }
 
 .month.selected .day-name,

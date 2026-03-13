@@ -122,12 +122,7 @@ App.Pages.Booking = (function () {
                 this.$datesContainer.append($dateDiv);
             }
 
-            // Center selected month
-            const $selectedMonth = this.$monthsContainer.find('.month.selected');
-            if ($selectedMonth.length) {
-                const offset = $selectedMonth[0].offsetLeft - (this.$monthsContainer.width() / 2) + ($selectedMonth.width() / 2);
-                this.$monthsContainer.stop().animate({ scrollLeft: offset }, 400);
-            }
+            this.centerSelectedMonth();
 
             // Scroll to selected date (keep it in view on load)
             const $selectedDate = this.$datesContainer.find('.date.selected');
@@ -191,7 +186,32 @@ App.Pages.Booking = (function () {
                     App.Pages.Booking.updateConfirmFrame();
                 }
             });
-        }
+        },
+
+        centerSelectedMonth: function () {
+            const monthsContainer = this.$monthsContainer.get(0);
+            const selectedMonth = this.$monthsContainer.find('.month.selected').get(0);
+
+            if (!monthsContainer || !selectedMonth) {
+                return;
+            }
+
+            const containerWidth = monthsContainer.clientWidth;
+            const maxScrollLeft = Math.max(0, monthsContainer.scrollWidth - containerWidth);
+            const containerRect = monthsContainer.getBoundingClientRect();
+            const monthRect = selectedMonth.getBoundingClientRect();
+
+            // Calculate month position relative to the scroll container viewport
+            // and convert it to a scrollLeft target.
+            const targetScrollLeft =
+                monthsContainer.scrollLeft +
+                (monthRect.left - containerRect.left) -
+                (containerWidth / 2) +
+                (monthRect.width / 2);
+            const clampedScrollLeft = Math.max(0, Math.min(targetScrollLeft, maxScrollLeft));
+
+            this.$monthsContainer.stop().animate({ scrollLeft: clampedScrollLeft }, 250);
+        },
     };
 
     /**

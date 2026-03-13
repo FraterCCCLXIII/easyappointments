@@ -178,6 +178,13 @@
         @apply btn bg-brand text-white hover:bg-brand hover:brightness-110;
     }
 
+    .btn-primary:active,
+    .btn-primary:focus,
+    .btn-primary:focus-visible {
+        @apply border-brand bg-brand text-white;
+        box-shadow: none;
+    }
+
     .btn-secondary {
         @apply btn bg-slate-900 text-white hover:bg-slate-800;
     }
