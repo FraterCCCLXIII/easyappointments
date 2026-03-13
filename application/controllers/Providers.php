@@ -365,6 +365,7 @@ class Providers extends EA_Controller
             }
 
             $provider = request('provider');
+            $service_area_zip_ids = $provider['service_area_zip_ids'] ?? [];
 
             $this->providers_model->only($provider, $this->allowed_provider_fields);
 

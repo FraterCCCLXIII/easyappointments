@@ -100,6 +100,23 @@ class Service_area_zips_model extends EA_Model
         return $row;
     }
 
+    public function find_by_postal_code_any_country(string $postal_code): ?array
+    {
+        $row = $this->db
+            ->where('postal_code', strtoupper($postal_code))
+            ->limit(1)
+            ->get('service_area_zips')
+            ->row_array();
+
+        if (!$row) {
+            return null;
+        }
+
+        $this->cast($row);
+
+        return $row;
+    }
+
     protected function validate(array $service_area_zip): void
     {
         if (!empty($service_area_zip['id'])) {

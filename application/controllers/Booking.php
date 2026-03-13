@@ -71,6 +71,7 @@ class Booking extends EA_Controller
         $this->load->model('services_model');
         $this->load->model('customers_model');
         $this->load->model('provider_service_area_zips_model');
+        $this->load->model('service_area_zips_model');
         $this->load->model('customer_auth_model');
         $this->load->model('custom_fields_model');
         $this->load->model('customer_custom_field_values_model');
@@ -1049,20 +1050,55 @@ class Booking extends EA_Controller
     {
         try {
             $service_id = (int) request('service_id');
-            $zip_code = strtoupper(trim((string) request('zip_code', '')));
+            $raw_zip_code = trim((string) request('zip_code', ''));
+            $zip_code = $raw_zip_code;
             $country_code = strtoupper(
                 trim((string) request('country_code', setting('default_service_area_country', 'US'))),
             );
 
+            $this->log_service_area_debug('request_received', [
+                'service_id' => $service_id,
+                'raw_zip_code' => $raw_zip_code,
+                'country_code' => $country_code,
+            ]);
+
             if (!$service_id || !$zip_code) {
+                $this->log_service_area_debug('missing_required_inputs', [
+                    'service_id' => $service_id,
+                    'raw_zip_code' => $raw_zip_code,
+                    'country_code' => $country_code,
+                ]);
                 json_response(['provider_ids' => []]);
                 return;
             }
+
+            $zip_code = $this->normalize_service_area_postal_code($zip_code, $country_code);
+            if ($zip_code === '') {
+                $this->log_service_area_debug('normalized_zip_empty', [
+                    'service_id' => $service_id,
+                    'raw_zip_code' => $raw_zip_code,
+                    'country_code' => $country_code,
+                ]);
+                json_response(['provider_ids' => []]);
+                return;
+            }
+
+            $this->log_service_area_debug('zip_normalized', [
+                'service_id' => $service_id,
+                'raw_zip_code' => $raw_zip_code,
+                'normalized_zip_code' => $zip_code,
+                'country_code' => $country_code,
+            ]);
 
             $service = $this->services_model->find($service_id);
             $service_area_only = filter_var($service['service_area_only'] ?? false, FILTER_VALIDATE_BOOLEAN);
 
             if (!$service_area_only) {
+                $this->log_service_area_debug('service_not_service_area_only', [
+                    'service_id' => $service_id,
+                    'normalized_zip_code' => $zip_code,
+                    'country_code' => $country_code,
+                ]);
                 json_response(['provider_ids' => []]);
                 return;
             }
@@ -1070,10 +1106,108 @@ class Booking extends EA_Controller
             $provider_ids = $this->provider_service_area_zips_model
                 ->get_provider_ids_for_zip($country_code, $zip_code);
 
+            $this->log_service_area_debug('country_zip_match_result', [
+                'service_id' => $service_id,
+                'normalized_zip_code' => $zip_code,
+                'country_code' => $country_code,
+                'provider_ids' => $provider_ids,
+            ]);
+
+            if (empty($provider_ids)) {
+                // If the default country does not match the stored ZIP country, retry by postal code only.
+                $provider_ids = $this->provider_service_area_zips_model->get_provider_ids_for_postal_code($zip_code);
+                $this->log_service_area_debug('postal_code_only_fallback_result', [
+                    'service_id' => $service_id,
+                    'normalized_zip_code' => $zip_code,
+                    'country_code' => $country_code,
+                    'provider_ids' => $provider_ids,
+                ]);
+            }
+
+            if (empty($provider_ids)) {
+                $zip_exists = $this->service_area_zips_model->find_by_postal_code($country_code, $zip_code)
+                    ?: $this->service_area_zips_model->find_by_postal_code_any_country($zip_code);
+                $has_provider_assignments = $this->provider_service_area_zips_model->has_any_assignments();
+
+                $this->log_service_area_debug('no_direct_provider_match', [
+                    'service_id' => $service_id,
+                    'normalized_zip_code' => $zip_code,
+                    'country_code' => $country_code,
+                    'zip_exists' => (bool) $zip_exists,
+                    'has_provider_assignments' => $has_provider_assignments,
+                ]);
+
+                // Backward compatibility: before provider ZIP assignment is configured,
+                // treat configured service-area ZIPs as available for all service providers.
+                if ($zip_exists && !$has_provider_assignments) {
+                    $provider_ids = $this->search_providers_by_service($service_id);
+                    $this->log_service_area_debug('fallback_all_service_providers', [
+                        'service_id' => $service_id,
+                        'normalized_zip_code' => $zip_code,
+                        'country_code' => $country_code,
+                        'provider_ids' => $provider_ids,
+                    ]);
+                }
+            }
+
+            $provider_ids = array_values(array_unique(array_map('intval', $provider_ids)));
+
+            $this->log_service_area_debug('response_ready', [
+                'service_id' => $service_id,
+                'normalized_zip_code' => $zip_code,
+                'country_code' => $country_code,
+                'provider_ids' => $provider_ids,
+            ]);
+
             json_response(['provider_ids' => $provider_ids]);
         } catch (Throwable $e) {
+            $this->log_service_area_debug('exception', [
+                'message' => $e->getMessage(),
+            ]);
             json_exception($e);
         }
+    }
+
+    protected function normalize_service_area_postal_code(string $postal_code, string $country_code): string
+    {
+        $postal_code = strtoupper(trim($postal_code));
+        $country_code = strtoupper(trim($country_code));
+
+        if ($postal_code === '') {
+            return '';
+        }
+
+        // Normalize separators for formats like "92104-1234" or "M5V 2T6".
+        $postal_code = preg_replace('/\s+/', '', $postal_code);
+
+        if ($country_code === 'US') {
+            if (preg_match('/^(\d{5})-\d{4}$/', $postal_code, $matches)) {
+                return $matches[1];
+            }
+
+            if (preg_match('/^\d{9}$/', $postal_code)) {
+                return substr($postal_code, 0, 5);
+            }
+        }
+
+        return $postal_code;
+    }
+
+    protected function log_service_area_debug(string $event, array $context = []): void
+    {
+        $payload = json_encode(
+            array_merge(
+                ['event' => $event],
+                $context
+            ),
+            JSON_UNESCAPED_SLASHES
+        );
+
+        if ($payload === false) {
+            $payload = '{"event":"log_encoding_failed"}';
+        }
+
+        log_message('debug', '[ServiceAreaProviders] ' . $payload);
     }
 
     /**

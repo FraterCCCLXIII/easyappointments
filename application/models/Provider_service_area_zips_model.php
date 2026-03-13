@@ -97,4 +97,29 @@ class Provider_service_area_zips_model extends EA_Model
 
         return array_map(static fn ($row) => (int) $row['id_users_provider'], $rows);
     }
+
+    public function get_provider_ids_for_postal_code(string $postal_code): array
+    {
+        $rows = $this->db
+            ->select('provider_service_area_zips.id_users_provider')
+            ->from('provider_service_area_zips')
+            ->join(
+                'service_area_zips',
+                'service_area_zips.id = provider_service_area_zips.id_service_area_zips',
+                'inner',
+            )
+            ->where('service_area_zips.postal_code', strtoupper($postal_code))
+            ->get()
+            ->result_array();
+
+        return array_map(static fn ($row) => (int) $row['id_users_provider'], $rows);
+    }
+
+    public function has_any_assignments(): bool
+    {
+        return (bool) $this->db
+            ->from('provider_service_area_zips')
+            ->limit(1)
+            ->count_all_results();
+    }
 }
