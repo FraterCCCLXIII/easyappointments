@@ -145,6 +145,123 @@ window.App.Layouts.Backend = (function () {
         });
     }
 
+    function isElementVisible(element) {
+        if (!element) {
+            return false;
+        }
+
+        const style = window.getComputedStyle(element);
+        return style.display !== 'none' && style.visibility !== 'hidden';
+    }
+
+    function getSiblingRecordDetails(filterPanel) {
+        if (!filterPanel || !filterPanel.parentElement) {
+            return null;
+        }
+
+        return filterPanel.parentElement.querySelector('.record-details');
+    }
+
+    function setMobileRecordView(layoutRow, view) {
+        if (!layoutRow) {
+            return;
+        }
+
+        layoutRow.classList.toggle('backend-mobile-record-show-detail', view === 'detail');
+    }
+
+    function isMobileViewport() {
+        return window.matchMedia('(max-width: 1320px)').matches;
+    }
+
+    function ensureMobileBackButton(recordDetails, layoutRow) {
+        if (!recordDetails || !layoutRow) {
+            return null;
+        }
+
+        let backContainer = recordDetails.querySelector('.backend-mobile-record-back');
+        if (backContainer) {
+            return backContainer.querySelector('[data-backend-mobile-record-back]');
+        }
+
+        backContainer = document.createElement('div');
+        backContainer.className = 'backend-mobile-record-back';
+
+        const backButton = document.createElement('button');
+        backButton.type = 'button';
+        backButton.className = 'btn btn-outline-secondary btn-sm';
+        backButton.setAttribute('data-backend-mobile-record-back', '');
+        backButton.setAttribute('aria-label', 'Back to list');
+        backButton.innerHTML = `
+            <i class="fas fa-arrow-left me-2" aria-hidden="true"></i>
+            <span>${typeof lang === 'function' ? lang('back') : 'Back'}</span>
+        `;
+
+        backButton.addEventListener('click', () => {
+            layoutRow.dataset.mobileRecordOpened = 'false';
+            setMobileRecordView(layoutRow, 'list');
+        });
+
+        backContainer.appendChild(backButton);
+        recordDetails.insertBefore(backContainer, recordDetails.firstChild);
+
+        return backButton;
+    }
+
+    function enableMobileRecordNavigation() {
+        const filterPanels = document.querySelectorAll('.backend-page .filter-records');
+
+        filterPanels.forEach((filterPanel) => {
+            const layoutRow = filterPanel.parentElement;
+            const recordDetails = getSiblingRecordDetails(filterPanel);
+
+            if (!layoutRow || !recordDetails) {
+                return;
+            }
+
+            layoutRow.classList.add('backend-mobile-record-layout');
+            layoutRow.dataset.mobileRecordOpened = 'false';
+            ensureMobileBackButton(recordDetails, layoutRow);
+
+            filterPanel.addEventListener('click', (event) => {
+                const clickedEntry = event.target.closest('.entry');
+                const clickedAdd = event.target.closest('button[id^="add-"], a[id^="add-"]');
+
+                if (clickedEntry || clickedAdd) {
+                    layoutRow.dataset.mobileRecordOpened = 'true';
+                    setMobileRecordView(layoutRow, 'detail');
+                }
+            });
+
+            const detailsObserver = new MutationObserver(() => {
+                if (!isMobileViewport()) {
+                    return;
+                }
+
+                if (!isElementVisible(recordDetails)) {
+                    layoutRow.dataset.mobileRecordOpened = 'false';
+                    setMobileRecordView(layoutRow, 'list');
+                    return;
+                }
+
+                if (layoutRow.dataset.mobileRecordOpened === 'true') {
+                    setMobileRecordView(layoutRow, 'detail');
+                } else {
+                    setMobileRecordView(layoutRow, 'list');
+                }
+            });
+
+            detailsObserver.observe(recordDetails, {
+                attributes: true,
+                attributeFilter: ['style', 'class'],
+            });
+
+            if (isMobileViewport()) {
+                setMobileRecordView(layoutRow, 'list');
+            }
+        });
+    }
+
     function initialize() {
         $(document).ajaxStart(() => {
             $loading.show();
@@ -157,6 +274,7 @@ window.App.Layouts.Backend = (function () {
         initGlobalTooltips();
         syncSidebarTooltips();
         enableResponsiveTables();
+        enableMobileRecordNavigation();
 
         App.Utils.Lang.enableLanguageSelection($selectLanguage);
 
