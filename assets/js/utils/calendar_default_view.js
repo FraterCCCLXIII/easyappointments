@@ -338,7 +338,7 @@ App.Utils.CalendarDefaultView = (function () {
      * @return {Number} Returns the calendar element height in pixels.
      */
     function getCalendarHeight() {
-        const bottomMargin = 16;
+        const bottomMargin = 20;
         const calendarTop = $calendar[0]?.getBoundingClientRect().top ?? 0;
 
         // Keep the calendar within viewport and reserve a standard bottom margin.

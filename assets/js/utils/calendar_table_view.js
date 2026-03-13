@@ -688,7 +688,14 @@ App.Utils.CalendarTableView = (function () {
      * @return {Number} Returns the calendar element height in pixels.
      */
     function getCalendarHeight($target) {
-        const bottomMargin = 16;
+        const selectedDayCount = Number($selectFilterItem.val() || 1);
+
+        // In multi-day table mode, columns should flow down the page naturally.
+        if (selectedDayCount > 1) {
+            return 'auto';
+        }
+
+        const bottomMargin = 20;
         const element = $target?.[0] || $calendar[0];
         const top = element?.getBoundingClientRect().top ?? 0;
 
@@ -1913,24 +1920,29 @@ App.Utils.CalendarTableView = (function () {
      * using scrollbars.
      */
     function setCalendarViewSize() {
-        const bottomMargin = 16;
-        const calendarViewTop = $('.calendar-view')[0]?.getBoundingClientRect().top ?? 0;
-        let height = window.innerHeight - calendarViewTop - bottomMargin;
-        height = Math.max(height, 0);
+        const selectedDayCount = Number($selectFilterItem.val() || 1);
 
         const $dateColumn = $('.date-column');
         const $calendarViewDiv = $('.calendar-view > div');
 
-        $calendarViewDiv.css('min-width', '1000%');
-
         let width = 0;
 
         $dateColumn.each((index, dateColumn) => {
-            width += $(dateColumn).outerWidth();
+            width = Math.max(width, $(dateColumn).outerWidth() || 0);
         });
 
-        $calendarViewDiv.css('min-width', width + 200);
+        const containerWidth = $('.calendar-view').innerWidth() || 0;
+        $calendarViewDiv.css('min-width', Math.max(width, containerWidth));
 
+        if (selectedDayCount > 1) {
+            $('.calendar-view .not-working').css('height', '');
+            return;
+        }
+
+        const bottomMargin = 20;
+        const calendarViewTop = $('.calendar-view')[0]?.getBoundingClientRect().top ?? 0;
+        let height = window.innerHeight - calendarViewTop - bottomMargin;
+        height = Math.max(height, 0);
         const dateColumnHeight = $dateColumn.outerHeight();
 
         $('.calendar-view .not-working').outerHeight((dateColumnHeight > height ? dateColumnHeight : height) - 70);

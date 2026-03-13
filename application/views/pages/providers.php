@@ -447,8 +447,8 @@
 
                 <div class="tab-pane fade show active" id="provider-bookings" role="tabpanel"
                      aria-labelledby="provider-bookings-tab">
-                    <div class="overflow-hidden rounded-xl border border-[var(--bs-border-color,#e2e8f0)] bg-white">
-                        <table class="w-full text-left text-sm">
+                    <div class="overflow-x-auto rounded-xl border border-[var(--bs-border-color,#e2e8f0)] bg-white">
+                        <table class="min-w-max w-full text-left text-sm">
                             <thead class="bg-slate-50 text-xs font-medium uppercase tracking-wide text-slate-500">
                             <tr>
                                 <th class="px-4 py-3"><?= lang('service') ?></th>

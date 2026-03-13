@@ -753,16 +753,24 @@ h6,
     }
 
     .backend-page .filter-records.backend-sticky-panel {
+        --ea-sticky-panel-top-offset: 96px;
+        --ea-sticky-panel-bottom-offset: 1.5rem;
         position: sticky;
-        top: 96px;
+        top: var(--ea-sticky-panel-top-offset);
+        height: calc(100vh - var(--ea-sticky-panel-top-offset) - var(--ea-sticky-panel-bottom-offset));
         align-self: flex-start;
         border-right: 1px solid var(--bs-border-color);
         padding-right: 1rem;
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
     }
 
     .backend-page .filter-records.backend-sticky-panel .results {
-        height: calc(100vh - 260px);
-        min-height: 300px;
+        flex: 1 1 0;
+        height: 0;
+        max-height: none;
+        min-height: 0;
         overflow-y: auto;
         display: flex;
         flex-direction: column;
@@ -934,8 +942,6 @@ h6,
     border: 1px solid var(--bs-border-color);
     border-radius: 0.75rem;
     box-shadow: var(--ea-shadow-soft);
-    padding: 0.25rem 0;
-
     & > .flex-1 {
         height: 100%;
         min-height: 300px;
@@ -1057,11 +1063,15 @@ body.bg-slate-50 .dropdown-menu {
 
 #calendar-page #calendar-toolbar {
     margin: 0 0 1.5rem;
-    padding: 0;
+    padding: 0.5rem 0.75rem;
     min-height: auto;
     color: inherit;
-    background: transparent;
-    border-bottom: 0;
+    background: inherit;
+    border: 1px solid var(--bs-border-color, #e2e8f0);
+    border-radius: 0.75rem;
+    position: sticky;
+    top: 0.75rem;
+    z-index: 20;
 }
 
 #calendar-page #calendar-toolbar > .flex {
@@ -2141,18 +2151,27 @@ body .form-horizontal .controls {
 
 #calendar .calendar-view {
     overflow-x: auto;
+    overflow-y: visible;
 }
 
 #calendar .calendar-view > div {
-    width: 100%;
-    min-width: 100% !important;
-    overflow: auto;
+    width: max-content;
+    min-width: 100%;
+    overflow: visible;
 }
 
 #calendar .calendar-view .date-column {
-    overflow: auto;
-    float: left;
-    margin-right: 20px;
+    overflow: visible;
+    float: none;
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 1rem;
+    align-items: flex-start;
+    width: max-content;
+}
+
+#calendar .calendar-view .date-column + .date-column {
+    margin-top: 1rem;
 }
 
 #calendar .fc-unavailability {
@@ -2160,9 +2179,10 @@ body .form-horizontal .controls {
 }
 
 #calendar .calendar-view .date-column .provider-column {
-    overflow: auto;
-    float: left;
-    margin-right: 10px;
+    overflow: visible;
+    float: none;
+    flex: 0 0 500px;
+    margin-right: 0;
     width: 500px;
 }
 
@@ -2300,7 +2320,7 @@ body .form-horizontal .controls {
    -------------------------------------------------------------------- */
 
 #services-page h2 {
-    color: #525252;
+    color: #0f172a;
 }
 
 #services-page .nav {
