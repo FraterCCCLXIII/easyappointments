@@ -107,7 +107,7 @@
         }
 
         body .modal-header {
-            background: <?= $company_color ?> !important;
+            background: #fff !important;
         }
 
         .fc-daygrid-event {

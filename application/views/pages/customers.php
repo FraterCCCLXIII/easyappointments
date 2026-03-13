@@ -126,7 +126,7 @@
                 <div id="customer-alert-banner" class="customer-alert-banner" role="status" aria-live="polite">
                     <!-- JS -->
                 </div>
-                <div class="border-t border-[var(--bs-border-color,#e2e8f0)]">
+                <div class="border-t border-[var(--bs-border-color,#e2e8f0)] customer-tabs-scroll">
                     <ul class="booking-tab-line-list border-0 bg-transparent shadow-none rounded-none px-4"
                         id="customer-tabs" role="tablist">
                         <li class="nav-item" role="presentation">

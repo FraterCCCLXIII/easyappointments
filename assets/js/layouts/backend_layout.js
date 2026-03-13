@@ -129,6 +129,22 @@ window.App.Layouts.Backend = (function () {
         });
     }
 
+    function enableResponsiveTables() {
+        const tables = document.querySelectorAll('.backend-page table.table');
+
+        tables.forEach((table) => {
+            if (table.closest('.table-responsive')) {
+                return;
+            }
+
+            const wrapper = document.createElement('div');
+            wrapper.className = 'table-responsive';
+
+            table.parentNode.insertBefore(wrapper, table);
+            wrapper.appendChild(table);
+        });
+    }
+
     function initialize() {
         $(document).ajaxStart(() => {
             $loading.show();
@@ -140,6 +156,7 @@ window.App.Layouts.Backend = (function () {
 
         initGlobalTooltips();
         syncSidebarTooltips();
+        enableResponsiveTables();
 
         App.Utils.Lang.enableLanguageSelection($selectLanguage);
 
