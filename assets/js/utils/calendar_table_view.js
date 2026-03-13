@@ -687,9 +687,14 @@ App.Utils.CalendarTableView = (function () {
      *
      * @return {Number} Returns the calendar element height in pixels.
      */
-    function getCalendarHeight() {
-        const result = window.innerHeight - $footer.outerHeight() - $header.outerHeight() - 60; // 60 for fine tuning
-        return result > 800 ? result : 800; // Minimum height is 800px
+    function getCalendarHeight($target) {
+        const bottomMargin = 16;
+        const element = $target?.[0] || $calendar[0];
+        const top = element?.getBoundingClientRect().top ?? 0;
+
+        // Keep each provider calendar within viewport and reserve a standard bottom margin.
+        const result = window.innerHeight - top - bottomMargin;
+        return Math.max(result, 0);
     }
 
     function createCalendar($providerColumn, goToDate, provider) {
@@ -737,7 +742,7 @@ App.Utils.CalendarTableView = (function () {
             locale: vars('language_code'),
             initialView: 'timeGridDay',
             nowIndicator: true,
-            height: getCalendarHeight(),
+            height: getCalendarHeight($wrapper),
             editable: true,
             firstDay: firstWeekdayNumber,
             slotDuration: '00:15:00',
@@ -1908,17 +1913,10 @@ App.Utils.CalendarTableView = (function () {
      * using scrollbars.
      */
     function setCalendarViewSize() {
-        let height =
-            window.innerHeight -
-            $header.outerHeight() -
-            $footer.outerHeight() -
-            $calendarToolbar.outerHeight() -
-            $('.calendar-header').outerHeight() -
-            50;
-
-        if (height < 500) {
-            height = 500;
-        }
+        const bottomMargin = 16;
+        const calendarViewTop = $('.calendar-view')[0]?.getBoundingClientRect().top ?? 0;
+        let height = window.innerHeight - calendarViewTop - bottomMargin;
+        height = Math.max(height, 0);
 
         const $dateColumn = $('.date-column');
         const $calendarViewDiv = $('.calendar-view > div');
