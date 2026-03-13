@@ -2469,6 +2469,52 @@ body .form-horizontal .controls {
     width: 100%;
 }
 
+#customers-page .customer-alert-banner {
+    display: none;
+    border-top: 1px solid var(--bs-border-color, #e2e8f0);
+    background-color: #fff7ed;
+    color: #9a3412;
+    padding: 0.75rem 1rem;
+}
+
+#customers-page .customer-alert-banner.is-visible {
+    display: block;
+}
+
+#customers-page .customer-alert-banner-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+#customers-page .customer-alert-banner-content {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    line-height: 1.35;
+}
+
+#customers-page .customer-alert-banner-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #ea580c;
+    flex-shrink: 0;
+    margin-top: 1px;
+}
+
+#customers-page .customer-alert-banner-icon svg,
+#customers-page .customer-alert-banner-icon i[data-lucide] {
+    width: 16px;
+    height: 16px;
+    stroke-width: 2;
+}
+
+#customers-page .customer-alert-banner-text {
+    font-size: 0.875rem;
+    color: #9a3412;
+}
+
 /* BACKEND SERVICES PAGE
    -------------------------------------------------------------------- */
 
