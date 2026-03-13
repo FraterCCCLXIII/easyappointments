@@ -43,8 +43,8 @@
                         You have no upcoming appointments.
                     </div>
                 <?php else: ?>
-                    <div class="overflow-hidden rounded-xl border border-[var(--bs-border-color,#e2e8f0)]">
-                        <table class="w-full text-left text-sm">
+                    <div class="overflow-x-auto rounded-xl border border-[var(--bs-border-color,#e2e8f0)]">
+                        <table class="w-full min-w-[480px] text-left text-sm">
                             <thead class="bg-slate-50 text-xs font-medium uppercase tracking-wide text-slate-500">
                             <tr>
                                 <th class="px-4 py-3">Service</th>
@@ -94,8 +94,8 @@
                         You have no past appointments.
                     </div>
                 <?php else: ?>
-                    <div class="overflow-hidden rounded-xl border border-[var(--bs-border-color,#e2e8f0)]">
-                        <table class="w-full text-left text-sm">
+                    <div class="overflow-x-auto rounded-xl border border-[var(--bs-border-color,#e2e8f0)]">
+                        <table class="w-full min-w-[480px] text-left text-sm">
                             <thead class="bg-slate-50 text-xs font-medium uppercase tracking-wide text-slate-500">
                             <tr>
                                 <th class="px-4 py-3">Service</th>

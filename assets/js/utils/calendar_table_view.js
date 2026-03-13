@@ -41,7 +41,7 @@ App.Utils.CalendarTableView = (function () {
      * Add the utility event listeners.
      */
     function addEventListeners() {
-        $calendar.on('click', '.calendar-header .btn.previous', () => {
+        $calendarToolbar.on('click', '.calendar-header .btn.previous', () => {
             const dayInterval = $selectFilterItem.val();
             const currentDate = App.Utils.UI.getDateTimePickerValue($selectDate);
             const startDate = moment(currentDate).subtract(1, 'days');
@@ -50,7 +50,7 @@ App.Utils.CalendarTableView = (function () {
             createView(startDate.toDate(), endDate.toDate());
         });
 
-        $calendar.on('click', '.calendar-header .btn.next', () => {
+        $calendarToolbar.on('click', '.calendar-header .btn.next', () => {
             const dayInterval = $selectFilterItem.val();
             const currentDate = App.Utils.UI.getDateTimePickerValue($selectDate);
             const startDate = moment(currentDate).add(1, 'days');
@@ -87,10 +87,6 @@ App.Utils.CalendarTableView = (function () {
                         if (moment(currentDate).format('YYYY-MM-DD') !== moment(date).format('YYYY-MM-DD')) {
                             return true;
                         }
-
-                        $dateColumn
-                            .find('.date-column-title')
-                            .text(App.Utils.Date.format(date, vars('date_format'), vars('time_format')));
 
                         $dateColumn.find('.provider-column').each((index, providerColumn) => {
                             const $providerColumn = $(providerColumn);
@@ -364,6 +360,10 @@ App.Utils.CalendarTableView = (function () {
      * The header contains the date navigation elements (buttons and datepicker).
      */
     function createHeader() {
+        $calendarFilter.find('.calendar-filters-dropdown').remove();
+        $selectFilterItem.addClass('d-none');
+        $calendarFilter.find('.select2-container').addClass('d-none');
+
         $calendarFilter
             .find('select')
             .empty()
@@ -372,7 +372,7 @@ App.Utils.CalendarTableView = (function () {
 
         const $calendarHeader = $('<div/>', {
             'class': 'calendar-header',
-        }).appendTo('#calendar');
+        }).appendTo('#calendar-filter');
 
         $('<button/>', {
             'class': 'btn btn-xs btn-outline-secondary previous me-2',
@@ -385,7 +385,7 @@ App.Utils.CalendarTableView = (function () {
 
         $selectDate = $('<input/>', {
             'type': 'text',
-            'class': 'form-control d-inline-block select-date me-2',
+            'class': 'form-control d-inline-block select-date',
             'value': App.Utils.Date.format(new Date(), vars('date_format'), vars('time_format'), false),
         }).appendTo($calendarHeader);
 
@@ -417,10 +417,41 @@ App.Utils.CalendarTableView = (function () {
                     Number(provider.id) === Number(vars('user_id'))),
         );
 
-        // Create providers and service filters.
+        const $filtersDropdown = $('<div/>', {
+            'class': 'dropdown d-inline-block calendar-filters-dropdown',
+        }).appendTo($calendarFilter);
+
+        const $filtersToggle = $('<button/>', {
+            'type': 'button',
+            'class': 'btn btn-outline-secondary calendar-filters-toggle',
+            'data-bs-toggle': 'dropdown',
+            'data-bs-auto-close': 'outside',
+            'aria-expanded': 'false',
+        }).appendTo($filtersDropdown);
+
+        $('<span/>', {
+            'class': 'calendar-filters-toggle__label',
+            'text': lang('filter'),
+        }).appendTo($filtersToggle);
+
+        $('<span/>', {
+            'class': 'select2-selection__arrow',
+            'aria-hidden': 'true',
+        }).append($('<b/>')).appendTo($filtersToggle);
+
+        const $filtersMenu = $('<div/>', {
+            'class': 'dropdown-menu dropdown-menu-end p-3 calendar-filters-menu',
+        }).appendTo($filtersDropdown);
+
+        const $providerFilterGroup = $('<div/>', {
+            'class': 'calendar-filters-group',
+        }).appendTo($filtersMenu);
+
         $('<label/>', {
+            'class': 'form-label',
+            'for': 'filter-provider',
             'text': lang('provider'),
-        }).appendTo($calendarHeader);
+        }).appendTo($providerFilterGroup);
 
         $filterProvider = $('<select/>', {
             'id': 'filter-provider',
@@ -433,7 +464,7 @@ App.Utils.CalendarTableView = (function () {
                     createView(startDateMoment.toDate(), endDateMoment.toDate());
                 },
             },
-        }).appendTo($calendarHeader);
+        }).appendTo($providerFilterGroup);
 
         if (vars('role_slug') !== App.Layouts.Backend.DB_SLUG_PROVIDER) {
             providers.forEach((provider) => {
@@ -455,9 +486,15 @@ App.Utils.CalendarTableView = (function () {
             return vars('role_slug') === App.Layouts.Backend.DB_SLUG_ADMIN || provider;
         });
 
+        const $serviceFilterGroup = $('<div/>', {
+            'class': 'calendar-filters-group',
+        }).appendTo($filtersMenu);
+
         $('<label/>', {
+            'class': 'form-label',
+            'for': 'filter-service',
             'text': lang('service'),
-        }).appendTo($calendarHeader);
+        }).appendTo($serviceFilterGroup);
 
         $filterService = $('<select/>', {
             'id': 'filter-service',
@@ -470,7 +507,7 @@ App.Utils.CalendarTableView = (function () {
                     createView(startDateMoment.toDate(), endDateMoment.toDate());
                 },
             },
-        }).appendTo($calendarHeader);
+        }).appendTo($serviceFilterGroup);
 
         services.forEach((service) => {
             $filterService.append(new Option(service.name, service.id));
@@ -490,7 +527,9 @@ App.Utils.CalendarTableView = (function () {
      */
     function createView(startDate, endDate) {
         // Disable date navigation.
-        $('#calendar .calendar-header .btn').addClass('disabled').prop('disabled', true);
+        $('#calendar-toolbar .calendar-header .btn.previous, #calendar-toolbar .calendar-header .btn.next')
+            .addClass('disabled')
+            .prop('disabled', true);
 
         // Remember provider calendar view mode.
         const providerView = {};
@@ -524,7 +563,9 @@ App.Utils.CalendarTableView = (function () {
             setCalendarViewSize();
 
             // Activate calendar navigation.
-            $('#calendar .calendar-header .btn').removeClass('disabled').prop('disabled', false);
+            $('#calendar-toolbar .calendar-header .btn.previous, #calendar-toolbar .calendar-header .btn.next')
+                .removeClass('disabled')
+                .prop('disabled', false);
 
             // Apply provider calendar view mode.
             $('.provider-column').each((index, providerColumn) => {
@@ -553,11 +594,6 @@ App.Utils.CalendarTableView = (function () {
         }).appendTo($wrapper);
 
         $dateColumn.data('date', date.getTime());
-
-        $('<h5/>', {
-            'class': 'date-column-title',
-            'text': App.Utils.Date.format(date, vars('date_format'), vars('time_format')),
-        }).appendTo($dateColumn);
 
         const filterProviderIds = $filterProvider.val().map((filterProviderId) => Number(filterProviderId));
         const filterServiceIds = $filterService.val().map((filterServiceId) => Number(filterServiceId));
@@ -718,17 +754,17 @@ App.Utils.CalendarTableView = (function () {
             selectHelper: true,
             themeSystem: 'bootstrap5',
             headerToolbar: {
-                left: 'listDay prev,today,next timeGridDay',
+                left: 'prev,today,next',
                 center: '',
-                right: '',
+                right: 'listDay,timeGridDay',
             },
             buttonText: {
                 today: lang('today'),
                 day: lang('day'),
                 week: lang('week'),
                 month: lang('month'),
-                timeGridDay: lang('calendar'),
-                listDay: lang('list'),
+                timeGridDay: '',
+                listDay: '',
             },
             eventClick: onEventClick,
             eventResize: onEventResize,
@@ -737,6 +773,28 @@ App.Utils.CalendarTableView = (function () {
         });
 
         fullCalendar.render();
+
+        // Replace text labels with inline SVG icons on the view-toggle buttons.
+        const listSvg =
+            '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+            '<line x1="8" y1="6" x2="21" y2="6"></line>' +
+            '<line x1="8" y1="12" x2="21" y2="12"></line>' +
+            '<line x1="8" y1="18" x2="21" y2="18"></line>' +
+            '<line x1="3" y1="6" x2="3.01" y2="6"></line>' +
+            '<line x1="3" y1="12" x2="3.01" y2="12"></line>' +
+            '<line x1="3" y1="18" x2="3.01" y2="18"></line>' +
+            '</svg>';
+
+        const calendarSvg =
+            '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+            '<rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>' +
+            '<line x1="16" y1="2" x2="16" y2="6"></line>' +
+            '<line x1="8" y1="2" x2="8" y2="6"></line>' +
+            '<line x1="3" y1="10" x2="21" y2="10"></line>' +
+            '</svg>';
+
+        $($wrapper[0]).find('.fc-listDay-button').html(listSvg).attr('title', lang('list'));
+        $($wrapper[0]).find('.fc-timeGridDay-button').html(calendarSvg).attr('title', lang('calendar'));
 
         $wrapper.data('fullCalendar', fullCalendar);
 

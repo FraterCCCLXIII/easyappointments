@@ -132,7 +132,7 @@
                         <button class="booking-tab-line" id="provider-area-preferences-tab" data-bs-toggle="pill"
                                 data-bs-target="#provider-area-preferences" type="button" role="tab"
                                 aria-selected="false" tabindex="-1">
-                            <?= lang('area_preferences') ?>
+                            <?= lang('service_area_preferences') ?>
                         </button>
                     </li>
                     <?php if (vars('show_provider_forms_tab', false)): ?>

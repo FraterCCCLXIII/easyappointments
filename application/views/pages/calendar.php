@@ -21,6 +21,52 @@
 
             <div id="calendar-actions" class="flex flex-wrap items-center gap-2 sm:justify-end">
                 <div id="calendar-header-controls" class="flex flex-wrap items-center gap-2"></div>
+                <div id="calendar-view-toggle" class="ea-view-toggle">
+                    <?php if (vars('calendar_view') === CALENDAR_VIEW_DEFAULT): ?>
+                        <span class="ea-view-toggle-btn ea-view-toggle-btn--active"
+                              aria-label="<?= lang('default') ?>"
+                              aria-pressed="true"
+                              title="<?= lang('default') ?>">
+                    <?php else: ?>
+                        <a class="ea-view-toggle-btn"
+                           href="<?= site_url('calendar?view=default') ?>"
+                           aria-label="<?= lang('default') ?>"
+                           title="<?= lang('default') ?>">
+                    <?php endif; ?>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                                <line x1="16" y1="2" x2="16" y2="6"></line>
+                                <line x1="8" y1="2" x2="8" y2="6"></line>
+                                <line x1="3" y1="10" x2="21" y2="10"></line>
+                            </svg>
+                    <?php if (vars('calendar_view') === CALENDAR_VIEW_DEFAULT): ?>
+                        </span>
+                    <?php else: ?>
+                        </a>
+                    <?php endif; ?>
+
+                    <?php if (vars('calendar_view') === CALENDAR_VIEW_TABLE): ?>
+                        <span class="ea-view-toggle-btn ea-view-toggle-btn--active"
+                              aria-label="<?= lang('table') ?>"
+                              aria-pressed="true"
+                              title="<?= lang('table') ?>">
+                    <?php else: ?>
+                        <a class="ea-view-toggle-btn"
+                           href="<?= site_url('calendar?view=table') ?>"
+                           aria-label="<?= lang('table') ?>"
+                           title="<?= lang('table') ?>">
+                    <?php endif; ?>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <rect width="18" height="18" x="3" y="3" rx="2"></rect>
+                                <path d="M12 3v18"></path>
+                            </svg>
+                    <?php if (vars('calendar_view') === CALENDAR_VIEW_TABLE): ?>
+                        </span>
+                    <?php else: ?>
+                        </a>
+                    <?php endif; ?>
+                </div><!-- /#calendar-view-toggle -->
+
                 <div class="ea-button-group">
                 <?php if (can('add', PRIV_APPOINTMENTS)): ?>
                     <div class="dropdown d-sm-inline-block">
@@ -65,51 +111,43 @@
                         aria-label="<?= lang('reload') ?>">
                     <i data-lucide="rotate-cw" class="w-4 h-4"></i>
                 </button>
-                <?php if (vars('calendar_view') === CALENDAR_VIEW_TABLE): ?>
-                    <a class="btn"
-                       href="<?= site_url('calendar?view=default') ?>"
-                       aria-label="<?= lang('default') ?>">
-                        <i data-lucide="calendar" class="w-4 h-4"></i>
-                    </a>
-                <?php endif; ?>
-                <?php if (vars('calendar_view') === CALENDAR_VIEW_DEFAULT): ?>
-                    <div class="dropdown d-sm-inline-block">
-                        <button class="btn"
-                                type="button"
-                                data-bs-toggle="dropdown"
-                                aria-label="<?= lang('synchronize') ?>">
-                            <i data-lucide="more-vertical" class="w-4 h-4"></i>
-                        </button>
-                        <ul class="dropdown-menu dropdown-menu-end mt-2 w-56 rounded-xl border border-[var(--bs-border-color,#e2e8f0)] bg-white p-2 shadow-lg">
-                            <li>
-                                <button id="enable-sync"
-                                        class="dropdown-item block w-full rounded-lg px-3 py-2 text-left text-sm text-slate-600 hover:bg-slate-100 hover:text-slate-900"
-                                        data-tippy-content="<?= lang('enable_appointment_sync_hint') ?>"
-                                        type="button"
-                                        hidden>
-                                    <?= lang('enable_sync') ?>
-                                </button>
-                            </li>
-                            <li>
-                                <button id="trigger-sync"
-                                        class="dropdown-item block w-full rounded-lg px-3 py-2 text-left text-sm text-slate-600 hover:bg-slate-100 hover:text-slate-900"
-                                        data-tippy-content="<?= lang('trigger_sync_hint') ?>"
-                                        type="button">
-                                    <?= lang('synchronize') ?>
-                                </button>
-                            </li>
-                            <li>
-                                <a class="dropdown-item block rounded-lg px-3 py-2 text-sm text-slate-600 hover:bg-slate-100 hover:text-slate-900"
-                                   href="#"
-                                   id="disable-sync"
-                                   hidden>
-                                    <?= lang('disable_sync') ?>
-                                </a>
-                            </li>
-                        </ul>
-                    </div>
-                <?php endif; ?>
+                <div class="dropdown d-sm-inline-block"
+                     <?= vars('calendar_view') !== CALENDAR_VIEW_DEFAULT ? 'hidden' : '' ?>>
+                    <button class="btn"
+                            type="button"
+                            data-bs-toggle="dropdown"
+                            aria-label="<?= lang('synchronize') ?>">
+                        <i data-lucide="more-vertical" class="w-4 h-4"></i>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end mt-2 w-56 rounded-xl border border-[var(--bs-border-color,#e2e8f0)] bg-white p-2 shadow-lg">
+                        <li>
+                            <button id="enable-sync"
+                                    class="dropdown-item block w-full rounded-lg px-3 py-2 text-left text-sm text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                                    data-tippy-content="<?= lang('enable_appointment_sync_hint') ?>"
+                                    type="button"
+                                    hidden>
+                                <?= lang('enable_sync') ?>
+                            </button>
+                        </li>
+                        <li>
+                            <button id="trigger-sync"
+                                    class="dropdown-item block w-full rounded-lg px-3 py-2 text-left text-sm text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                                    data-tippy-content="<?= lang('trigger_sync_hint') ?>"
+                                    type="button">
+                                <?= lang('synchronize') ?>
+                            </button>
+                        </li>
+                        <li>
+                            <a class="dropdown-item block rounded-lg px-3 py-2 text-sm text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                               href="#"
+                               id="disable-sync"
+                               hidden>
+                                <?= lang('disable_sync') ?>
+                            </a>
+                        </li>
+                    </ul>
                 </div>
+                </div><!-- /.ea-button-group -->
 
                 <?php slot('after_calendar_actions'); ?>
             </div>

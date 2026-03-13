@@ -175,7 +175,7 @@
     }
 
     .btn-primary {
-        @apply btn bg-brand text-white hover:brightness-110;
+        @apply btn bg-brand text-white hover:bg-brand hover:brightness-110;
     }
 
     .btn-secondary {
@@ -634,9 +634,9 @@
 
 @keyframes bookingTabPulse {
     0% {
-        background-color: #439a82;
+        filter: brightness(100%);
     }
     100% {
-        background-color: #56ad96;
+        filter: brightness(115%);
     }
 }

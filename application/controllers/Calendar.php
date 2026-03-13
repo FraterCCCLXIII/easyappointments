@@ -206,6 +206,7 @@ class Calendar extends EA_Controller
             'page_title' => lang('calendar'),
             'active_menu' => PRIV_APPOINTMENTS,
             'user_display_name' => $this->accounts->get_user_display_name($user_id),
+            'role_slug' => $role_slug,
             'timezone' => session('timezone'),
             'timezones' => $this->timezones->to_array(),
             'grouped_timezones' => $this->timezones->to_grouped_array(),

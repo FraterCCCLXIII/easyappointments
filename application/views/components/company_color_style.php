@@ -6,6 +6,15 @@
 
 <?php if (!empty($company_color) && $company_color !== DEFAULT_COMPANY_COLOR): ?>
     <style>
+        /* CSS Variable Overrides — propagates company color to all Bootstrap components */
+
+        :root {
+            --bs-primary: <?= $company_color ?>;
+            --bs-btn-bg: <?= $company_color ?>;
+            --bs-btn-hover-bg: <?= $company_color ?>;
+            --bs-btn-hover-border-color: <?= $company_color ?>;
+        }
+
         /* Generic Overrides */
 
         a {
@@ -16,14 +25,22 @@
             color: <?= $company_color ?>;
         }
 
-        .btn-primary {
+        .btn-primary,
+        .booking-button,
+        .button-next {
             background-color: <?= $company_color ?>;
             border-color: <?= $company_color ?>;
         }
 
         .btn-primary:hover,
         .btn-primary:active,
-        .btn-primary:focus {
+        .btn-primary:focus,
+        .booking-button:hover,
+        .booking-button:active,
+        .booking-button:focus,
+        .button-next:hover,
+        .button-next:active,
+        .button-next:focus {
             background-color: <?= $company_color ?>;
             border-color: <?= $company_color ?>;
             filter: brightness(120%);
@@ -31,11 +48,33 @@
             box-shadow: none;
         }
 
-        .btn-primary:disabled, .btn-primary.disabled {
+        .btn-primary:disabled, .btn-primary.disabled,
+        .booking-button:disabled, .booking-button.disabled,
+        .button-next:disabled, .button-next.disabled {
             background-color: <?= $company_color ?>;
             border-color: <?= $company_color ?>;
             filter: brightness(70%);
             opacity: .75;
+        }
+
+        .btn-outline-primary {
+            border-color: <?= $company_color ?>;
+            color: <?= $company_color ?>;
+        }
+
+        .btn-outline-primary:hover {
+            background-color: <?= $company_color ?>;
+            border-color: <?= $company_color ?>;
+            color: #fff;
+        }
+
+        .booking-card.active {
+            background-color: <?= $company_color ?>;
+            border-color: <?= $company_color ?>;
+        }
+
+        .nav-link.active {
+            background-color: <?= $company_color ?> !important;
         }
 
         .dropdown-item.active,
@@ -79,11 +118,24 @@
             background: <?= $company_color ?> !important;
         }
 
-        /* Booking Layout */
+        /* Booking Tabs */
 
-        #book-appointment-wizard #header {
-            background: <?= $company_color ?>;
+        .booking-tab.active {
+            background-color: <?= $company_color ?> !important;
+            border-color: <?= $company_color ?> !important;
         }
+
+        .booking-tab.active:hover {
+            background-color: <?= $company_color ?> !important;
+            filter: brightness(110%);
+        }
+
+        @keyframes bookingTabPulse {
+            0% { background-color: <?= $company_color ?>; }
+            100% { background-color: <?= $company_color ?>; filter: brightness(115%); }
+        }
+
+        /* Booking Layout */
 
         #book-appointment-wizard #company-name .display-selected-service,
         #book-appointment-wizard #company-name .display-selected-provider {
@@ -92,14 +144,9 @@
             filter: brightness(35%);
         }
 
-        #book-appointment-wizard .book-step {
+        #book-appointment-wizard .active-step,
+        #book-appointment-wizard .completed-step {
             background: <?= $company_color ?>;
-            filter: brightness(75%);
-        }
-
-        #book-appointment-wizard .book-step strong {
-            color: <?= $company_color ?>;
-            filter: brightness(200%);
         }
 
         body .ui-widget.ui-widget-content {
@@ -151,6 +198,10 @@
 
         #header {
             background-color: <?= $company_color ?> !important;
+        }
+
+        #book-appointment-wizard #header {
+            background: none !important;
         }
 
         #header #header-menu .nav-item:hover,

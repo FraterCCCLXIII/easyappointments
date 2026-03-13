@@ -669,6 +669,7 @@ App.Pages.Booking = (function () {
         $('.wizard-frame').hide();
         $('.active-step').removeClass('active-step');
         $('#step-' + targetIndex).addClass('active-step');
+        updateCompletedSteps(targetIndex);
 
         if (animate) {
             $targetFrame.fadeIn();
@@ -677,6 +678,13 @@ App.Pages.Booking = (function () {
         }
 
         return true;
+    }
+
+    function updateCompletedSteps(activeIndex) {
+        $('.book-step').each(function () {
+            const stepIndex = parseInt(this.id.replace('step-', ''));
+            $(this).toggleClass('completed-step', stepIndex < activeIndex);
+        });
     }
 
     function restoreWizardStep() {
@@ -1138,6 +1146,7 @@ App.Pages.Booking = (function () {
             $target.closest('.wizard-frame').fadeOut(() => {
                 $('.active-step').removeClass('active-step');
                 $('#step-' + nextTabIndex).addClass('active-step');
+                updateCompletedSteps(nextTabIndex);
                 $('#wizard-frame-' + nextTabIndex).fadeIn();
                 updateNextButtons();
                 wizardState.set(nextTabIndex);
@@ -1181,6 +1190,7 @@ App.Pages.Booking = (function () {
                 $activeFrame.fadeOut(() => {
                     $('.active-step').removeClass('active-step');
                     $('#step-' + prevTabIndex).addClass('active-step');
+                    updateCompletedSteps(prevTabIndex);
                     $('#wizard-frame-' + prevTabIndex).fadeIn();
                     updateNextButtons();
                     wizardState.set(prevTabIndex);

@@ -122,7 +122,7 @@
                                 'name_prefix' => 'custom_fields',
                                 'show_all' => false,
                             ]); ?>
-                            <button type="submit" class="btn btn-dark w-100 py-3">
+                            <button type="submit" class="btn btn-primary w-100 py-3">
                                 Save Profile
                             </button>
                         </form>
@@ -192,8 +192,8 @@
 
                         <h5 class="mb-3">Billing History</h5>
                         <div class="card bg-white border">
-                            <div class="card-body p-0">
-                                <table class="table table-hover mb-0">
+                            <div class="card-body p-0 overflow-x-auto">
+                                <table class="table table-hover mb-0" style="min-width:400px">
                                     <thead class="bg-light">
                                         <tr>
                                             <th class="ps-4">Date</th>

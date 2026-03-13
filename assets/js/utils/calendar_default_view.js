@@ -18,6 +18,7 @@
  */
 App.Utils.CalendarDefaultView = (function () {
     const $calendarPage = $('#calendar-page');
+    const $calendarFilter = $('#calendar-filter');
     const $reloadAppointments = $('#reload-appointments');
     const $calendar = $('#calendar');
     const $selectFilterItem = $('#select-filter-item');
@@ -33,8 +34,6 @@ App.Utils.CalendarDefaultView = (function () {
     const FILTER_TYPE_PROVIDER = 'provider';
     const FILTER_TYPE_SERVICE = 'service';
     const moment = window.moment;
-    const CALENDAR_VIEW_BUTTON = 'calendarView';
-    const TABLE_VIEW_BUTTON = 'tableView';
 
     let $popoverTarget;
     let fullCalendar = null;
@@ -1159,7 +1158,6 @@ App.Utils.CalendarDefaultView = (function () {
         }
 
         moveCalendarHeader();
-        renderListToggleButton();
 
         refreshCalendarAppointments(
             $calendar,
@@ -1214,38 +1212,13 @@ App.Utils.CalendarDefaultView = (function () {
                 $titleChunk.appendTo($calendarTitleControls);
             }
         }
-    }
 
-    /**
-     * Render the view toggle buttons with icons.
-     */
-    function renderListToggleButton() {
-        const $calendarViewButton = $calendar.find(`.fc-${CALENDAR_VIEW_BUTTON}-button`);
-        const $tableViewButton = $calendar.find(`.fc-${TABLE_VIEW_BUTTON}-button`);
+        // Move the view toggle into the FC toolbar's right chunk (Day/Week/Month group).
+        const $viewToggle = $('#calendar-view-toggle');
+        const $rightChunk = $calendarHeader.find('.fc-toolbar-chunk').last();
 
-        if (!$calendarViewButton.length || !$tableViewButton.length) {
-            return;
-        }
-
-        $calendarViewButton
-            .attr('title', lang('default'))
-            .attr('aria-label', lang('default'))
-            .addClass('fc-button-active')
-            .html('<i data-lucide="calendar" class="h-4 w-4"></i>');
-
-        $tableViewButton
-            .attr('title', lang('table'))
-            .attr('aria-label', lang('table'))
-            .html('<i data-lucide="table" class="h-4 w-4"></i>');
-
-        const $toolbarChunk = $calendarViewButton.closest('.fc-toolbar-chunk');
-        $toolbarChunk.addClass('calendar-view-toggle-group');
-        
-        // Wrap both buttons in a button group
-        $calendarViewButton.add($tableViewButton).wrapAll('<div class="fc-button-group calendar-view-toggle-buttons"></div>');
-
-        if (window.lucide) {
-            window.lucide.createIcons();
+        if ($viewToggle.length && $rightChunk.length && !$rightChunk.find('#calendar-view-toggle').length) {
+            $viewToggle.appendTo($rightChunk);
         }
     }
 
@@ -1583,21 +1556,7 @@ App.Utils.CalendarDefaultView = (function () {
             headerToolbar: {
                 left: 'prev today next',
                 center: 'title',
-                right: `timeGridDay,timeGridWeek,dayGridMonth ${CALENDAR_VIEW_BUTTON} ${TABLE_VIEW_BUTTON}`,
-            },
-            customButtons: {
-                [CALENDAR_VIEW_BUTTON]: {
-                    text: '',
-                    click: () => {
-                        // Already in calendar view
-                    },
-                },
-                [TABLE_VIEW_BUTTON]: {
-                    text: '',
-                    click: () => {
-                        window.location.href = App.Utils.Url.siteUrl('calendar?view=table');
-                    },
-                },
+                right: 'timeGridDay,timeGridWeek,dayGridMonth',
             },
             buttonText: {
                 today: lang('today'),
@@ -1619,18 +1578,12 @@ App.Utils.CalendarDefaultView = (function () {
         $calendar.data('fullCalendar', fullCalendar);
 
         moveCalendarHeader();
-        renderListToggleButton();
 
         // Trigger once to set the proper footer position after calendar initialization.
         onWindowResize();
 
+        $selectFilterItem.empty();
         $selectFilterItem.append(new Option(lang('all'), FILTER_TYPE_ALL, true, true));
-
-        App.Utils.UI.initializeDropdown($selectFilterItem, {
-            width: '100%',
-            dropdownParent: $calendarPage,
-            minimumResultsForSearch: 10,
-        });
 
         $('#insert-working-plan-exception').hide();
 
@@ -1667,12 +1620,136 @@ App.Utils.CalendarDefaultView = (function () {
             }).appendTo('#select-filter-item');
         }
 
-        // Check permissions.
+        // Replace the visible select2 with the same Filter dropdown used in table view.
+        $calendarFilter.find('.calendar-filters-dropdown').remove();
+        $selectFilterItem.addClass('d-none');
+        $calendarFilter.find('.select2-container').addClass('d-none');
+
+        const $filtersDropdown = $('<div/>', {
+            'class': 'dropdown d-inline-block calendar-filters-dropdown',
+        }).appendTo($calendarFilter);
+
+        const $filtersToggle = $('<button/>', {
+            'type': 'button',
+            'class': 'btn btn-outline-secondary calendar-filters-toggle',
+            'data-bs-toggle': 'dropdown',
+            'data-bs-auto-close': 'outside',
+            'aria-expanded': 'false',
+        }).appendTo($filtersDropdown);
+
+        $('<span/>', {
+            'class': 'calendar-filters-toggle__label',
+            'text': lang('filter'),
+        }).appendTo($filtersToggle);
+
+        $('<span/>', {
+            'class': 'select2-selection__arrow',
+            'aria-hidden': 'true',
+        }).append($('<b/>')).appendTo($filtersToggle);
+
+        const $filtersMenu = $('<div/>', {
+            'class': 'dropdown-menu dropdown-menu-end p-3 calendar-filters-menu',
+        }).appendTo($filtersDropdown);
+
+        const $providerFilterGroup = $('<div/>', {
+            'class': 'calendar-filters-group',
+        }).appendTo($filtersMenu);
+
+        $('<label/>', {
+            'class': 'form-label',
+            'for': 'filter-provider',
+            'text': lang('provider'),
+        }).appendTo($providerFilterGroup);
+
+        const $providerFilter = $('<select/>', {
+            'id': 'filter-provider',
+            'multiple': 'multiple',
+        }).appendTo($providerFilterGroup);
+
+        const availableProviders = vars('available_providers');
+        const selectableProviders = vars('role_slug') === App.Layouts.Backend.DB_SLUG_PROVIDER
+            ? availableProviders.filter((provider) => Number(provider.id) === Number(vars('user_id')))
+            : availableProviders;
+
+        selectableProviders.forEach((provider) => {
+            $providerFilter.append(new Option(provider.first_name + ' ' + provider.last_name, provider.id));
+        });
+
+        const $serviceFilterGroup = $('<div/>', {
+            'class': 'calendar-filters-group',
+        }).appendTo($filtersMenu);
+
+        $('<label/>', {
+            'class': 'form-label',
+            'for': 'filter-service',
+            'text': lang('service'),
+        }).appendTo($serviceFilterGroup);
+
+        const $serviceFilter = $('<select/>', {
+            'id': 'filter-service',
+            'multiple': 'multiple',
+        }).appendTo($serviceFilterGroup);
+
+        vars('available_services').forEach((service) => {
+            $serviceFilter.append(new Option(service.name, service.id));
+        });
+
+        App.Utils.UI.initializeDropdown($providerFilter, {
+            width: '100%',
+            dropdownParent: $calendarPage,
+            minimumResultsForSearch: 10,
+        });
+
+        App.Utils.UI.initializeDropdown($serviceFilter, {
+            width: '100%',
+            dropdownParent: $calendarPage,
+            minimumResultsForSearch: 10,
+        });
+
+        const syncFilterDropdownFromSelect = () => {
+            const selectedType = $selectFilterItem.find('option:selected').attr('type');
+            const selectedValue = String($selectFilterItem.val() ?? '');
+
+            if (selectedType === FILTER_TYPE_PROVIDER) {
+                $providerFilter.val([selectedValue]).trigger('change.select2');
+                $serviceFilter.val([]).trigger('change.select2');
+                return;
+            }
+
+            if (selectedType === FILTER_TYPE_SERVICE) {
+                $serviceFilter.val([selectedValue]).trigger('change.select2');
+                $providerFilter.val([]).trigger('change.select2');
+                return;
+            }
+
+            $providerFilter.val([]).trigger('change.select2');
+            $serviceFilter.val([]).trigger('change.select2');
+        };
+
+        $providerFilter.on('change', () => {
+            const providerIds = $providerFilter.val() || [];
+            const providerId = providerIds.length ? providerIds[providerIds.length - 1] : '';
+            if (providerIds.length > 1) {
+                $providerFilter.val([providerId]).trigger('change.select2');
+            }
+            $serviceFilter.val([]).trigger('change.select2');
+            $selectFilterItem.val(providerId || FILTER_TYPE_ALL).trigger('change');
+        });
+
+        $serviceFilter.on('change', () => {
+            const serviceIds = $serviceFilter.val() || [];
+            const serviceId = serviceIds.length ? serviceIds[serviceIds.length - 1] : '';
+            if (serviceIds.length > 1) {
+                $serviceFilter.val([serviceId]).trigger('change.select2');
+            }
+            $providerFilter.val([]).trigger('change.select2');
+            $selectFilterItem.val(serviceId || FILTER_TYPE_ALL).trigger('change');
+        });
+
+        // Providers can only work with their own filter by default.
         if (vars('role_slug') === App.Layouts.Backend.DB_SLUG_PROVIDER) {
-            $selectFilterItem
-                .find('optgroup:eq(0)')
-                .find('option[value="' + vars('user_id') + '"]')
-                .prop('selected', true);
+            $selectFilterItem.val(String(vars('user_id')));
+            syncFilterDropdownFromSelect();
         }
 
         // Add the page event listeners.
@@ -1685,7 +1762,9 @@ App.Utils.CalendarDefaultView = (function () {
             $selectFilterItem.find(`option[value="${localSelectFilterItemValue}"]`).length
         ) {
             $selectFilterItem.val(localSelectFilterItemValue).trigger('change');
+            syncFilterDropdownFromSelect();
         } else {
+            syncFilterDropdownFromSelect();
             $reloadAppointments.trigger('click');
         }
 
