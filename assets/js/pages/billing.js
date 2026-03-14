@@ -163,12 +163,6 @@ App.Pages.Billing = (function () {
             await saveBillingStatus($row);
         });
 
-        $billingPage.on('click', '.js-mark-paid-phone', async (event) => {
-            const $row = $(event.currentTarget).closest('tr');
-            $row.find('.billing-status-select').val('paid_by_phone');
-            await saveBillingStatus($row, 'paid_by_phone');
-        });
-
         $billingPage.on('click', '.js-open-payment-link', async (event) => {
             const $row = $(event.currentTarget).closest('tr');
             const appointmentId = Number($row.data('appointment-id'));

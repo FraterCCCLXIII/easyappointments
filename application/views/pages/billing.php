@@ -77,25 +77,43 @@
                                                     placeholder="Reference / Intent ID">
                                             </td>
                                             <td class="pe-4">
-                                                <div class="d-flex flex-wrap gap-2">
-                                                    <button type="button" class="btn btn-outline-primary btn-sm js-send-payment-link-email">
-                                                        Send Payment Link
+                                                <div class="dropdown">
+                                                    <button
+                                                        class="btn btn-outline-secondary btn-sm dropdown-toggle"
+                                                        type="button"
+                                                        data-bs-toggle="dropdown"
+                                                        aria-expanded="false"
+                                                        aria-label="Billing Actions">
+                                                        Actions
                                                     </button>
-                                                    <button type="button" class="btn btn-outline-secondary btn-sm js-open-payment-link">
-                                                        Open Link
-                                                    </button>
-                                                    <button type="button" class="btn btn-outline-secondary btn-sm js-copy-payment-link">
-                                                        Copy Link
-                                                    </button>
-                                                    <button type="button" class="btn btn-outline-success btn-sm js-mark-paid-phone">
-                                                        Mark Paid by Phone
-                                                    </button>
-                                                    <button type="button" class="btn btn-outline-danger btn-sm js-refund">
-                                                        Refund
-                                                    </button>
-                                                    <button type="button" class="btn btn-primary btn-sm js-save-billing-status">
-                                                        Save Billing
-                                                    </button>
+                                                    <ul class="dropdown-menu dropdown-menu-end">
+                                                        <li>
+                                                            <button type="button" class="dropdown-item js-send-payment-link-email">
+                                                                Send Payment Link
+                                                            </button>
+                                                        </li>
+                                                        <li>
+                                                            <button type="button" class="dropdown-item js-open-payment-link">
+                                                                Open Link
+                                                            </button>
+                                                        </li>
+                                                        <li>
+                                                            <button type="button" class="dropdown-item js-copy-payment-link">
+                                                                Copy Link
+                                                            </button>
+                                                        </li>
+                                                        <li><hr class="dropdown-divider"></li>
+                                                        <li>
+                                                            <button type="button" class="dropdown-item js-save-billing-status">
+                                                                Save Billing
+                                                            </button>
+                                                        </li>
+                                                        <li>
+                                                            <button type="button" class="dropdown-item text-danger js-refund">
+                                                                Refund
+                                                            </button>
+                                                        </li>
+                                                    </ul>
                                                 </div>
                                             </td>
                                         </tr>

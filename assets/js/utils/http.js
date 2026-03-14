@@ -15,6 +15,85 @@
  * This module implements the functionality of HTTP requests.
  */
 window.App.Utils.Http = (function () {
+    let latestCsrfToken = null;
+
+    /**
+     * Read the current CSRF token from cookie (falls back to server vars).
+     *
+     * @return {String|null}
+     */
+    function getCsrfToken() {
+        const cookieToken = document.cookie
+            .split('; ')
+            .find((cookie) => cookie.startsWith('csrf_cookie='))
+            ?.split('=')[1];
+
+        if (cookieToken) {
+            latestCsrfToken = decodeURIComponent(cookieToken);
+            return latestCsrfToken;
+        }
+
+        if (!latestCsrfToken && typeof vars === 'function') {
+            latestCsrfToken = vars('csrf_token') || null;
+        }
+
+        return latestCsrfToken;
+    }
+
+    /**
+     * Build standard request headers including CSRF.
+     *
+     * @param {Boolean} includeJsonContentType
+     *
+     * @return {Object}
+     */
+    function buildHeaders(includeJsonContentType = true) {
+        const headers = {};
+        const csrfToken = getCsrfToken();
+
+        if (includeJsonContentType) {
+            headers['Content-Type'] = 'application/json';
+        }
+
+        if (csrfToken) {
+            headers['X-CSRF'] = csrfToken;
+        }
+
+        return headers;
+    }
+
+    /**
+     * Store the latest CSRF token from response headers.
+     *
+     * @param {Response} response
+     */
+    function syncCsrfToken(response) {
+        const headerToken = response.headers.get('X-CSRF-TOKEN');
+        if (headerToken) {
+            latestCsrfToken = headerToken;
+        }
+    }
+
+    /**
+     * Convert non-ok responses to rich errors without reading body twice.
+     *
+     * @param {Response} response
+     *
+     * @return {Promise<void>}
+     */
+    async function ensureOk(response) {
+        syncCsrfToken(response);
+
+        if (response.ok) {
+            return;
+        }
+
+        const message = await response.text();
+        const error = new Error(message || `HTTP ${response.status}`);
+        error.status = response.status;
+        throw error;
+    }
+
     /**
      * Perform an HTTP request.
      *
@@ -30,28 +109,13 @@ window.App.Utils.Http = (function () {
                 method,
                 mode: 'cors',
                 credentials: 'same-origin',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: buildHeaders(true),
                 redirect: 'follow',
                 referrer: 'no-referrer',
                 body: data ? JSON.stringify(data) : undefined,
             })
-                .then((response) => {
-                    if (!response.ok) {
-                        response
-                            .text()
-                            .then((message) => {
-                                const error = new Error(message);
-                                error.status = response.status;
-                                throw error;
-                            })
-                            .catch((error) => {
-                                console.error(error);
-                                reject(error);
-                            });
-                    }
-
+                .then(async (response) => {
+                    await ensureOk(response);
                     return response;
                 })
                 .then((response) => {
@@ -84,25 +148,14 @@ window.App.Utils.Http = (function () {
         return new Promise((resolve, reject) => {
             fetch(App.Utils.Url.siteUrl(url), {
                 method,
+                headers: buildHeaders(false),
+                credentials: 'same-origin',
                 redirect: 'follow',
                 referrer: 'no-referrer',
                 body: formData,
             })
-                .then((response) => {
-                    if (!response.ok) {
-                        response
-                            .text()
-                            .then((message) => {
-                                const error = new Error(message);
-                                error.status = response.status;
-                                throw error;
-                            })
-                            .catch((error) => {
-                                console.error(error);
-                                reject(error);
-                            });
-                    }
-
+                .then(async (response) => {
+                    await ensureOk(response);
                     return response;
                 })
                 .then((response) => {
@@ -132,27 +185,12 @@ window.App.Utils.Http = (function () {
                 method,
                 mode: 'cors',
                 credentials: 'same-origin',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: buildHeaders(true),
                 redirect: 'follow',
                 referrer: 'no-referrer',
             })
-                .then((response) => {
-                    if (!response.ok) {
-                        response
-                            .text()
-                            .then((message) => {
-                                const error = new Error(message);
-                                error.status = response.status;
-                                throw error;
-                            })
-                            .catch((error) => {
-                                console.error(error);
-                                reject(error);
-                            });
-                    }
-
+                .then(async (response) => {
+                    await ensureOk(response);
                     return response;
                 })
                 .then((response) => {

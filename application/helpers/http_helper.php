@@ -62,6 +62,11 @@ if (!function_exists('response')) {
         /** @var EA_Controller $CI */
         $CI = &get_instance();
 
+        $csrf_hash = $CI->security->get_csrf_hash();
+        if (!empty($csrf_hash)) {
+            $CI->output->set_header('X-CSRF-TOKEN: ' . $csrf_hash);
+        }
+
         foreach ($headers as $header) {
             $CI->output->set_header($header);
         }
@@ -82,6 +87,11 @@ if (!function_exists('response')) {
     {
         /** @var EA_Controller $CI */
         $CI = &get_instance();
+
+        $csrf_hash = $CI->security->get_csrf_hash();
+        if (!empty($csrf_hash)) {
+            $CI->output->set_header('X-CSRF-TOKEN: ' . $csrf_hash);
+        }
 
         foreach ($headers as $header) {
             $CI->output->set_header($header);
@@ -109,6 +119,11 @@ if (!function_exists('json_response')) {
     {
         /** @var EA_Controller $CI */
         $CI = &get_instance();
+
+        $csrf_hash = $CI->security->get_csrf_hash();
+        if (!empty($csrf_hash)) {
+            $CI->output->set_header('X-CSRF-TOKEN: ' . $csrf_hash);
+        }
 
         foreach ($headers as $header) {
             $CI->output->set_header($header);
