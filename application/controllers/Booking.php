@@ -174,6 +174,13 @@ class Booking extends EA_Controller
             'appointment' => $appointment,
             'page_title' => lang('booking_complete'),
             'add_to_google_url' => $add_to_google_url,
+            'company_name' => setting('company_name'),
+            'company_logo' => setting('company_logo'),
+            'company_color' => setting('company_color'),
+            'google_analytics_code' => setting('google_analytics_code'),
+            'matomo_analytics_url' => setting('matomo_analytics_url'),
+            'matomo_analytics_site_id' => setting('matomo_analytics_site_id'),
+            'show_customer_forms_link' => $this->has_customer_forms(),
         ]);
 
         $session_id = request('session_id');

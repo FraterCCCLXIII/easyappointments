@@ -4,7 +4,7 @@
 
 <div class="flex justify-center mt-4">
     <i id="success-icon" class="fas fa-circle-check mb-6"
-       style="width: 96px; height: 96px; font-size: 96px; display: inline-flex; align-items: center; justify-content: center; color: #439a82;"></i>
+       style="width: 96px; height: 96px; font-size: 96px; display: inline-flex; align-items: center; justify-content: center; color: <?= e(vars('company_color') ?: '#439a82') ?>;"></i>
 </div>
 
 <div class="text-center">
