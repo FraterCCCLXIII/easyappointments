@@ -116,6 +116,27 @@
                 </div>
 
                 <div class="mb-3">
+                    <label class="form-label" for="down-payment-type">
+                        Down Payment Type
+                    </label>
+                    <select id="down-payment-type" class="form-select" disabled>
+                        <option value="none">None</option>
+                        <option value="fixed">Fixed Amount</option>
+                        <option value="percent">Percent</option>
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label" for="down-payment-value">
+                        Down Payment Value
+                    </label>
+                    <input id="down-payment-value" class="form-control" type="number" min="0" step="0.01" disabled>
+                    <div class="form-text text-muted">
+                        Use amount for fixed and percentage points for percent (0-100).
+                    </div>
+                </div>
+
+                <div class="mb-3">
                     <label class="form-label" for="currency">
                         <?= lang('currency') ?>
 

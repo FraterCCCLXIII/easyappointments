@@ -54,6 +54,7 @@ class Appointments extends EA_Controller
         $this->load->model('secretaries_model');
 
         $this->load->library('accounts');
+        $this->load->library('appointment_payments_service');
         $this->load->library('timezones');
         $this->load->library('webhooks_client');
     }
@@ -134,6 +135,9 @@ class Appointments extends EA_Controller
             }
 
             $appointment = json_decode(request('appointment'), true);
+            $appointment_before = !empty($appointment['id'])
+                ? $this->appointments_model->find((int) $appointment['id'])
+                : null;
 
             $this->appointments_model->only($appointment, $this->allowed_appointment_fields);
 
@@ -191,6 +195,14 @@ class Appointments extends EA_Controller
             $this->appointments_model->optional($appointment, $this->optional_appointment_fields);
 
             $appointment_id = $this->appointments_model->save($appointment);
+
+            if ($appointment_before) {
+                $appointment_after = $this->appointments_model->find($appointment_id);
+                $this->appointment_payments_service->maybe_charge_remaining_on_completed(
+                    $appointment_before,
+                    $appointment_after,
+                );
+            }
 
             json_response([
                 'success' => true,

@@ -25,6 +25,8 @@ class Services extends EA_Controller
         'name',
         'duration',
         'price',
+        'down_payment_type',
+        'down_payment_value',
         'currency',
         'description',
         'color',
@@ -37,6 +39,8 @@ class Services extends EA_Controller
     ];
     public array $optional_service_fields = [
         'id_service_categories' => null,
+        'down_payment_type' => 'none',
+        'down_payment_value' => 0,
     ];
 
     /**

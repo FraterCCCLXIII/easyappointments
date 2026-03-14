@@ -49,10 +49,42 @@ class Stripe_gateway
      */
     public function create_checkout_session(array $appointment, array $service, array $customer): Session
     {
+        return $this->create_amount_checkout_session(
+            $appointment,
+            $service,
+            $customer,
+            (float) ($service['price'] ?? 0),
+            (string) ($service['name'] ?? 'Service'),
+            [
+                'payment_flow' => 'deposit',
+            ],
+        );
+    }
+
+    /**
+     * Create a Stripe Checkout Session for a custom amount.
+     *
+     * @param array $appointment Appointment data.
+     * @param array $service Service data.
+     * @param array $customer Customer data.
+     * @param float $amount Amount in major currency unit.
+     * @param string $line_item_name Line item display name.
+     * @param array $extra_metadata Additional metadata.
+     *
+     * @return Session
+     */
+    public function create_amount_checkout_session(
+        array $appointment,
+        array $service,
+        array $customer,
+        float $amount,
+        string $line_item_name,
+        array $extra_metadata = [],
+    ): Session {
         $currency = setting('stripe_currency', 'USD');
-        
+
         $product_data = [
-            'name' => $service['name'],
+            'name' => $line_item_name,
         ];
 
         $service_description = trim((string)($service['description'] ?? ''));
@@ -61,17 +93,25 @@ class Stripe_gateway
             $product_data['description'] = $service_description;
         }
 
+        $amount_cents = (int) round($amount * 100);
+        if ($amount_cents <= 0) {
+            throw new InvalidArgumentException('Stripe checkout amount must be greater than zero.');
+        }
+
         $session_data = [
             'payment_method_types' => ['card'],
             'line_items' => [[
                 'price_data' => [
                     'currency' => $currency,
                     'product_data' => $product_data,
-                    'unit_amount' => (int)($service['price'] * 100), // Stripe expects cents
+                    'unit_amount' => $amount_cents,
                 ],
                 'quantity' => 1,
             ]],
             'mode' => 'payment',
+            'payment_intent_data' => [
+                'setup_future_usage' => 'off_session',
+            ],
             'success_url' => site_url('booking/payment_success/' . $appointment['hash']) .
                 '?session_id={CHECKOUT_SESSION_ID}',
             'cancel_url' => site_url('booking/payment_cancel/' . $appointment['hash']),
@@ -80,8 +120,13 @@ class Stripe_gateway
             'metadata' => [
                 'appointment_id' => $appointment['id'],
                 'appointment_hash' => $appointment['hash'],
+                'amount_cents' => $amount_cents,
             ],
         ];
+
+        foreach ($extra_metadata as $key => $value) {
+            $session_data['metadata'][(string) $key] = (string) $value;
+        }
 
         // If customer has a stripe_customer_id, use it
         if (!empty($customer['stripe_customer_id'])) {
@@ -126,7 +171,9 @@ class Stripe_gateway
      */
     public function retrieve_checkout_session(string $session_id): Session
     {
-        return $this->stripe->checkout->sessions->retrieve($session_id, []);
+        return $this->stripe->checkout->sessions->retrieve($session_id, [
+            'expand' => ['payment_intent'],
+        ]);
     }
 
     /**
@@ -152,5 +199,34 @@ class Stripe_gateway
         }
 
         return $this->stripe->refunds->create($payload);
+    }
+
+    /**
+     * Create an off-session payment intent against a stored payment method.
+     */
+    public function create_off_session_payment_intent(
+        string $stripe_customer_id,
+        string $payment_method_id,
+        int $amount_cents,
+        string $currency,
+        array $metadata = [],
+        ?string $idempotency_key = null,
+    ): \Stripe\PaymentIntent {
+        $payload = [
+            'amount' => $amount_cents,
+            'currency' => strtolower($currency),
+            'customer' => $stripe_customer_id,
+            'payment_method' => $payment_method_id,
+            'off_session' => true,
+            'confirm' => true,
+            'metadata' => $metadata,
+        ];
+
+        $options = [];
+        if (!empty($idempotency_key)) {
+            $options['idempotency_key'] = $idempotency_key;
+        }
+
+        return $this->stripe->paymentIntents->create($payload, $options);
     }
 }

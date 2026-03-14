@@ -198,23 +198,40 @@
                                         <tr>
                                             <th class="ps-4">Date</th>
                                             <th>Amount</th>
-                                            <th class="pe-4">Status</th>
+                                            <th>Status</th>
+                                            <th class="pe-4">Action</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         <?php if (empty(vars('appointments'))): ?>
                                             <tr>
-                                                <td colspan="3" class="text-center py-4 text-muted">No billing history found.</td>
+                                                <td colspan="4" class="text-center py-4 text-muted">No billing history found.</td>
                                             </tr>
                                         <?php else: ?>
                                             <?php foreach (vars('appointments') as $appointment): ?>
                                                 <tr>
                                                     <td class="ps-4"><?= date('Y-m-d H:i', strtotime($appointment['book_datetime'])) ?></td>
                                                     <td><?= number_format($appointment['payment_amount'], 2) ?></td>
-                                                    <td class="pe-4">
+                                                    <td>
                                                         <span class="badge bg-<?= $appointment['payment_status'] === 'paid' ? 'success' : 'warning' ?>">
                                                             <?= ucfirst($appointment['payment_status']) ?>
                                                         </span>
+                                                    </td>
+                                                    <td class="pe-4">
+                                                        <?php
+                                                        $remaining_amount = (float) ($appointment['remaining_amount'] ?? 0);
+                                                        $is_outstanding = $remaining_amount > 0 &&
+                                                            (($appointment['payment_stage'] ?? '') === 'final_charge_failed' ||
+                                                                ($appointment['payment_status'] ?? '') !== 'paid');
+                                                        ?>
+                                                        <?php if ($is_outstanding): ?>
+                                                            <a class="btn btn-outline-primary btn-sm"
+                                                               href="<?= site_url('booking/retry_payment/' . $appointment['hash']) ?>">
+                                                                Pay Now
+                                                            </a>
+                                                        <?php else: ?>
+                                                            <span class="text-muted small">—</span>
+                                                        <?php endif; ?>
                                                     </td>
                                                 </tr>
                                             <?php endforeach; ?>

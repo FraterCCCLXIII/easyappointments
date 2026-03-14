@@ -79,6 +79,7 @@ class Booking extends EA_Controller
         $this->load->model('forms_model');
         $this->load->model('settings_model');
         $this->load->model('consents_model');
+        $this->load->model('appointment_payments_model');
 
         $this->load->library('timezones');
         $this->load->library('synchronization');
@@ -86,6 +87,7 @@ class Booking extends EA_Controller
         $this->load->library('availability');
         $this->load->library('webhooks_client');
         $this->load->library('stripe_gateway');
+        $this->load->library('appointment_payments_service');
         $this->load->library('google_sync');
     }
 
@@ -98,19 +100,27 @@ class Booking extends EA_Controller
             $payload = @file_get_contents('php://input');
             $sig_header = $_SERVER['HTTP_STRIPE_SIGNATURE'] ?? '';
             $event = $this->stripe_gateway->construct_webhook_event($payload, $sig_header);
+            $event_id = (string) ($event->id ?? '');
+
+            if ($event_id !== '' && $this->appointment_payments_model->find_by_event_id($event_id)) {
+                json_response(['success' => true]);
+                return;
+            }
 
             if ($event->type === 'checkout.session.completed') {
                 $session = $event->data->object;
+                $session = $this->stripe_gateway->retrieve_checkout_session((string) $session->id);
                 $appointment_id = $session->client_reference_id;
                 $appointment = $this->appointments_model->find($appointment_id);
 
                 if ($appointment) {
-                    $appointment['payment_status'] = 'paid';
-                    $appointment['stripe_payment_intent_id'] = $session->payment_intent;
-                    $appointment['billing_status'] = 'paid';
-                    $appointment['billing_reference'] = $session->payment_intent ?? null;
-                    $appointment['billing_updated_at'] = date('Y-m-d H:i:s');
-                    $this->appointments_model->save($appointment);
+                    $flow = (string) ($session->metadata->payment_flow ?? 'deposit');
+                    $appointment = $this->appointment_payments_service->mark_checkout_completed(
+                        $appointment,
+                        $session,
+                        $event_id,
+                        $flow,
+                    );
                     
                     // Trigger notifications and webhooks now that it's paid
                     $service = $this->services_model->find($appointment['id_services']);
@@ -177,12 +187,13 @@ class Booking extends EA_Controller
                     (($session->metadata->appointment_hash ?? '') === $appointment_hash);
 
                 if ($matches_appointment && ($session->payment_status ?? '') === 'paid') {
-                    $appointment['payment_status'] = 'paid';
-                    $appointment['stripe_payment_intent_id'] = $session->payment_intent ?? null;
-                    $appointment['billing_status'] = 'paid';
-                    $appointment['billing_reference'] = $session->payment_intent ?? null;
-                    $appointment['billing_updated_at'] = date('Y-m-d H:i:s');
-                    $this->appointments_model->save($appointment);
+                    $flow = (string) ($session->metadata->payment_flow ?? 'deposit');
+                    $appointment = $this->appointment_payments_service->mark_checkout_completed(
+                        $appointment,
+                        $session,
+                        '',
+                        $flow,
+                    );
                 }
             } catch (Throwable $e) {
                 log_message('error', 'Stripe Payment Success Error: ' . $e->getMessage());
@@ -199,6 +210,60 @@ class Booking extends EA_Controller
     {
         // Optionally delete the pending appointment or just redirect back
         redirect('booking/reschedule/' . $appointment_hash);
+    }
+
+    /**
+     * Create a retry payment link for an outstanding appointment balance.
+     */
+    public function retry_payment_link(string $appointment_hash): void
+    {
+        try {
+            $results = $this->appointments_model->get(['hash' => $appointment_hash]);
+            if (empty($results)) {
+                abort(404, 'Not Found');
+            }
+
+            $appointment = $results[0];
+            $customer = customer_logged_in() ? $this->customers_model->find(customer_id()) : null;
+
+            if (!$customer || (int) $appointment['id_users_customer'] !== (int) $customer['id']) {
+                abort(403, 'Forbidden');
+            }
+
+            $payload = $this->appointment_payments_service->prepare_remaining_payment_link((int) $appointment['id']);
+
+            json_response([
+                'success' => true,
+                'payment_link' => $payload['payment_link'],
+            ]);
+        } catch (Throwable $e) {
+            json_exception($e);
+        }
+    }
+
+    /**
+     * Redirect customer to a hosted checkout session for outstanding balance.
+     */
+    public function retry_payment(string $appointment_hash): void
+    {
+        try {
+            $results = $this->appointments_model->get(['hash' => $appointment_hash]);
+            if (empty($results)) {
+                abort(404, 'Not Found');
+            }
+
+            $appointment = $results[0];
+            $customer = customer_logged_in() ? $this->customers_model->find(customer_id()) : null;
+
+            if (!$customer || (int) $appointment['id_users_customer'] !== (int) $customer['id']) {
+                abort(403, 'Forbidden');
+            }
+
+            $payload = $this->appointment_payments_service->prepare_remaining_payment_link((int) $appointment['id']);
+            redirect($payload['payment_link']);
+        } catch (Throwable $e) {
+            json_exception($e);
+        }
     }
 
     /**
@@ -714,22 +779,51 @@ class Booking extends EA_Controller
                 'appointment_hash' => $appointment['hash'],
             ];
 
-            $requires_payment =
+            $requires_online_payment =
                 !$manage_mode &&
                 $this->stripe_gateway->is_enabled() &&
                 !empty($service['price']) &&
                 (float)$service['price'] > 0;
 
-            if ($requires_payment) {
-                $appointment['payment_amount'] = (float)$service['price'];
-                $appointment['payment_status'] = 'pending';
-                $appointment['billing_status'] = 'payment_link_sent';
-                $appointment['billing_updated_at'] = date('Y-m-d H:i:s');
+            if ($requires_online_payment) {
+                $this->appointment_payments_service->initialize_appointment_payment_state($appointment, $service);
                 $this->appointments_model->save($appointment);
                 $appointment = $this->appointments_model->find($appointment_id);
 
-                $session = $this->stripe_gateway->create_checkout_session($appointment, $service, $customer);
-                $response['stripe_checkout_url'] = $session->url;
+                $deposit_amount = (float) ($appointment['deposit_amount'] ?? $appointment['payment_amount'] ?? 0);
+
+                if ($deposit_amount > 0) {
+                    $session = $this->stripe_gateway->create_amount_checkout_session(
+                        $appointment,
+                        $service,
+                        $customer,
+                        $deposit_amount,
+                        (string) ($service['name'] ?? 'Service'),
+                        [
+                            'payment_flow' => 'deposit',
+                        ],
+                    );
+                    $response['stripe_checkout_url'] = $session->url;
+                } else {
+                    $appointment['payment_status'] = 'not-paid';
+                    $appointment['payment_stage'] = 'deposit_paid';
+                    $appointment['billing_status'] = 'unpaid';
+                    $appointment['billing_updated_at'] = date('Y-m-d H:i:s');
+                    $this->appointments_model->save($appointment);
+
+                    $this->synchronization->sync_appointment_saved($appointment, $service, $provider, $customer, $settings);
+
+                    $this->notifications->notify_appointment_saved(
+                        $appointment,
+                        $service,
+                        $provider,
+                        $customer,
+                        $settings,
+                        $manage_mode,
+                    );
+
+                    $this->webhooks_client->trigger(WEBHOOK_APPOINTMENT_SAVE, $appointment);
+                }
             } else {
                 $this->synchronization->sync_appointment_saved($appointment, $service, $provider, $customer, $settings);
 

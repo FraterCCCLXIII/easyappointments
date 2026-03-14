@@ -44,6 +44,10 @@ class Stripe_settings extends EA_Controller
     public function save()
     {
         try {
+            if (cannot('edit', PRIV_SYSTEM_SETTINGS)) {
+                abort(403, 'Forbidden');
+            }
+
             $settings = [
                 'stripe_enabled' => request('stripe_enabled') ? '1' : '0',
                 'stripe_publishable_key' => request('stripe_publishable_key'),
@@ -51,10 +55,6 @@ class Stripe_settings extends EA_Controller
                 'stripe_webhook_secret' => request('stripe_webhook_secret'),
                 'stripe_currency' => request('stripe_currency'),
             ];
-
-            foreach ($settings as $name => $value) {
-                log_message('debug', 'Stripe Settings Save: ' . $name . ' = ' . $value);
-            }
 
             setting($settings);
 

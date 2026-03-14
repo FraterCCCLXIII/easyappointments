@@ -24,6 +24,11 @@ class Appointments_model extends EA_Model
     protected array $casts = [
         'id' => 'integer',
         'is_unavailability' => 'boolean',
+        'payment_amount' => 'float',
+        'total_amount' => 'float',
+        'deposit_amount' => 'float',
+        'remaining_amount' => 'float',
+        'final_charge_attempts' => 'integer',
         'id_users_provider' => 'integer',
         'id_users_customer' => 'integer',
         'id_services' => 'integer',
@@ -44,6 +49,10 @@ class Appointments_model extends EA_Model
         'billingReference' => 'billing_reference',
         'billingNotes' => 'billing_notes',
         'billingUpdatedAt' => 'billing_updated_at',
+        'paymentStage' => 'payment_stage',
+        'totalAmount' => 'total_amount',
+        'depositAmount' => 'deposit_amount',
+        'remainingAmount' => 'remaining_amount',
         'notes' => 'notes',
         'hash' => 'hash',
         'serviceId' => 'id_services',
@@ -664,6 +673,10 @@ class Appointments_model extends EA_Model
             'billingReference' => $appointment['billing_reference'] ?? null,
             'billingNotes' => $appointment['billing_notes'] ?? null,
             'billingUpdatedAt' => $appointment['billing_updated_at'] ?? null,
+            'paymentStage' => $appointment['payment_stage'] ?? null,
+            'totalAmount' => isset($appointment['total_amount']) ? (float) $appointment['total_amount'] : null,
+            'depositAmount' => isset($appointment['deposit_amount']) ? (float) $appointment['deposit_amount'] : null,
+            'remainingAmount' => isset($appointment['remaining_amount']) ? (float) $appointment['remaining_amount'] : null,
             'location' => $appointment['location'],
             'notes' => $appointment['notes'],
             'customerId' => $appointment['id_users_customer'] !== null ? (int) $appointment['id_users_customer'] : null,
@@ -730,6 +743,22 @@ class Appointments_model extends EA_Model
 
         if (array_key_exists('billingUpdatedAt', $appointment)) {
             $decoded_request['billing_updated_at'] = $appointment['billingUpdatedAt'];
+        }
+
+        if (array_key_exists('paymentStage', $appointment)) {
+            $decoded_request['payment_stage'] = $appointment['paymentStage'];
+        }
+
+        if (array_key_exists('totalAmount', $appointment)) {
+            $decoded_request['total_amount'] = $appointment['totalAmount'];
+        }
+
+        if (array_key_exists('depositAmount', $appointment)) {
+            $decoded_request['deposit_amount'] = $appointment['depositAmount'];
+        }
+
+        if (array_key_exists('remainingAmount', $appointment)) {
+            $decoded_request['remaining_amount'] = $appointment['remainingAmount'];
         }
 
         if (array_key_exists('notes', $appointment)) {

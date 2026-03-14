@@ -124,17 +124,7 @@ App.Pages.Booking = (function () {
 
             this.centerSelectedMonth();
 
-            // Scroll to selected date (keep it in view on load)
-            const $selectedDate = this.$datesContainer.find('.date.selected');
-            if ($selectedDate.length) {
-                requestAnimationFrame(() => {
-                    $selectedDate[0].scrollIntoView({
-                        block: 'nearest',
-                        inline: 'center',
-                        behavior: 'smooth',
-                    });
-                });
-            }
+            this.centerSelectedDate();
         },
 
         addEventListeners: function () {
@@ -211,6 +201,31 @@ App.Pages.Booking = (function () {
             const clampedScrollLeft = Math.max(0, Math.min(targetScrollLeft, maxScrollLeft));
 
             this.$monthsContainer.stop().animate({ scrollLeft: clampedScrollLeft }, 250);
+        },
+
+        centerSelectedDate: function () {
+            const datesContainer = this.$datesContainer.get(0);
+            const selectedDate = this.$datesContainer.find('.date.selected').get(0);
+
+            if (!datesContainer || !selectedDate) {
+                return;
+            }
+
+            const containerWidth = datesContainer.clientWidth;
+            const maxScrollLeft = Math.max(0, datesContainer.scrollWidth - containerWidth);
+            const containerRect = datesContainer.getBoundingClientRect();
+            const dateRect = selectedDate.getBoundingClientRect();
+
+            // Center the selected day (which is also the next available day on initial load)
+            // and clamp to valid scroll bounds.
+            const targetScrollLeft =
+                datesContainer.scrollLeft +
+                (dateRect.left - containerRect.left) -
+                (containerWidth / 2) +
+                (dateRect.width / 2);
+            const clampedScrollLeft = Math.max(0, Math.min(targetScrollLeft, maxScrollLeft));
+
+            this.$datesContainer.stop().animate({ scrollLeft: clampedScrollLeft }, 250);
         },
     };
 
@@ -1455,6 +1470,18 @@ App.Pages.Booking = (function () {
         const serviceHeadline = providerOptionText
             ? `${serviceOptionText} × ${providerOptionText}`
             : serviceOptionText;
+        const servicePrice = Number(service.price || 0);
+        const downPaymentType = (service.down_payment_type || 'none').toLowerCase();
+        const downPaymentValue = Number(service.down_payment_value || 0);
+        let dueNow = servicePrice;
+
+        if (downPaymentType === 'fixed') {
+            dueNow = Math.min(servicePrice, Math.max(0, downPaymentValue));
+        } else if (downPaymentType === 'percent') {
+            dueNow = Math.min(servicePrice, Math.max(0, (servicePrice * downPaymentValue) / 100));
+        }
+
+        const dueAtCompletion = Math.max(0, servicePrice - dueNow);
 
         $('#appointment-details').html(`
             <div class="rounded-xl border border-[var(--bs-border-color,#e2e8f0)] bg-slate-50 p-4 text-left">
@@ -1474,9 +1501,17 @@ App.Pages.Booking = (function () {
                         <i class="fas fa-globe text-slate-400"></i>
                         ${timezoneOptionText}
                     </div>
-                    <div class="flex items-center gap-2 text-sm text-slate-700" ${!Number(service.price) ? 'hidden' : ''}>
+                    <div class="flex items-center gap-2 text-sm text-slate-700" ${!servicePrice ? 'hidden' : ''}>
                         <i class="fas fa-cash-register text-slate-400"></i>
-                        ${Number(service.price).toFixed(2)} ${service.currency}
+                        Total: ${servicePrice.toFixed(2)} ${service.currency}
+                    </div>
+                    <div class="flex items-center gap-2 text-sm text-slate-700" ${!servicePrice ? 'hidden' : ''}>
+                        <i class="fas fa-credit-card text-slate-400"></i>
+                        Due now: ${dueNow.toFixed(2)} ${service.currency}
+                    </div>
+                    <div class="flex items-center gap-2 text-sm text-slate-700" ${!servicePrice ? 'hidden' : ''}>
+                        <i class="fas fa-hourglass-half text-slate-400"></i>
+                        Due at completion: ${dueAtCompletion.toFixed(2)} ${service.currency}
                     </div>
                 </div>
             </div>

@@ -20,6 +20,8 @@ App.Pages.Services = (function () {
     const $name = $('#name');
     const $duration = $('#duration');
     const $price = $('#price');
+    const $downPaymentType = $('#down-payment-type');
+    const $downPaymentValue = $('#down-payment-value');
     const $currency = $('#currency');
     const $serviceCategoryId = $('#service-category-id');
     const $availabilitiesType = $('#availabilities-type');
@@ -121,6 +123,8 @@ App.Pages.Services = (function () {
             $name.val('Service');
             $duration.val('30');
             $price.val('0');
+            $downPaymentType.val('none');
+            $downPaymentValue.val('0');
             $currency.val('');
             $serviceCategoryId.val('');
             $availabilitiesType.val('flexible');
@@ -151,6 +155,8 @@ App.Pages.Services = (function () {
                 name: $name.val(),
                 duration: $duration.val(),
                 price: $price.val(),
+                down_payment_type: $downPaymentType.val(),
+                down_payment_value: $downPaymentValue.val() || 0,
                 currency: $currency.val(),
                 description: $description.val(),
                 location: $location.val(),
@@ -269,6 +275,25 @@ App.Pages.Services = (function () {
                 throw new Error(lang('invalid_duration'));
             }
 
+            const price = Number($price.val() || 0);
+            const downPaymentType = ($downPaymentType.val() || 'none').toLowerCase();
+            const downPaymentValue = Number($downPaymentValue.val() || 0);
+
+            if (downPaymentValue < 0) {
+                $downPaymentValue.addClass('is-invalid');
+                throw new Error('Down payment value cannot be negative.');
+            }
+
+            if (downPaymentType === 'fixed' && downPaymentValue > price) {
+                $downPaymentValue.addClass('is-invalid');
+                throw new Error('Fixed down payment cannot exceed service price.');
+            }
+
+            if (downPaymentType === 'percent' && downPaymentValue > 100) {
+                $downPaymentValue.addClass('is-invalid');
+                throw new Error('Percent down payment cannot exceed 100.');
+            }
+
             return true;
         } catch (error) {
             $services.find('.form-message').addClass('alert-danger').text(error.message).show();
@@ -312,6 +337,8 @@ App.Pages.Services = (function () {
         $name.val(service.name);
         $duration.val(service.duration);
         $price.val(service.price);
+        $downPaymentType.val(service.down_payment_type || 'none');
+        $downPaymentValue.val(service.down_payment_value ?? 0);
         $currency.val(service.currency);
         $description.val(service.description);
         $location.val(service.location);

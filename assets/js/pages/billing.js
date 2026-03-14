@@ -223,6 +223,23 @@ App.Pages.Billing = (function () {
             const $row = $(event.currentTarget).closest('tr');
             showRefundDialog($row);
         });
+
+        $billingPage.on('click', '.js-retry-final-charge', async (event) => {
+            const $row = $(event.currentTarget).closest('tr');
+            const appointmentId = Number($row.data('appointment-id'));
+            setBusy($row, true);
+            try {
+                const response = await App.Utils.Http.request('POST', 'billing/retry_final_charge', {
+                    appointment_id: appointmentId,
+                });
+                updateStatusBadges($row, response.billing_status || 'unpaid', response.payment_status || 'not-paid');
+                notify(response.remaining_amount > 0 ? 'Retry attempted but balance remains.' : 'Final charge succeeded.');
+            } catch (error) {
+                notify(error.message || 'Could not retry final charge.');
+            } finally {
+                setBusy($row, false);
+            }
+        });
     }
 
     function initialize() {

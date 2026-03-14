@@ -35,6 +35,7 @@ class Billing extends EA_Controller
         $this->load->model('services_model');
 
         $this->load->library('stripe_gateway');
+        $this->load->library('appointment_payments_service');
         $this->load->library('email_messages');
     }
 
@@ -267,6 +268,32 @@ class Billing extends EA_Controller
         }
     }
 
+    public function retry_final_charge(): void
+    {
+        try {
+            if (cannot('edit', PRIV_SYSTEM_SETTINGS)) {
+                abort(403, 'Forbidden');
+            }
+
+            $appointment_id = (int) request('appointment_id');
+            if (!$appointment_id) {
+                abort(400, 'Bad Request');
+            }
+
+            $appointment = $this->appointment_payments_service->attempt_final_charge($appointment_id, 'admin_retry');
+
+            json_response([
+                'success' => true,
+                'billing_status' => $appointment['billing_status'] ?? 'unpaid',
+                'payment_status' => $appointment['payment_status'] ?? 'not-paid',
+                'payment_stage' => $appointment['payment_stage'] ?? 'not_paid',
+                'remaining_amount' => (float) ($appointment['remaining_amount'] ?? 0),
+            ]);
+        } catch (Throwable $e) {
+            json_exception($e);
+        }
+    }
+
     private function prepare_payment_link(int $appointment_id): array
     {
         if (!$appointment_id) {
@@ -277,33 +304,7 @@ class Billing extends EA_Controller
             throw new RuntimeException('Stripe payments are not enabled.');
         }
 
-        $appointment = $this->appointments_model->find($appointment_id);
-        $customer = $this->customers_model->find((int) $appointment['id_users_customer']);
-        $service = $this->services_model->find((int) $appointment['id_services']);
-
-        if (empty($customer['email'])) {
-            throw new RuntimeException('The appointment customer does not have an email address.');
-        }
-
-        if (empty($service['price']) || (float) $service['price'] <= 0) {
-            throw new RuntimeException('The selected service has no payable amount.');
-        }
-
-        $appointment['payment_amount'] = (float) $service['price'];
-        $appointment['payment_status'] = 'pending';
-        $appointment['billing_status'] = 'payment_link_sent';
-        $appointment['billing_updated_at'] = date('Y-m-d H:i:s');
-        $this->appointments_model->save($appointment);
-        $appointment = $this->appointments_model->find($appointment_id);
-
-        $session = $this->stripe_gateway->create_checkout_session($appointment, $service, $customer);
-
-        return [
-            'payment_link' => $session->url,
-            'appointment' => $appointment,
-            'customer' => $customer,
-            'service' => $service,
-        ];
+        return $this->appointment_payments_service->prepare_remaining_payment_link($appointment_id);
     }
 
     private function append_refund_note(

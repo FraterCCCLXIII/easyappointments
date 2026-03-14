@@ -85,6 +85,7 @@ class Calendar extends EA_Controller
         $this->load->library('synchronization');
         $this->load->library('timezones');
         $this->load->library('webhooks_client');
+        $this->load->library('appointment_payments_service');
     }
 
     /**
@@ -239,6 +240,7 @@ class Calendar extends EA_Controller
             $customer_data = request('customer_data');
 
             $appointment_data = request('appointment_data');
+            $appointment_before = null;
 
             $this->check_event_permissions((int) $appointment_data['id_users_provider']);
 
@@ -291,6 +293,7 @@ class Calendar extends EA_Controller
                 }
 
                 if ($manage_mode && !empty($appointment['id'])) {
+                    $appointment_before = $this->appointments_model->find((int) $appointment['id']);
                     $this->synchronization->remove_appointment_on_provider_change($appointment['id']);
                 }
 
@@ -306,6 +309,12 @@ class Calendar extends EA_Controller
             }
 
             $appointment = $this->appointments_model->find($appointment['id']);
+
+            if ($appointment_before) {
+                $this->appointment_payments_service->maybe_charge_remaining_on_completed($appointment_before, $appointment);
+                $appointment = $this->appointments_model->find($appointment['id']);
+            }
+
             $provider = $this->providers_model->find($appointment['id_users_provider']);
             $customer = $this->customers_model->find($appointment['id_users_customer']);
             $service = $this->services_model->find($appointment['id_services']);

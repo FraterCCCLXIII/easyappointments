@@ -26,6 +26,7 @@ class Services_model extends EA_Model
     protected array $casts = [
         'id' => 'integer',
         'price' => 'float',
+        'down_payment_value' => 'float',
         'attendants_number' => 'integer',
         'is_private' => 'boolean',
         'service_area_only' => 'boolean',
@@ -40,6 +41,8 @@ class Services_model extends EA_Model
         'name' => 'name',
         'duration' => 'duration',
         'price' => 'price',
+        'downPaymentType' => 'down_payment_type',
+        'downPaymentValue' => 'down_payment_value',
         'currency' => 'currency',
         'description' => 'description',
         'location' => 'location',
@@ -150,6 +153,30 @@ class Services_model extends EA_Model
             throw new InvalidArgumentException(
                 'The provided attendants number is invalid: ' . $service['attendants_number'],
             );
+        }
+
+        $down_payment_type = strtolower((string) ($service['down_payment_type'] ?? 'none'));
+        $down_payment_value = (float) ($service['down_payment_value'] ?? 0);
+        $price = (float) ($service['price'] ?? 0);
+
+        if (!in_array($down_payment_type, ['none', 'fixed', 'percent'], true)) {
+            throw new InvalidArgumentException('The provided down payment type is invalid: ' . $down_payment_type);
+        }
+
+        if ($down_payment_value < 0) {
+            throw new InvalidArgumentException('The down payment value cannot be negative.');
+        }
+
+        if ($down_payment_type === 'none' && $down_payment_value > 0) {
+            throw new InvalidArgumentException('Down payment value must be zero when type is none.');
+        }
+
+        if ($down_payment_type === 'fixed' && $down_payment_value > $price) {
+            throw new InvalidArgumentException('Fixed down payment cannot be greater than service price.');
+        }
+
+        if ($down_payment_type === 'percent' && $down_payment_value > 100) {
+            throw new InvalidArgumentException('Percent down payment cannot be greater than 100.');
         }
     }
 
@@ -414,6 +441,8 @@ class Services_model extends EA_Model
             'name' => $service['name'],
             'duration' => (int) $service['duration'],
             'price' => (float) $service['price'],
+            'downPaymentType' => (string) ($service['down_payment_type'] ?? 'none'),
+            'downPaymentValue' => (float) ($service['down_payment_value'] ?? 0),
             'currency' => $service['currency'],
             'description' => $service['description'],
             'location' => $service['location'],
@@ -452,6 +481,14 @@ class Services_model extends EA_Model
 
         if (array_key_exists('price', $service)) {
             $decoded_resource['price'] = $service['price'];
+        }
+
+        if (array_key_exists('downPaymentType', $service)) {
+            $decoded_resource['down_payment_type'] = $service['downPaymentType'];
+        }
+
+        if (array_key_exists('downPaymentValue', $service)) {
+            $decoded_resource['down_payment_value'] = $service['downPaymentValue'];
         }
 
         if (array_key_exists('currency', $service)) {

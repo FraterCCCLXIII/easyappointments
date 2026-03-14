@@ -109,6 +109,11 @@
                                                             </button>
                                                         </li>
                                                         <li>
+                                                            <button type="button" class="dropdown-item js-retry-final-charge">
+                                                                Retry Final Charge
+                                                            </button>
+                                                        </li>
+                                                        <li>
                                                             <button type="button" class="dropdown-item text-danger js-refund">
                                                                 Refund
                                                             </button>

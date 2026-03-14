@@ -75,17 +75,13 @@
                 stripe_currency: $('#stripe_currency').val()
             };
 
-            console.log('Saving Stripe Settings:', data);
-
             $.post(App.Utils.Url.siteUrl('stripe_settings/save'), data, function(response) {
-                console.log('Stripe Settings Save Response:', response);
                 if (response.success) {
                     App.Layouts.Backend.displayNotification('Stripe settings saved successfully!');
                 } else {
                     App.Layouts.Backend.displayNotification('Error saving settings: ' + response.message);
                 }
             }, 'json').fail(function(xhr, status, error) {
-                console.error('Stripe Settings Save Error:', error);
                 App.Layouts.Backend.displayNotification('Critical error while saving settings.');
             });
         });
