@@ -7,6 +7,7 @@ class Billing extends EA_Controller
         'payment_link_sent' => 'Payment Link Sent',
         'paid' => 'Paid',
         'paid_by_phone' => 'Paid by Phone',
+        'partially_refunded' => 'Partially Refunded',
         'refunded' => 'Refunded',
         'voided' => 'Voided',
     ];
@@ -14,8 +15,9 @@ class Billing extends EA_Controller
     private const BILLING_STATUS_TRANSITIONS = [
         'unpaid' => ['payment_link_sent', 'paid', 'paid_by_phone', 'voided'],
         'payment_link_sent' => ['unpaid', 'paid', 'paid_by_phone', 'voided'],
-        'paid' => ['refunded', 'voided'],
-        'paid_by_phone' => ['refunded', 'voided'],
+        'paid' => ['partially_refunded', 'refunded', 'voided'],
+        'paid_by_phone' => ['partially_refunded', 'refunded', 'voided'],
+        'partially_refunded' => ['refunded'],
         'refunded' => [],
         'voided' => [],
     ];
@@ -108,6 +110,10 @@ class Billing extends EA_Controller
 
             if (in_array($target_status, ['paid', 'paid_by_phone'], true)) {
                 $appointment['payment_status'] = 'paid';
+            } elseif ($target_status === 'partially_refunded') {
+                $appointment['payment_status'] = 'partially-refunded';
+            } elseif ($target_status === 'refunded') {
+                $appointment['payment_status'] = 'refunded';
             } elseif (in_array($target_status, ['unpaid', 'payment_link_sent'], true)) {
                 $appointment['payment_status'] = 'not-paid';
             }
@@ -118,6 +124,90 @@ class Billing extends EA_Controller
                 'success' => true,
                 'billing_status' => $appointment['billing_status'],
                 'payment_status' => $appointment['payment_status'] ?? null,
+            ]);
+        } catch (Throwable $e) {
+            json_exception($e);
+        }
+    }
+
+    public function refund(): void
+    {
+        try {
+            if (cannot('edit', PRIV_SYSTEM_SETTINGS)) {
+                abort(403, 'Forbidden');
+            }
+
+            $appointment_id = (int) request('appointment_id');
+            $refund_mode = trim((string) request('refund_mode', 'amount'));
+            $refund_value = (float) request('refund_value', 0);
+            $refund_reason = trim((string) request('refund_reason', ''));
+
+            if (!$appointment_id || $refund_value <= 0) {
+                abort(400, 'Bad Request');
+            }
+
+            if (!in_array($refund_mode, ['amount', 'percent'], true)) {
+                throw new InvalidArgumentException('Invalid refund mode provided.');
+            }
+
+            if (!$this->stripe_gateway->is_enabled()) {
+                throw new RuntimeException('Stripe payments are not enabled.');
+            }
+
+            $appointment = $this->appointments_model->find($appointment_id);
+
+            if (!in_array($appointment['billing_status'] ?? '', ['paid', 'paid_by_phone', 'partially_refunded'], true)) {
+                throw new RuntimeException('Only paid appointments can be refunded.');
+            }
+
+            if (empty($appointment['stripe_payment_intent_id'])) {
+                throw new RuntimeException('No Stripe payment intent is available for this appointment.');
+            }
+
+            $max_amount_cents = (int) round((float) ($appointment['payment_amount'] ?? 0) * 100);
+            if ($max_amount_cents <= 0) {
+                throw new RuntimeException('The appointment does not have a refundable payment amount.');
+            }
+
+            if ($refund_mode === 'percent') {
+                if ($refund_value > 100) {
+                    throw new InvalidArgumentException('Refund percent cannot exceed 100.');
+                }
+                $refund_amount_cents = (int) round(($max_amount_cents * $refund_value) / 100);
+            } else {
+                $refund_amount_cents = (int) round($refund_value * 100);
+            }
+
+            if ($refund_amount_cents <= 0 || $refund_amount_cents > $max_amount_cents) {
+                throw new InvalidArgumentException('Refund amount is out of allowed range.');
+            }
+
+            $refund = $this->stripe_gateway->create_refund(
+                (string) $appointment['stripe_payment_intent_id'],
+                $refund_amount_cents,
+                $refund_reason !== '' ? $refund_reason : null,
+            );
+
+            $is_full_refund = $refund_amount_cents === $max_amount_cents;
+            $appointment['billing_status'] = $is_full_refund ? 'refunded' : 'partially_refunded';
+            $appointment['payment_status'] = $is_full_refund ? 'refunded' : 'partially-refunded';
+            $appointment['billing_reference'] = $refund->id ?? $appointment['billing_reference'];
+            $appointment['billing_notes'] = $this->append_refund_note(
+                (string) ($appointment['billing_notes'] ?? ''),
+                $refund_amount_cents,
+                $max_amount_cents,
+                $refund_reason,
+                (string) ($refund->id ?? ''),
+            );
+            $appointment['billing_updated_at'] = date('Y-m-d H:i:s');
+            $this->appointments_model->save($appointment);
+
+            json_response([
+                'success' => true,
+                'billing_status' => $appointment['billing_status'],
+                'payment_status' => $appointment['payment_status'],
+                'refund_reference' => $appointment['billing_reference'],
+                'refund_amount' => number_format($refund_amount_cents / 100, 2, '.', ''),
             ]);
         } catch (Throwable $e) {
             json_exception($e);
@@ -214,5 +304,36 @@ class Billing extends EA_Controller
             'customer' => $customer,
             'service' => $service,
         ];
+    }
+
+    private function append_refund_note(
+        string $existing_notes,
+        int $refund_amount_cents,
+        int $max_amount_cents,
+        string $refund_reason,
+        string $refund_reference,
+    ): string {
+        $notes = trim($existing_notes);
+        $percent = round(($refund_amount_cents / $max_amount_cents) * 100, 2);
+        $parts = [
+            sprintf(
+                '[%s] Refund processed: %s (%s%%)',
+                date('Y-m-d H:i:s'),
+                number_format($refund_amount_cents / 100, 2, '.', ''),
+                rtrim(rtrim((string) $percent, '0'), '.'),
+            ),
+        ];
+
+        if ($refund_reference !== '') {
+            $parts[] = 'ref=' . $refund_reference;
+        }
+
+        if ($refund_reason !== '') {
+            $parts[] = 'reason=' . $refund_reason;
+        }
+
+        $line = implode(' | ', $parts);
+
+        return $notes === '' ? $line : $notes . PHP_EOL . $line;
     }
 }

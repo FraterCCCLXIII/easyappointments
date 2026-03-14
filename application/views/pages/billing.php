@@ -44,7 +44,12 @@
                                             <td><?= e($transaction['service_name']) ?></td>
                                             <td><?= number_format($transaction['payment_amount'], 2) ?></td>
                                             <td>
-                                                <span class="badge billing-status-badge bg-<?= in_array($billing_status, ['paid', 'paid_by_phone'], true) ? 'success' : 'warning' ?>">
+                                                <?php
+                                                $billing_badge_class = in_array($billing_status, ['paid', 'paid_by_phone'], true)
+                                                    ? 'success'
+                                                    : ($billing_status === 'partially_refunded' ? 'info' : 'warning');
+                                                ?>
+                                                <span class="badge billing-status-badge bg-<?= $billing_badge_class ?>">
                                                     <?= e(ucwords(str_replace('_', ' ', $billing_status))) ?>
                                                 </span>
                                                 <select class="form-select form-select-sm mt-2 billing-status-select" aria-label="Billing Status">
@@ -84,6 +89,9 @@
                                                     </button>
                                                     <button type="button" class="btn btn-outline-success btn-sm js-mark-paid-phone">
                                                         Mark Paid by Phone
+                                                    </button>
+                                                    <button type="button" class="btn btn-outline-danger btn-sm js-refund">
+                                                        Refund
                                                     </button>
                                                     <button type="button" class="btn btn-primary btn-sm js-save-billing-status">
                                                         Save Billing

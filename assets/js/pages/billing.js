@@ -26,9 +26,13 @@ App.Pages.Billing = (function () {
     }
 
     function updateStatusBadges($row, billingStatus, paymentStatus) {
-        const billingClass = ['paid', 'paid_by_phone'].includes(billingStatus) ? 'bg-success' : 'bg-warning';
+        const billingClass = ['paid', 'paid_by_phone'].includes(billingStatus)
+            ? 'bg-success'
+            : billingStatus === 'partially_refunded'
+              ? 'bg-info'
+              : 'bg-warning';
         $row.find('.billing-status-badge')
-            .removeClass('bg-success bg-warning bg-secondary')
+            .removeClass('bg-success bg-warning bg-secondary bg-info')
             .addClass(billingClass)
             .text(billingStatus.replace(/_/g, ' ').replace(/\b\w/g, (letter) => letter.toUpperCase()));
 
@@ -38,6 +42,88 @@ App.Pages.Billing = (function () {
             .removeClass('bg-success bg-info bg-secondary')
             .addClass(paymentClass)
             .text(paymentStatus);
+    }
+
+    async function refundAppointment($row, refundMode, refundValue, refundReason) {
+        const appointmentId = Number($row.data('appointment-id'));
+        setBusy($row, true);
+
+        try {
+            const response = await App.Utils.Http.request('POST', 'billing/refund', {
+                appointment_id: appointmentId,
+                refund_mode: refundMode,
+                refund_value: refundValue,
+                refund_reason: refundReason || '',
+            });
+
+            updateStatusBadges($row, response.billing_status, response.payment_status || 'refunded');
+            $row.find('.billing-status-select').val(response.billing_status);
+
+            if (response.refund_reference) {
+                $row.find('.billing-reference-input').val(response.refund_reference);
+            }
+
+            notify(`Refund processed: ${response.refund_amount}`);
+        } catch (error) {
+            notify(error.message || 'Could not process refund.');
+        } finally {
+            setBusy($row, false);
+        }
+    }
+
+    function showRefundDialog($row) {
+        const paidAmount = ($row.find('td').eq(3).text() || '').trim();
+
+        const content = `
+            <div class="d-grid gap-3">
+                <div>
+                    <label for="refund-mode" class="form-label">Refund Type</label>
+                    <select id="refund-mode" class="form-select form-select-sm">
+                        <option value="amount">Amount</option>
+                        <option value="percent">Percent</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="refund-value" class="form-label">Value</label>
+                    <input id="refund-value" type="number" min="0.01" step="0.01" class="form-control form-control-sm" />
+                    <div class="form-text">Paid amount: ${paidAmount}</div>
+                </div>
+                <div>
+                    <label for="refund-reason" class="form-label">Reason (optional)</label>
+                    <textarea id="refund-reason" class="form-control form-control-sm" rows="2"></textarea>
+                </div>
+            </div>
+        `;
+
+        App.Utils.Message.show('Refund Payment', content, [
+            {
+                text: 'Cancel',
+                className: 'btn btn-outline-secondary',
+                click: (event, messageModal) => messageModal.hide(),
+            },
+            {
+                text: 'Refund',
+                className: 'btn btn-danger',
+                click: async (event, messageModal) => {
+                    const refundMode = $('#refund-mode').val();
+                    const refundValue = Number($('#refund-value').val());
+                    const refundReason = String($('#refund-reason').val() || '');
+
+                    if (!refundValue || refundValue <= 0) {
+                        notify('Please provide a valid refund value.');
+                        return;
+                    }
+
+                    if (refundMode === 'percent' && refundValue > 100) {
+                        notify('Percent refund cannot exceed 100.');
+                        return;
+                    }
+
+                    messageModal.hide();
+                    await refundAppointment($row, refundMode, refundValue, refundReason);
+                },
+            },
+        ]);
     }
 
     async function createPaymentLink(appointmentId) {
@@ -137,6 +223,11 @@ App.Pages.Billing = (function () {
             } finally {
                 setBusy($row, false);
             }
+        });
+
+        $billingPage.on('click', '.js-refund', (event) => {
+            const $row = $(event.currentTarget).closest('tr');
+            showRefundDialog($row);
         });
     }
 

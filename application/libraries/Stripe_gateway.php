@@ -128,4 +128,29 @@ class Stripe_gateway
     {
         return $this->stripe->checkout->sessions->retrieve($session_id, []);
     }
+
+    /**
+     * Create a Stripe refund for a payment intent.
+     *
+     * @param string $payment_intent_id
+     * @param int $amount_cents
+     * @param string|null $reason
+     *
+     * @return \Stripe\Refund
+     */
+    public function create_refund(string $payment_intent_id, int $amount_cents, ?string $reason = null): \Stripe\Refund
+    {
+        $payload = [
+            'payment_intent' => $payment_intent_id,
+            'amount' => $amount_cents,
+        ];
+
+        if (!empty($reason)) {
+            $payload['metadata'] = [
+                'reason_note' => $reason,
+            ];
+        }
+
+        return $this->stripe->refunds->create($payload);
+    }
 }
