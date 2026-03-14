@@ -21,29 +21,74 @@
                                     <th>Customer</th>
                                     <th>Service</th>
                                     <th>Amount</th>
-                                    <th>Status</th>
-                                    <th class="pe-4">Stripe ID</th>
+                                    <th>Billing</th>
+                                    <th>Payment</th>
+                                    <th>Reference</th>
+                                    <th class="pe-4">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <?php if (empty($transactions)): ?>
                                     <tr>
-                                        <td colspan="6" class="text-center py-4 text-muted">No transactions found.</td>
+                                        <td colspan="8" class="text-center py-4 text-muted">No transactions found.</td>
                                     </tr>
                                 <?php else: ?>
                                     <?php foreach ($transactions as $transaction): ?>
-                                        <tr>
+                                        <?php
+                                        $billing_status = $transaction['billing_status'] ?? 'unpaid';
+                                        $payment_status = $transaction['payment_status'] ?? 'not-paid';
+                                        ?>
+                                        <tr data-appointment-id="<?= (int) $transaction['id'] ?>">
                                             <td class="ps-4"><?= date('Y-m-d H:i', strtotime($transaction['book_datetime'])) ?></td>
                                             <td><?= e($transaction['first_name'] . ' ' . $transaction['last_name']) ?></td>
                                             <td><?= e($transaction['service_name']) ?></td>
                                             <td><?= number_format($transaction['payment_amount'], 2) ?></td>
                                             <td>
-                                                <span class="badge bg-<?= $transaction['payment_status'] === 'paid' ? 'success' : 'warning' ?>">
-                                                    <?= ucfirst($transaction['payment_status']) ?>
+                                                <span class="badge billing-status-badge bg-<?= in_array($billing_status, ['paid', 'paid_by_phone'], true) ? 'success' : 'warning' ?>">
+                                                    <?= e(ucwords(str_replace('_', ' ', $billing_status))) ?>
+                                                </span>
+                                                <select class="form-select form-select-sm mt-2 billing-status-select" aria-label="Billing Status">
+                                                    <?php foreach (($billing_status_options ?? []) as $status_key => $status_label): ?>
+                                                        <option value="<?= e($status_key) ?>" <?= $status_key === $billing_status ? 'selected' : '' ?>>
+                                                            <?= e($status_label) ?>
+                                                        </option>
+                                                    <?php endforeach; ?>
+                                                </select>
+                                                <textarea
+                                                    class="form-control form-control-sm mt-2 billing-notes-input"
+                                                    rows="2"
+                                                    placeholder="Billing notes"><?= e($transaction['billing_notes'] ?? '') ?></textarea>
+                                            </td>
+                                            <td>
+                                                <span class="badge payment-status-badge bg-<?= $payment_status === 'paid' ? 'success' : ($payment_status === 'pending' ? 'info' : 'secondary') ?>">
+                                                    <?= e(ucfirst($payment_status)) ?>
                                                 </span>
                                             </td>
+                                            <td>
+                                                <input
+                                                    type="text"
+                                                    class="form-control form-control-sm billing-reference-input"
+                                                    value="<?= e($transaction['billing_reference'] ?: $transaction['stripe_payment_intent_id']) ?>"
+                                                    placeholder="Reference / Intent ID">
+                                            </td>
                                             <td class="pe-4">
-                                                <small class="text-muted"><?= e($transaction['stripe_payment_intent_id']) ?></small>
+                                                <div class="d-flex flex-wrap gap-2">
+                                                    <button type="button" class="btn btn-outline-primary btn-sm js-send-payment-link-email">
+                                                        Send Payment Link
+                                                    </button>
+                                                    <button type="button" class="btn btn-outline-secondary btn-sm js-open-payment-link">
+                                                        Open Link
+                                                    </button>
+                                                    <button type="button" class="btn btn-outline-secondary btn-sm js-copy-payment-link">
+                                                        Copy Link
+                                                    </button>
+                                                    <button type="button" class="btn btn-outline-success btn-sm js-mark-paid-phone">
+                                                        Mark Paid by Phone
+                                                    </button>
+                                                    <button type="button" class="btn btn-primary btn-sm js-save-billing-status">
+                                                        Save Billing
+                                                    </button>
+                                                </div>
                                             </td>
                                         </tr>
                                     <?php endforeach; ?>
@@ -57,3 +102,7 @@
     </div>
 </div>
 <?php end_section('content'); ?>
+
+<?php section('scripts'); ?>
+<script src="<?= asset_url('assets/js/pages/billing.js') ?>"></script>
+<?php end_section('scripts'); ?>

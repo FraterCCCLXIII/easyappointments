@@ -40,6 +40,10 @@ class Appointments_model extends EA_Model
         'location' => 'location',
         'color' => 'color',
         'status' => 'status',
+        'billingStatus' => 'billing_status',
+        'billingReference' => 'billing_reference',
+        'billingNotes' => 'billing_notes',
+        'billingUpdatedAt' => 'billing_updated_at',
         'notes' => 'notes',
         'hash' => 'hash',
         'serviceId' => 'id_services',
@@ -656,6 +660,10 @@ class Appointments_model extends EA_Model
             'hash' => $appointment['hash'],
             'color' => $appointment['color'],
             'status' => $appointment['status'],
+            'billingStatus' => $appointment['billing_status'] ?? null,
+            'billingReference' => $appointment['billing_reference'] ?? null,
+            'billingNotes' => $appointment['billing_notes'] ?? null,
+            'billingUpdatedAt' => $appointment['billing_updated_at'] ?? null,
             'location' => $appointment['location'],
             'notes' => $appointment['notes'],
             'customerId' => $appointment['id_users_customer'] !== null ? (int) $appointment['id_users_customer'] : null,
@@ -706,6 +714,22 @@ class Appointments_model extends EA_Model
 
         if (array_key_exists('status', $appointment)) {
             $decoded_request['status'] = $appointment['status'];
+        }
+
+        if (array_key_exists('billingStatus', $appointment)) {
+            $decoded_request['billing_status'] = $appointment['billingStatus'];
+        }
+
+        if (array_key_exists('billingReference', $appointment)) {
+            $decoded_request['billing_reference'] = $appointment['billingReference'];
+        }
+
+        if (array_key_exists('billingNotes', $appointment)) {
+            $decoded_request['billing_notes'] = $appointment['billingNotes'];
+        }
+
+        if (array_key_exists('billingUpdatedAt', $appointment)) {
+            $decoded_request['billing_updated_at'] = $appointment['billingUpdatedAt'];
         }
 
         if (array_key_exists('notes', $appointment)) {

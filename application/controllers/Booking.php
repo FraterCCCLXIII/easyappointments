@@ -107,6 +107,9 @@ class Booking extends EA_Controller
                 if ($appointment) {
                     $appointment['payment_status'] = 'paid';
                     $appointment['stripe_payment_intent_id'] = $session->payment_intent;
+                    $appointment['billing_status'] = 'paid';
+                    $appointment['billing_reference'] = $session->payment_intent ?? null;
+                    $appointment['billing_updated_at'] = date('Y-m-d H:i:s');
                     $this->appointments_model->save($appointment);
                     
                     // Trigger notifications and webhooks now that it's paid
@@ -176,6 +179,9 @@ class Booking extends EA_Controller
                 if ($matches_appointment && ($session->payment_status ?? '') === 'paid') {
                     $appointment['payment_status'] = 'paid';
                     $appointment['stripe_payment_intent_id'] = $session->payment_intent ?? null;
+                    $appointment['billing_status'] = 'paid';
+                    $appointment['billing_reference'] = $session->payment_intent ?? null;
+                    $appointment['billing_updated_at'] = date('Y-m-d H:i:s');
                     $this->appointments_model->save($appointment);
                 }
             } catch (Throwable $e) {
@@ -717,6 +723,8 @@ class Booking extends EA_Controller
             if ($requires_payment) {
                 $appointment['payment_amount'] = (float)$service['price'];
                 $appointment['payment_status'] = 'pending';
+                $appointment['billing_status'] = 'payment_link_sent';
+                $appointment['billing_updated_at'] = date('Y-m-d H:i:s');
                 $this->appointments_model->save($appointment);
                 $appointment = $this->appointments_model->find($appointment_id);
 

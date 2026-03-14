@@ -279,6 +279,47 @@ class Email_messages
     }
 
     /**
+     * Send a payment link email for an unpaid appointment.
+     *
+     * @param array $appointment
+     * @param array $service
+     * @param array $customer
+     * @param array $settings
+     * @param string $recipient_email
+     * @param string $payment_link
+     *
+     * @throws Exception
+     */
+    public function send_payment_link(
+        array $appointment,
+        array $service,
+        array $customer,
+        array $settings,
+        string $recipient_email,
+        string $payment_link,
+    ): void {
+        $subject = 'Complete your payment';
+        $message = 'Please use the secure payment link below to complete your booking payment.';
+
+        $html = $this->CI->load->view(
+            'emails/payment_link_email',
+            [
+                'subject' => $subject,
+                'message' => $message,
+                'appointment' => $appointment,
+                'service' => $service,
+                'customer' => $customer,
+                'settings' => $settings,
+                'payment_link' => $payment_link,
+            ],
+            true,
+        );
+
+        $php_mailer = $this->get_php_mailer($recipient_email, $subject, $html);
+        $php_mailer->send();
+    }
+
+    /**
      * Create PHP Mailer instance based on the email configuration.
      *
      * @param string|null $recipient_email

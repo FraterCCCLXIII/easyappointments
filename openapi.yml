@@ -1967,6 +1967,14 @@ components:
           type: string
         status:
           type: string
+        billingStatus:
+          type: string
+        billingReference:
+          type: string
+        billingNotes:
+          type: string
+        billingUpdatedAt:
+          type: string
         notes:
           type: string
         customerId:
@@ -1988,6 +1996,10 @@ components:
         location: Test Street 1A, 12345 Some State, Some Place
         color: '#123456'
         status: Booked
+        billingStatus: unpaid
+        billingReference: null
+        billingNotes: null
+        billingUpdatedAt: null
         notes: This is a test appointment.
         customerId: 5
         providerId: 2
@@ -2007,6 +2019,14 @@ components:
           type: string
         status:
           type: string
+        billingStatus:
+          type: string
+        billingReference:
+          type: string
+        billingNotes:
+          type: string
+        billingUpdatedAt:
+          type: string
         notes:
           type: string
         customerId:
@@ -2021,6 +2041,10 @@ components:
         location: Test Street 1A, 12345 Some State, Some Place
         color: '#123456'
         status: Booked
+        billingStatus: unpaid
+        billingReference: null
+        billingNotes: null
+        billingUpdatedAt: null
         notes: This is a test appointment.
         customerId: 5
         providerId: 2
