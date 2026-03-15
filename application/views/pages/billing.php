@@ -38,11 +38,20 @@
                                         $billing_status = $transaction['billing_status'] ?? 'unpaid';
                                         $payment_status = $transaction['payment_status'] ?? 'not-paid';
                                         ?>
-                                        <tr data-appointment-id="<?= (int) $transaction['id'] ?>">
+                                        <tr
+                                            data-appointment-id="<?= (int) $transaction['id'] ?>"
+                                            data-payment-status="<?= e((string) ($transaction['payment_status'] ?? 'not-paid')) ?>"
+                                            data-payment-stage="<?= e((string) ($transaction['payment_stage'] ?? 'not_paid')) ?>"
+                                            data-total-amount="<?= e(number_format((float) ($transaction['total_amount'] ?? 0), 2, '.', '')) ?>"
+                                            data-deposit-amount="<?= e(number_format((float) ($transaction['deposit_amount'] ?? 0), 2, '.', '')) ?>"
+                                            data-remaining-amount="<?= e(number_format((float) ($transaction['remaining_amount'] ?? 0), 2, '.', '')) ?>">
                                             <td class="ps-4"><?= date('Y-m-d H:i', strtotime($transaction['book_datetime'])) ?></td>
                                             <td><?= e($transaction['first_name'] . ' ' . $transaction['last_name']) ?></td>
                                             <td><?= e($transaction['service_name']) ?></td>
-                                            <td><?= number_format($transaction['payment_amount'], 2) ?></td>
+                                            <td>
+                                                <div class="billing-amount-main"><?= number_format((float) ($transaction['payment_amount'] ?? 0), 2) ?></div>
+                                                <div class="billing-amount-meta text-muted small"></div>
+                                            </td>
                                             <td>
                                                 <?php
                                                 $billing_badge_class = in_array($billing_status, ['paid', 'paid_by_phone'], true)

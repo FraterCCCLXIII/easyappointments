@@ -131,6 +131,9 @@ class Stripe_gateway
         // If customer has a stripe_customer_id, use it
         if (!empty($customer['stripe_customer_id'])) {
             $session_data['customer'] = $customer['stripe_customer_id'];
+        } else {
+            // Ensure Checkout creates a reusable customer profile for future off-session charges.
+            $session_data['customer_creation'] = 'always';
         }
 
         return $this->stripe->checkout->sessions->create($session_data);
@@ -173,6 +176,134 @@ class Stripe_gateway
     {
         return $this->stripe->checkout->sessions->retrieve($session_id, [
             'expand' => ['payment_intent'],
+        ]);
+    }
+
+    /**
+     * Retrieve a Stripe PaymentIntent with expanded payment method.
+     *
+     * @param string $payment_intent_id
+     *
+     * @return \Stripe\PaymentIntent
+     */
+    public function retrieve_payment_intent(string $payment_intent_id): \Stripe\PaymentIntent
+    {
+        return $this->stripe->paymentIntents->retrieve($payment_intent_id, [
+            'expand' => ['payment_method'],
+        ]);
+    }
+
+    /**
+     * Retrieve a Stripe customer with expanded default payment method.
+     *
+     * @param string $stripe_customer_id
+     *
+     * @return \Stripe\Customer
+     */
+    public function retrieve_customer(string $stripe_customer_id): \Stripe\Customer
+    {
+        return $this->stripe->customers->retrieve($stripe_customer_id, [
+            'expand' => ['invoice_settings.default_payment_method'],
+        ]);
+    }
+
+    /**
+     * Retrieve a Stripe payment method.
+     *
+     * @param string $payment_method_id
+     *
+     * @return \Stripe\PaymentMethod
+     */
+    public function retrieve_payment_method(string $payment_method_id): \Stripe\PaymentMethod
+    {
+        return $this->stripe->paymentMethods->retrieve($payment_method_id);
+    }
+
+    /**
+     * List saved card payment methods for a Stripe customer.
+     *
+     * @param string $stripe_customer_id
+     *
+     * @return \Stripe\Collection
+     */
+    public function list_customer_card_payment_methods(string $stripe_customer_id): \Stripe\Collection
+    {
+        return $this->stripe->paymentMethods->all([
+            'customer' => $stripe_customer_id,
+            'type' => 'card',
+            'limit' => 10,
+        ]);
+    }
+
+    /**
+     * Find Stripe customers by email.
+     *
+     * @param string $email
+     *
+     * @return \Stripe\Collection
+     */
+    public function find_customers_by_email(string $email): \Stripe\Collection
+    {
+        return $this->stripe->customers->all([
+            'email' => $email,
+            'limit' => 10,
+        ]);
+    }
+
+    /**
+     * Create a Stripe customer.
+     *
+     * @param string $email
+     * @param string $name
+     *
+     * @return \Stripe\Customer
+     */
+    public function create_customer(string $email, string $name = ''): \Stripe\Customer
+    {
+        $payload = [
+            'email' => $email,
+        ];
+
+        if ($name !== '') {
+            $payload['name'] = $name;
+        }
+
+        return $this->stripe->customers->create($payload);
+    }
+
+    /**
+     * Attach a payment method to a Stripe customer.
+     *
+     * @param string $payment_method_id
+     * @param string $stripe_customer_id
+     *
+     * @return \Stripe\PaymentMethod
+     */
+    public function attach_payment_method_to_customer(
+        string $payment_method_id,
+        string $stripe_customer_id,
+    ): \Stripe\PaymentMethod {
+        return $this->stripe->paymentMethods->attach($payment_method_id, [
+            'customer' => $stripe_customer_id,
+        ]);
+    }
+
+    /**
+     * Set the default payment method for a Stripe customer.
+     *
+     * @param string $stripe_customer_id
+     * @param string $payment_method_id
+     *
+     * @return \Stripe\Customer
+     */
+    public function set_customer_default_payment_method(
+        string $stripe_customer_id,
+        string $payment_method_id,
+    ): \Stripe\Customer {
+        return $this->stripe->customers->update($stripe_customer_id, [
+            'invoice_settings' => [
+                'default_payment_method' => $payment_method_id,
+            ],
         ]);
     }
 

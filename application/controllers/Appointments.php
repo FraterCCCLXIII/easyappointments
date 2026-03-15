@@ -189,6 +189,9 @@ class Appointments extends EA_Controller
             }
 
             $appointment = json_decode(request('appointment'), true);
+            $appointment_before = !empty($appointment['id'])
+                ? $this->appointments_model->find((int) $appointment['id'])
+                : null;
 
             $this->appointments_model->only($appointment, $this->allowed_appointment_fields);
 

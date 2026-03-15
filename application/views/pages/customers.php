@@ -288,6 +288,9 @@
                                             data-status="Left">Left</button>
                                     <button type="button" class="btn btn-outline-secondary customer-appointment-status"
                                             data-status="No-show">No-show</button>
+                                    <button type="button" id="customer-appointment-complete"
+                                            class="btn btn-primary customer-appointment-status"
+                                            data-status="Completed">Complete</button>
                                 </div>
                             </div>
                             <div class="mt-4 rounded-xl border border-[var(--bs-border-color,#e2e8f0)] bg-white p-4">

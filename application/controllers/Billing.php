@@ -125,6 +125,10 @@ class Billing extends EA_Controller
                 'success' => true,
                 'billing_status' => $appointment['billing_status'],
                 'payment_status' => $appointment['payment_status'] ?? null,
+                'payment_stage' => $appointment['payment_stage'] ?? null,
+                'total_amount' => (float) ($appointment['total_amount'] ?? 0),
+                'deposit_amount' => (float) ($appointment['deposit_amount'] ?? 0),
+                'remaining_amount' => (float) ($appointment['remaining_amount'] ?? 0),
             ]);
         } catch (Throwable $e) {
             json_exception($e);
@@ -207,6 +211,10 @@ class Billing extends EA_Controller
                 'success' => true,
                 'billing_status' => $appointment['billing_status'],
                 'payment_status' => $appointment['payment_status'],
+                'payment_stage' => $appointment['payment_stage'] ?? null,
+                'total_amount' => (float) ($appointment['total_amount'] ?? 0),
+                'deposit_amount' => (float) ($appointment['deposit_amount'] ?? 0),
+                'remaining_amount' => (float) ($appointment['remaining_amount'] ?? 0),
                 'refund_reference' => $appointment['billing_reference'],
                 'refund_amount' => number_format($refund_amount_cents / 100, 2, '.', ''),
             ]);
@@ -224,7 +232,17 @@ class Billing extends EA_Controller
 
             $appointment_id = (int) request('appointment_id');
             $payload = $this->prepare_payment_link($appointment_id);
-            json_response($payload);
+            json_response([
+                'success' => true,
+                'payment_link' => $payload['payment_link'],
+                'appointment' => [
+                    'payment_status' => $payload['appointment']['payment_status'] ?? null,
+                    'payment_stage' => $payload['appointment']['payment_stage'] ?? null,
+                    'total_amount' => (float) ($payload['appointment']['total_amount'] ?? 0),
+                    'deposit_amount' => (float) ($payload['appointment']['deposit_amount'] ?? 0),
+                    'remaining_amount' => (float) ($payload['appointment']['remaining_amount'] ?? 0),
+                ],
+            ]);
         } catch (Throwable $e) {
             json_exception($e);
         }
@@ -262,6 +280,13 @@ class Billing extends EA_Controller
             json_response([
                 'success' => true,
                 'payment_link' => $payload['payment_link'],
+                'appointment' => [
+                    'payment_status' => $payload['appointment']['payment_status'] ?? null,
+                    'payment_stage' => $payload['appointment']['payment_stage'] ?? null,
+                    'total_amount' => (float) ($payload['appointment']['total_amount'] ?? 0),
+                    'deposit_amount' => (float) ($payload['appointment']['deposit_amount'] ?? 0),
+                    'remaining_amount' => (float) ($payload['appointment']['remaining_amount'] ?? 0),
+                ],
             ]);
         } catch (Throwable $e) {
             json_exception($e);
@@ -280,6 +305,15 @@ class Billing extends EA_Controller
                 abort(400, 'Bad Request');
             }
 
+            $before = $this->appointments_model->find($appointment_id);
+            log_message('debug', 'Billing retry_final_charge requested: ' . json_encode([
+                'appointment_id' => $appointment_id,
+                'payment_stage' => $before['payment_stage'] ?? null,
+                'payment_status' => $before['payment_status'] ?? null,
+                'remaining_amount' => (float) ($before['remaining_amount'] ?? 0),
+                'has_payment_method' => !empty($before['stripe_payment_method_id']),
+            ]));
+
             $appointment = $this->appointment_payments_service->attempt_final_charge($appointment_id, 'admin_retry');
 
             json_response([
@@ -287,9 +321,22 @@ class Billing extends EA_Controller
                 'billing_status' => $appointment['billing_status'] ?? 'unpaid',
                 'payment_status' => $appointment['payment_status'] ?? 'not-paid',
                 'payment_stage' => $appointment['payment_stage'] ?? 'not_paid',
+                'total_amount' => (float) ($appointment['total_amount'] ?? 0),
+                'deposit_amount' => (float) ($appointment['deposit_amount'] ?? 0),
                 'remaining_amount' => (float) ($appointment['remaining_amount'] ?? 0),
+                'final_charge_error_code' => $appointment['final_charge_error_code'] ?? null,
+                'final_charge_error_message' => $appointment['final_charge_error_message'] ?? null,
+                'debug' => [
+                    'appointment_id' => (int) ($appointment['id'] ?? $appointment_id),
+                    'has_payment_method' => !empty($appointment['stripe_payment_method_id']),
+                    'payment_intent_id' => $appointment['stripe_final_payment_intent_id'] ?? null,
+                ],
             ]);
         } catch (Throwable $e) {
+            log_message('error', 'Billing retry_final_charge failed: ' . json_encode([
+                'appointment_id' => (int) request('appointment_id'),
+                'error' => $e->getMessage(),
+            ]));
             json_exception($e);
         }
     }

@@ -76,4 +76,29 @@ class Appointment_payments_model extends EA_Model
 
         return $row;
     }
+
+    public function find_latest_intent_for_appointment(int $appointment_id): ?string
+    {
+        if ($appointment_id <= 0) {
+            return null;
+        }
+
+        $row = $this->db
+            ->select('stripe_payment_intent_id')
+            ->from('appointment_payments')
+            ->where('id_appointments', $appointment_id)
+            ->where('status', 'succeeded')
+            ->where('stripe_payment_intent_id IS NOT NULL', null, false)
+            ->where('stripe_payment_intent_id !=', '')
+            ->order_by('id', 'DESC')
+            ->limit(1)
+            ->get()
+            ->row_array();
+
+        if (!$row || empty($row['stripe_payment_intent_id'])) {
+            return null;
+        }
+
+        return (string) $row['stripe_payment_intent_id'];
+    }
 }

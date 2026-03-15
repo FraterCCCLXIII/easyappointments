@@ -68,6 +68,7 @@ App.Pages.Customers = (function () {
     const $customerAlertBanner = $('#customer-alert-banner');
 
     const moment = window.moment;
+    const COMPLETE_DEBUG_PREFIX = '[Customers][CompleteVisit]';
 
     let filterResults = {};
     let filterLimit = 20;
@@ -618,6 +619,19 @@ App.Pages.Customers = (function () {
             showAppointmentList();
         });
 
+        $customers.on('click', '#customer-appointment-complete', () => {
+            const appointmentId = $customerAppointmentDetails.data('appointmentId');
+            console.debug(`${COMPLETE_DEBUG_PREFIX} Complete button clicked`, { appointmentId });
+
+            if (!appointmentId) {
+                console.warn(`${COMPLETE_DEBUG_PREFIX} Missing appointment id in details panel`);
+                return;
+            }
+
+            $customerAppointmentNotes.removeClass('is-invalid');
+            showCompleteVisitConfirmation(appointmentId);
+        });
+
         $customers.on('click', '.customer-appointment-status', (event) => {
             const status = $(event.currentTarget).data('status');
             const appointmentId = $customerAppointmentDetails.data('appointmentId');
@@ -626,7 +640,16 @@ App.Pages.Customers = (function () {
                 return;
             }
 
-        $customerAppointmentNotes.removeClass('is-invalid');
+            $customerAppointmentNotes.removeClass('is-invalid');
+
+            if (String(status).toLowerCase() === 'completed' || String(status).toLowerCase() === 'complete') {
+                console.debug(
+                    `${COMPLETE_DEBUG_PREFIX} Generic status handler ignored completed status`,
+                    { appointmentId, status },
+                );
+                return;
+            }
+
             updateAppointmentFields(appointmentId, { status: status });
         });
 
@@ -1032,7 +1055,7 @@ App.Pages.Customers = (function () {
                             'class': 'px-4 py-3',
                             'html': $('<span/>', {
                                 'class': `inline-flex rounded-full px-3 py-1 text-xs font-medium ${paymentBadgeClass}`,
-                                'text': paymentStatus.charAt(0).toUpperCase() + paymentStatus.slice(1),
+                                'text': getPaymentStatusLabel(appointment),
                             }),
                         }),
                     ],
@@ -1216,7 +1239,7 @@ App.Pages.Customers = (function () {
             `${customerInfo.first_name || ''} ${customerInfo.last_name || ''}`.trim() || '—',
         );
         $customerAppointmentAddress.text(buildAddress(customerInfo));
-        $customerAppointmentPaymentStatus.text(appointment.payment_status || '—');
+        $customerAppointmentPaymentStatus.text(getPaymentStatusLabel(appointment));
         $customerAppointmentPaymentAmount.text(
             appointment.payment_amount ? Number(appointment.payment_amount).toFixed(2) : '—',
         );
@@ -1231,13 +1254,17 @@ App.Pages.Customers = (function () {
     }
 
     function updateAppointmentFields(appointmentId, fields) {
-        const appointmentsById = $customerAppointments.data('appointmentsById');
+        const appointment = getAppointmentById(appointmentId);
 
-        if (!appointmentsById || !appointmentsById.has(appointmentId)) {
+        if (!appointment) {
+            console.warn(`${COMPLETE_DEBUG_PREFIX} updateAppointmentFields aborted: appointment not found`, {
+                appointmentId,
+                fields,
+            });
             return;
         }
 
-        const appointment = appointmentsById.get(appointmentId);
+        const appointmentsById = $customerAppointments.data('appointmentsById');
         const payload = {
             id: appointmentId,
             start_datetime: appointment.start_datetime,
@@ -1253,22 +1280,198 @@ App.Pages.Customers = (function () {
             ...fields,
         };
 
+        if (String(fields.status || '').toLowerCase() === 'completed') {
+            console.debug(`${COMPLETE_DEBUG_PREFIX} Sending update payload`, {
+                appointmentId,
+                payload,
+            });
+        }
+
         $.post(App.Utils.Url.siteUrl('appointments/update'), {
             csrf_token: vars('csrf_token'),
             appointment: JSON.stringify(payload),
         })
-            .then(() => {
+            .then((response) => {
+                if (String(fields.status || '').toLowerCase() === 'completed') {
+                    console.debug(`${COMPLETE_DEBUG_PREFIX} Update request succeeded`, {
+                        appointmentId,
+                        response,
+                    });
+                }
                 Object.assign(appointment, fields);
-                appointmentsById.set(appointmentId, appointment);
+                if (appointmentsById) {
+                    appointmentsById.set(Number(appointmentId), appointment);
+                    appointmentsById.set(String(appointmentId), appointment);
+                }
                 if (fields.status) {
                     const $row = $customerAppointmentsList.find(`tr[data-id="${appointmentId}"]`);
                     $row.find('td').eq(3).find('span').text(fields.status);
                 }
                 showAppointmentDetails(appointmentId);
             })
-            .fail(() => {
+            .fail((xhr, textStatus, errorThrown) => {
+                if (String(fields.status || '').toLowerCase() === 'completed') {
+                    console.error(`${COMPLETE_DEBUG_PREFIX} Update request failed`, {
+                        appointmentId,
+                        textStatus,
+                        errorThrown,
+                        responseText: xhr?.responseText,
+                    });
+                }
                 App.Layouts.Backend.displayNotification(lang('unexpected_issues'));
             });
+    }
+
+    function showCompleteVisitConfirmation(appointmentId) {
+        const appointment = getAppointmentById(appointmentId);
+        console.debug(`${COMPLETE_DEBUG_PREFIX} Preparing completion modal`, {
+            appointmentId,
+            appointmentFound: Boolean(appointment),
+            appointment,
+        });
+
+        if (!appointment) {
+            console.warn(`${COMPLETE_DEBUG_PREFIX} Could not resolve appointment for modal`, {
+                appointmentId,
+            });
+            return;
+        }
+
+        const paymentDetails = getCompletionPaymentDetails(appointment);
+        const amountLabel = formatAmount(paymentDetails.amount);
+        console.debug(`${COMPLETE_DEBUG_PREFIX} Completion payment details`, {
+            appointmentId,
+            paymentStage: appointment.payment_stage,
+            totalAmount: appointment.total_amount,
+            remainingAmount: appointment.remaining_amount,
+            paymentDetails,
+        });
+        const chargeLine =
+            paymentDetails.type === 'remaining'
+                ? `The customer will be charged the remaining amount of <strong>${amountLabel}</strong>.`
+                : `The customer will be charged the full amount of <strong>${amountLabel}</strong>.`;
+        const message = `
+            <p class="mb-2">Mark this visit as completed?</p>
+            <p class="mb-0">${chargeLine}</p>
+        `;
+
+        App.Utils.Message.show('Complete Visit', message, [
+            {
+                text: lang('cancel'),
+                className: 'btn btn-outline-secondary',
+                click: (event, messageModal) => {
+                    messageModal.hide();
+                },
+            },
+            {
+                text: 'Complete',
+                className: 'btn btn-primary',
+                click: (event, messageModal) => {
+                    console.debug(`${COMPLETE_DEBUG_PREFIX} User confirmed completion`, {
+                        appointmentId,
+                    });
+                    if (event?.currentTarget instanceof HTMLElement) {
+                        event.currentTarget.blur();
+                    }
+                    messageModal.hide();
+                    updateAppointmentFields(appointmentId, { status: 'Completed' });
+                },
+            },
+        ]);
+    }
+
+    function getAppointmentById(appointmentId) {
+        const appointmentsById = $customerAppointments.data('appointmentsById');
+
+        if (!appointmentsById) {
+            console.warn(`${COMPLETE_DEBUG_PREFIX} appointmentsById map is missing`);
+            return null;
+        }
+
+        const numericId = Number(appointmentId);
+
+        if (Number.isFinite(numericId) && appointmentsById.has(numericId)) {
+            return appointmentsById.get(numericId);
+        }
+
+        if (appointmentsById.has(String(appointmentId))) {
+            return appointmentsById.get(String(appointmentId));
+        }
+
+        console.warn(`${COMPLETE_DEBUG_PREFIX} Appointment id not found in map`, {
+            appointmentId,
+            numericId,
+        });
+        return null;
+    }
+
+    function getCompletionPaymentDetails(appointment) {
+        const paymentStage = String(appointment?.payment_stage || '').toLowerCase();
+        const remainingAmount = parseAmount(appointment?.remaining_amount);
+        const totalAmount = parseAmount(appointment?.total_amount);
+
+        if (paymentStage === 'deposit_paid' && remainingAmount > 0) {
+            return {
+                type: 'remaining',
+                amount: remainingAmount,
+            };
+        }
+
+        return {
+            type: 'full',
+            amount: totalAmount > 0 ? totalAmount : remainingAmount,
+        };
+    }
+
+    function getPaymentStatusLabel(appointment) {
+        const paymentStatus = String(appointment?.payment_status || '').toLowerCase();
+        const paymentStage = String(appointment?.payment_stage || '').toLowerCase();
+        const depositAmount = parseAmount(appointment?.deposit_amount);
+        const remainingAmount = parseAmount(appointment?.remaining_amount);
+
+        if (depositAmount > 0 && remainingAmount > 0) {
+            if (paymentStage === 'deposit_paid') {
+                return `Deposit paid • Remaining ${formatAmount(remainingAmount)}`;
+            }
+            if (paymentStage === 'deposit_pending') {
+                return `Deposit pending • Remaining ${formatAmount(remainingAmount)}`;
+            }
+            if (paymentStage === 'final_charge_pending') {
+                return `Final charge pending • Remaining ${formatAmount(remainingAmount)}`;
+            }
+            if (paymentStage === 'final_charge_failed') {
+                return `Final charge failed • Remaining ${formatAmount(remainingAmount)}`;
+            }
+
+            return `Partially paid • Remaining ${formatAmount(remainingAmount)}`;
+        }
+
+        if (paymentStage === 'fully_paid' || (paymentStatus === 'paid' && remainingAmount <= 0)) {
+            return 'Paid in full';
+        }
+
+        if (paymentStatus === 'pending') {
+            return 'Payment pending';
+        }
+
+        if (paymentStatus === 'not-paid') {
+            return 'Not paid';
+        }
+
+        if (paymentStatus) {
+            return paymentStatus.charAt(0).toUpperCase() + paymentStatus.slice(1);
+        }
+
+        return '—';
+    }
+
+    function parseAmount(value) {
+        const parsed = Number(value);
+        return Number.isFinite(parsed) ? parsed : 0;
+    }
+
+    function formatAmount(value) {
+        return parseAmount(value).toFixed(2);
     }
 
     function loadAppointmentNotes(appointmentId) {
