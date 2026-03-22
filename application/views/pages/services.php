@@ -2,39 +2,13 @@
 
 <?php section('content'); ?>
 
-<div class="container-fluid backend-page" id="services-page">
-    <div class="row" id="services">
-        <div id="filter-services" class="filter-records column col-12 col-md-5 backend-sticky-panel">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h2 class="backend-page-title mb-0 text-left">
-                    <?= lang('services') ?>
-                </h2>
-
-                <div class="ea-button-group">
-                    <button id="add-service" class="btn btn-primary btn-sm">
-                        <i class="fas fa-plus-square me-2"></i>
-                        <?= lang('add') ?>
-                    </button>
-                </div>
-            </div>
-
-            <?php slot('after_page_title'); ?>
-
-            <form class="mb-4">
-                <div class="input-group mb-3">
-                    <input type="text" class="key form-control" aria-label="keyword">
-
-                    <button class="filter btn btn-outline-secondary" type="submit"
-                            data-tippy-content="<?= lang('filter') ?>">
-                        <i class="fas fa-search"></i>
-                    </button>
-                </div>
-            </form>
-
-            <div class="results">
-                <!-- JS -->
-            </div>
-        </div>
+<div class="backend-page services-page-fullbleed" id="services-page">
+    <div class="row g-0" id="services">
+        <?php component('backend_filter_panel', [
+            'filter_id' => 'filter-services',
+            'title' => lang('services'),
+            'add_button_id' => 'add-service',
+        ]); ?>
 
         <div class="record-details column col-12 col-md-5">
             <div class="rounded-xl border border-[var(--bs-border-color,#e2e8f0)] bg-white p-4">

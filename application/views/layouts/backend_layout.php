@@ -78,7 +78,17 @@
                 </div>
             </div>
         <?php endif; ?>
-        <div class="mx-auto w-full px-4 py-6">
+        <?php
+        $is_fullbleed_content = in_array(vars('active_menu'), [
+            PRIV_CUSTOMERS,
+            PRIV_USERS,
+            PRIV_SERVICES,
+        ], true);
+        $content_wrapper_classes = $is_fullbleed_content
+            ? 'mx-auto w-full px-0 py-0 backend-content-fullbleed'
+            : 'mx-auto w-full px-4 py-6';
+        ?>
+        <div class="<?= e($content_wrapper_classes) ?>">
             <?php slot('content'); ?>
         </div>
     </main>

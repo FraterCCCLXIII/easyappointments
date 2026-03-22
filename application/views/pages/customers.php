@@ -2,10 +2,10 @@
 
 <?php section('content'); ?>
 
-<div class="container-fluid backend-page" id="customers-page">
-    <div class="row" id="customers">
-        <div id="filter-customers" class="filter-records column col-12 col-md-5 backend-sticky-panel">
-            <div class="d-flex justify-content-between align-items-center mb-4">
+<div class="backend-page customers-page-fullbleed" id="customers-page">
+    <div class="row g-0" id="customers">
+        <div id="filter-customers" class="filter-records column col-12 col-md-5 backend-sticky-panel customers-inbox-panel">
+            <div class="d-flex justify-content-between align-items-center mb-3 customers-inbox-header">
                 <h2 class="backend-page-title mb-0">
                     <?= lang('customers') ?>
                 </h2>
@@ -29,8 +29,8 @@
 
             <?php slot('after_page_title'); ?>
 
-            <form class="mb-4">
-                <div class="input-group mb-3">
+            <form class="mb-3 customers-inbox-search">
+                <div class="input-group mb-0">
                     <input type="text" class="key form-control" aria-label="keyword">
 
                     <button class="filter btn btn-outline-secondary" type="submit"
@@ -40,7 +40,7 @@
                 </div>
             </form>
 
-            <div class="results">
+            <div class="results customers-inbox-results">
                 <!-- JS -->
             </div>
         </div>
