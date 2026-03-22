@@ -76,6 +76,7 @@
                                     </a>
                                 </li>
                             <?php endif; ?>
+                            <?php if (filter_var(setting('display_language_selector', '1'), FILTER_VALIDATE_BOOLEAN)): ?>
                             <li>
                                 <hr class="my-2 border-[var(--bs-border-color,#e2e8f0)]">
                             </li>
@@ -93,6 +94,7 @@
                             <li>
                                 <hr class="my-2 border-[var(--bs-border-color,#e2e8f0)]">
                             </li>
+                            <?php endif; ?>
                             <li>
                                 <a class="block rounded-md px-3 py-2 text-sm text-slate-600 hover:bg-slate-100"
                                    href="<?= site_url('customer/logout') ?>">
@@ -103,6 +105,7 @@
                     </div>
                 </div>
             <?php else: ?>
+                <?php if (filter_var(setting('display_language_selector', '1'), FILTER_VALIDATE_BOOLEAN)): ?>
                 <div class="relative">
                     <button class="inline-flex items-center text-slate-600 hover:text-slate-900" type="button"
                             id="language-dropdown" data-dropdown-toggle="language-dropdown-menu"
@@ -125,6 +128,7 @@
                         </li>
                     </ul>
                 </div>
+                <?php endif; ?>
             <?php endif; ?>
         </div>
     </div>
