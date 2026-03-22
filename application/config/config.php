@@ -437,6 +437,7 @@ $config['user_file_av_scan_command'] = getenv('USER_FILE_AV_SCAN_COMMAND') ?: ''
 */
 $config['audit_log_path'] = __DIR__ . '/../../storage/logs/audit/';
 $config['audit_log_retention_days'] = (int) (getenv('AUDIT_LOG_RETENTION_DAYS') ?: 365);
+$config['audit_event_retention_days'] = (int) (getenv('AUDIT_EVENT_RETENTION_DAYS') ?: 2555);
 
 /*
 |--------------------------------------------------------------------------

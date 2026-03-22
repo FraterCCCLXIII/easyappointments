@@ -82,6 +82,7 @@ class Booking extends EA_Controller
         $this->load->model('appointment_payments_model');
 
         $this->load->library('timezones');
+        $this->load->library('activity_audit');
         $this->load->library('synchronization');
         $this->load->library('notifications');
         $this->load->library('availability');
@@ -139,6 +140,13 @@ class Booking extends EA_Controller
                     $this->synchronization->sync_appointment_saved($appointment, $service, $provider, $customer, $settings);
                     $this->notifications->notify_appointment_saved($appointment, $service, $provider, $customer, $settings, false);
                     $this->webhooks_client->trigger(WEBHOOK_APPOINTMENT_SAVE, $appointment);
+
+                    $this->activity_audit->log('booking.webhook.checkout_completed', 'appointment', (string) $appointment_id, [
+                        'appointment_id' => (int) $appointment_id,
+                        'customer_id' => (int) ($appointment['id_users_customer'] ?? 0),
+                        'stripe_event_id' => $event_id,
+                        'payment_flow' => $flow,
+                    ]);
                 }
             }
 
@@ -767,6 +775,11 @@ class Booking extends EA_Controller
 
             $appointment_id = $this->appointments_model->save($appointment);
             $appointment = $this->appointments_model->find($appointment_id);
+            $this->activity_audit->log('booking.appointment.created', 'appointment', (string) $appointment_id, [
+                'appointment_id' => (int) $appointment_id,
+                'customer_id' => (int) ($appointment['id_users_customer'] ?? 0),
+                'provider_id' => (int) ($appointment['id_users_provider'] ?? 0),
+            ]);
 
             $company_color = setting('company_color');
 
@@ -830,6 +843,11 @@ class Booking extends EA_Controller
                     );
 
                     $this->webhooks_client->trigger(WEBHOOK_APPOINTMENT_SAVE, $appointment);
+
+                    $this->activity_audit->log('booking.appointment.saved_without_deposit', 'appointment', (string) $appointment_id, [
+                        'appointment_id' => (int) $appointment_id,
+                        'customer_id' => (int) ($appointment['id_users_customer'] ?? 0),
+                    ]);
                 }
             } else {
                 $this->synchronization->sync_appointment_saved($appointment, $service, $provider, $customer, $settings);
@@ -844,6 +862,10 @@ class Booking extends EA_Controller
                 );
 
                 $this->webhooks_client->trigger(WEBHOOK_APPOINTMENT_SAVE, $appointment);
+                $this->activity_audit->log('booking.appointment.saved', 'appointment', (string) $appointment_id, [
+                    'appointment_id' => (int) $appointment_id,
+                    'customer_id' => (int) ($appointment['id_users_customer'] ?? 0),
+                ]);
             }
 
             json_response($response);

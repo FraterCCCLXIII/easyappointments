@@ -3,14 +3,18 @@
 <?php section('content'); ?>
 <div id="billing-page" class="container backend-page">
     <div class="row mb-4">
-        <div class="col-12">
+        <div class="col-12 d-flex justify-content-between align-items-end gap-3 flex-wrap">
             <h2 class="backend-page-title mb-0">
                 Billing
             </h2>
+            <div class="btn-group" role="group" aria-label="Billing View Toggle">
+                <button type="button" id="billing-view-appointments" class="btn btn-sm btn-primary">Appointments</button>
+                <button type="button" id="billing-view-transactions" class="btn btn-sm btn-outline-primary">Transactions</button>
+            </div>
         </div>
     </div>
     <div class="row">
-        <div class="col-12">
+        <div class="col-12" id="billing-appointments-view">
             <div class="rounded-xl border border-[var(--bs-border-color,#e2e8f0)] bg-white shadow-sm overflow-hidden">
                 <div class="card-body p-0">
                     <div class="table-responsive">
@@ -21,6 +25,7 @@
                                     <th>Customer</th>
                                     <th>Service</th>
                                     <th>Amount</th>
+                                    <th>Activity</th>
                                     <th>Billing</th>
                                     <th>Payment</th>
                                     <th>Reference</th>
@@ -30,7 +35,7 @@
                             <tbody>
                                 <?php if (empty($transactions)): ?>
                                     <tr>
-                                        <td colspan="8" class="text-center py-4 text-muted">No transactions found.</td>
+                                        <td colspan="9" class="text-center py-4 text-muted">No appointments found.</td>
                                     </tr>
                                 <?php else: ?>
                                     <?php foreach ($transactions as $transaction): ?>
@@ -51,6 +56,11 @@
                                             <td>
                                                 <div class="billing-amount-main"><?= number_format((float) ($transaction['payment_amount'] ?? 0), 2) ?></div>
                                                 <div class="billing-amount-meta text-muted small"></div>
+                                            </td>
+                                            <td>
+                                                <button type="button" class="btn btn-outline-secondary btn-sm js-view-appointment-activity">
+                                                    View Activity
+                                                </button>
                                             </td>
                                             <td>
                                                 <?php
@@ -140,9 +150,65 @@
             </div>
         </div>
     </div>
+    <div class="row mt-4 d-none" id="billing-transactions-view">
+        <div class="col-12">
+            <div class="rounded-xl border border-[var(--bs-border-color,#e2e8f0)] bg-white shadow-sm overflow-hidden">
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="bg-light">
+                            <tr>
+                                <th class="ps-4">Date</th>
+                                <th>Appointment</th>
+                                <th>Customer</th>
+                                <th>Service</th>
+                                <th>Type</th>
+                                <th>Status</th>
+                                <th>Amount</th>
+                                <th class="pe-4">Intent</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <?php if (empty($payment_transactions)): ?>
+                                <tr>
+                                    <td colspan="8" class="text-center py-4 text-muted">No payment transactions found.</td>
+                                </tr>
+                            <?php else: ?>
+                                <?php foreach ($payment_transactions as $payment_transaction): ?>
+                                    <tr>
+                                        <td class="ps-4"><?= e(date('Y-m-d H:i', strtotime($payment_transaction['create_datetime'] ?? 'now'))) ?></td>
+                                        <td>#<?= (int) ($payment_transaction['id_appointments'] ?? 0) ?></td>
+                                        <td><?= e(($payment_transaction['first_name'] ?? '') . ' ' . ($payment_transaction['last_name'] ?? '')) ?></td>
+                                        <td><?= e($payment_transaction['service_name'] ?? '') ?></td>
+                                        <td><?= e(ucfirst((string) ($payment_transaction['kind'] ?? 'payment'))) ?></td>
+                                        <td><?= e(ucfirst((string) ($payment_transaction['status'] ?? 'unknown'))) ?></td>
+                                        <td><?= e(number_format((float) ($payment_transaction['amount'] ?? 0), 2)) ?></td>
+                                        <td class="pe-4"><small><?= e((string) ($payment_transaction['stripe_payment_intent_id'] ?? '-')) ?></small></td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="rounded-xl border border-[var(--bs-border-color,#e2e8f0)] bg-white p-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h3 class="h6 mb-0">Appointment Activity Timeline</h3>
+                    <small id="billing-activity-meta" class="text-muted">Select an appointment to view activity.</small>
+                </div>
+                <div id="billing-activity-timeline" class="d-flex flex-column gap-2"></div>
+            </div>
+        </div>
+    </div>
 </div>
 <?php end_section('content'); ?>
 
 <?php section('scripts'); ?>
+<script src="<?= asset_url('assets/js/components/activity_timeline.js') ?>"></script>
 <script src="<?= asset_url('assets/js/pages/billing.js') ?>"></script>
 <?php end_section('scripts'); ?>

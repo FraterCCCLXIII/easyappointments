@@ -31,9 +31,11 @@ class Billing extends EA_Controller
         }
 
         $this->load->model('appointments_model');
+        $this->load->model('appointment_payments_model');
         $this->load->model('customers_model');
         $this->load->model('services_model');
 
+        $this->load->library('activity_audit');
         $this->load->library('stripe_gateway');
         $this->load->library('appointment_payments_service');
         $this->load->library('email_messages');
@@ -44,18 +46,30 @@ class Billing extends EA_Controller
         $user_id = (int)session('user_id');
         $user_display_name = $this->accounts->get_user_display_name($user_id);
 
-        $this->db->select('appointments.*, users.first_name, users.last_name, services.name as service_name');
-        $this->db->from('appointments');
-        $this->db->join('users', 'users.id = appointments.id_users_customer');
-        $this->db->join('services', 'services.id = appointments.id_services');
-        $this->db->order_by('appointments.book_datetime', 'DESC');
-        $query = $this->db->get();
-        $transactions = $query->result_array();
+        $transactions = $this->db
+            ->select('appointments.*, users.first_name, users.last_name, services.name as service_name')
+            ->from('appointments')
+            ->join('users', 'users.id = appointments.id_users_customer')
+            ->join('services', 'services.id = appointments.id_services')
+            ->order_by('appointments.book_datetime', 'DESC')
+            ->get()
+            ->result_array();
+
+        $payment_transactions = $this->db
+            ->select('appointment_payments.*, appointments.id_users_customer, appointments.book_datetime, users.first_name, users.last_name, services.name as service_name')
+            ->from('appointment_payments')
+            ->join('appointments', 'appointments.id = appointment_payments.id_appointments')
+            ->join('users', 'users.id = appointments.id_users_customer')
+            ->join('services', 'services.id = appointments.id_services')
+            ->order_by('appointment_payments.create_datetime', 'DESC')
+            ->get()
+            ->result_array();
 
         html_vars([
             'page_title' => 'Billing',
             'active_menu' => 'billing',
             'transactions' => $transactions,
+            'payment_transactions' => $payment_transactions,
             'billing_status_options' => self::BILLING_STATUS_OPTIONS,
             'user_display_name' => $user_display_name,
             'role_slug' => session('role_slug'),
@@ -69,6 +83,7 @@ class Billing extends EA_Controller
             'active_menu' => 'billing',
             'user_display_name' => $user_display_name,
             'transactions' => $transactions,
+            'payment_transactions' => $payment_transactions,
             'billing_status_options' => self::BILLING_STATUS_OPTIONS,
         ]);
     }
@@ -96,6 +111,7 @@ class Billing extends EA_Controller
 
             $appointment = $this->appointments_model->find($appointment_id);
             $current_status = $appointment['billing_status'] ?? 'unpaid';
+            $before = $appointment;
 
             if ($current_status !== $target_status) {
                 $allowed_transitions = self::BILLING_STATUS_TRANSITIONS[$current_status] ?? [];
@@ -120,6 +136,14 @@ class Billing extends EA_Controller
             }
 
             $this->appointments_model->save($appointment);
+
+            $this->activity_audit->log('billing.status.updated', 'appointment', (string) $appointment_id, [
+                'appointment_id' => (int) $appointment_id,
+                'customer_id' => (int) ($appointment['id_users_customer'] ?? 0),
+                'from_billing_status' => $current_status,
+                'to_billing_status' => $target_status,
+                'changes' => $this->activity_audit->build_field_changes($before, $appointment, ['update_datetime']),
+            ]);
 
             json_response([
                 'success' => true,
@@ -160,6 +184,7 @@ class Billing extends EA_Controller
             }
 
             $appointment = $this->appointments_model->find($appointment_id);
+            $before = $appointment;
 
             if (!in_array($appointment['billing_status'] ?? '', ['paid', 'paid_by_phone', 'partially_refunded'], true)) {
                 throw new RuntimeException('Only paid appointments can be refunded.');
@@ -207,6 +232,15 @@ class Billing extends EA_Controller
             $appointment['billing_updated_at'] = date('Y-m-d H:i:s');
             $this->appointments_model->save($appointment);
 
+            $this->activity_audit->log('billing.refund.created', 'appointment', (string) $appointment_id, [
+                'appointment_id' => (int) $appointment_id,
+                'customer_id' => (int) ($appointment['id_users_customer'] ?? 0),
+                'refund_amount_cents' => $refund_amount_cents,
+                'refund_percent' => round(($refund_amount_cents / max($max_amount_cents, 1)) * 100, 2),
+                'stripe_refund_id' => (string) ($refund->id ?? ''),
+                'changes' => $this->activity_audit->build_field_changes($before, $appointment, ['update_datetime']),
+            ]);
+
             json_response([
                 'success' => true,
                 'billing_status' => $appointment['billing_status'],
@@ -232,6 +266,10 @@ class Billing extends EA_Controller
 
             $appointment_id = (int) request('appointment_id');
             $payload = $this->prepare_payment_link($appointment_id);
+            $this->activity_audit->log('billing.payment_link.created', 'appointment', (string) $appointment_id, [
+                'appointment_id' => (int) $appointment_id,
+                'customer_id' => (int) ($payload['appointment']['id_users_customer'] ?? 0),
+            ]);
             json_response([
                 'success' => true,
                 'payment_link' => $payload['payment_link'],
@@ -277,6 +315,11 @@ class Billing extends EA_Controller
                 $payload['payment_link'],
             );
 
+            $this->activity_audit->log('billing.payment_link.emailed', 'appointment', (string) $appointment_id, [
+                'appointment_id' => (int) $appointment_id,
+                'customer_id' => (int) ($payload['appointment']['id_users_customer'] ?? 0),
+            ]);
+
             json_response([
                 'success' => true,
                 'payment_link' => $payload['payment_link'],
@@ -315,6 +358,14 @@ class Billing extends EA_Controller
             ]));
 
             $appointment = $this->appointment_payments_service->attempt_final_charge($appointment_id, 'admin_retry');
+
+            $this->activity_audit->log('billing.final_charge.retry', 'appointment', (string) $appointment_id, [
+                'appointment_id' => (int) $appointment_id,
+                'customer_id' => (int) ($appointment['id_users_customer'] ?? 0),
+                'payment_stage' => (string) ($appointment['payment_stage'] ?? ''),
+                'payment_status' => (string) ($appointment['payment_status'] ?? ''),
+                'remaining_amount' => (float) ($appointment['remaining_amount'] ?? 0),
+            ]);
 
             json_response([
                 'success' => true,

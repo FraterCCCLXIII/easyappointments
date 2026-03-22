@@ -32,6 +32,7 @@ class Appointments_api_v1 extends EA_Controller
         $this->load->model('settings_model');
 
         $this->load->library('api');
+        $this->load->library('activity_audit');
         $this->load->library('webhooks_client');
         $this->load->library('synchronization');
         $this->load->library('notifications');
@@ -226,6 +227,12 @@ class Appointments_api_v1 extends EA_Controller
 
             $this->notify_and_sync_appointment($created_appointment);
 
+            $this->activity_audit->log('api.appointment.created', 'appointment', (string) $appointment_id, [
+                'appointment_id' => (int) $appointment_id,
+                'customer_id' => (int) ($created_appointment['id_users_customer'] ?? 0),
+                'provider_id' => (int) ($created_appointment['id_users_provider'] ?? 0),
+            ]);
+
             $this->appointments_model->api_encode($created_appointment);
 
             json_response($created_appointment, 201);
@@ -304,6 +311,13 @@ class Appointments_api_v1 extends EA_Controller
 
             $this->notify_and_sync_appointment($updated_appointment, 'update');
 
+            $this->activity_audit->log('api.appointment.updated', 'appointment', (string) $appointment_id, [
+                'appointment_id' => (int) $appointment_id,
+                'customer_id' => (int) ($updated_appointment['id_users_customer'] ?? 0),
+                'provider_id' => (int) ($updated_appointment['id_users_provider'] ?? 0),
+                'changes' => $this->activity_audit->build_field_changes($original_appointment, $updated_appointment, ['update_datetime']),
+            ]);
+
             $this->appointments_model->api_encode($updated_appointment);
 
             json_response($updated_appointment);
@@ -361,6 +375,12 @@ class Appointments_api_v1 extends EA_Controller
             );
 
             $this->webhooks_client->trigger(WEBHOOK_APPOINTMENT_DELETE, $deleted_appointment);
+
+            $this->activity_audit->log('api.appointment.deleted', 'appointment', (string) $id, [
+                'appointment_id' => (int) $id,
+                'customer_id' => (int) ($deleted_appointment['id_users_customer'] ?? 0),
+                'provider_id' => (int) ($deleted_appointment['id_users_provider'] ?? 0),
+            ]);
 
             response('', 204);
         } catch (Throwable $e) {

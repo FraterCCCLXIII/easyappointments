@@ -54,6 +54,7 @@ class Appointments extends EA_Controller
         $this->load->model('secretaries_model');
 
         $this->load->library('accounts');
+        $this->load->library('activity_audit');
         $this->load->library('appointment_payments_service');
         $this->load->library('timezones');
         $this->load->library('webhooks_client');
@@ -145,9 +146,24 @@ class Appointments extends EA_Controller
 
             $appointment_id = $this->appointments_model->save($appointment);
 
-            $appointment = $this->appointments_model->find($appointment);
+            $appointment = $this->appointments_model->find($appointment_id);
 
             $this->webhooks_client->trigger(WEBHOOK_APPOINTMENT_SAVE, $appointment);
+
+            $is_create = empty($appointment_before);
+            $this->activity_audit->log(
+                $is_create ? 'appointment.created' : 'appointment.saved',
+                'appointment',
+                (string) $appointment_id,
+                [
+                    'appointment_id' => (int) $appointment_id,
+                    'customer_id' => (int) ($appointment['id_users_customer'] ?? 0),
+                    'provider_id' => (int) ($appointment['id_users_provider'] ?? 0),
+                    'changes' => $appointment_before
+                        ? $this->activity_audit->build_field_changes($appointment_before, $appointment, ['update_datetime'])
+                        : ['created' => true],
+                ],
+            );
 
             json_response([
                 'success' => true,
@@ -205,6 +221,13 @@ class Appointments extends EA_Controller
                     $appointment_before,
                     $appointment_after,
                 );
+
+                $this->activity_audit->log('appointment.updated', 'appointment', (string) $appointment_id, [
+                    'appointment_id' => (int) $appointment_id,
+                    'customer_id' => (int) ($appointment_after['id_users_customer'] ?? 0),
+                    'provider_id' => (int) ($appointment_after['id_users_provider'] ?? 0),
+                    'changes' => $this->activity_audit->build_field_changes($appointment_before, $appointment_after, ['update_datetime']),
+                ]);
             }
 
             json_response([
@@ -233,6 +256,12 @@ class Appointments extends EA_Controller
             $this->appointments_model->delete($appointment_id);
 
             $this->webhooks_client->trigger(WEBHOOK_APPOINTMENT_DELETE, $appointment);
+
+            $this->activity_audit->log('appointment.deleted', 'appointment', (string) $appointment_id, [
+                'appointment_id' => (int) $appointment_id,
+                'customer_id' => (int) ($appointment['id_users_customer'] ?? 0),
+                'provider_id' => (int) ($appointment['id_users_provider'] ?? 0),
+            ]);
 
             json_response([
                 'success' => true,
@@ -297,6 +326,12 @@ class Appointments extends EA_Controller
 
             $note_id = $this->appointment_notes_model->save($note_payload);
             $note_response = $this->appointment_notes_model->find_with_author($note_id);
+
+            $this->activity_audit->log('appointment.note.created', 'appointment_note', (string) $note_id, [
+                'appointment_id' => (int) $appointment_id,
+                'customer_id' => (int) ($appointment['id_users_customer'] ?? 0),
+                'id_users_author' => (int) session('user_id'),
+            ]);
 
             json_response($note_response);
         } catch (Throwable $e) {

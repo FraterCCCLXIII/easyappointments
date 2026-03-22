@@ -143,6 +143,15 @@
                                 Billing History
                             </button>
                         </li>
+                        <?php if (in_array(vars('role_slug'), [DB_SLUG_ADMIN, 'manager'], true)): ?>
+                            <li class="nav-item" role="presentation">
+                                <button class="booking-tab-line" id="customer-activity-tab" data-bs-toggle="pill"
+                                        data-bs-target="#customer-activity-panel" type="button" role="tab"
+                                        aria-selected="false" tabindex="-1">
+                                    Activity
+                                </button>
+                            </li>
+                        <?php endif; ?>
                         <li class="nav-item" role="presentation">
                             <button class="booking-tab-line" id="customer-notes-tab" data-bs-toggle="pill"
                                     data-bs-target="#customer-notes-panel" type="button" role="tab"
@@ -305,6 +314,12 @@
                                 </div>
                             </div>
                             <div id="customer-appointment-notes-list" class="mt-4 d-flex flex-column gap-3"></div>
+                            <?php if (in_array(vars('role_slug'), [DB_SLUG_ADMIN, 'manager'], true)): ?>
+                                <div class="mt-4 rounded-xl border border-[var(--bs-border-color,#e2e8f0)] bg-white p-4">
+                                    <div class="text-xs font-medium uppercase text-slate-400">Appointment Activity</div>
+                                    <div id="customer-appointment-activity-list" class="mt-3 d-flex flex-column gap-2"></div>
+                                </div>
+                            <?php endif; ?>
                         </div>
                     </div>
                 </div>
@@ -327,6 +342,12 @@
                         </div>
                     </div>
                 </div>
+                <?php if (in_array(vars('role_slug'), [DB_SLUG_ADMIN, 'manager'], true)): ?>
+                    <div class="tab-pane fade" id="customer-activity-panel" role="tabpanel"
+                         aria-labelledby="customer-activity-tab">
+                        <div id="customer-activity-list" class="w-full d-flex flex-column gap-3"></div>
+                    </div>
+                <?php endif; ?>
                 <div class="tab-pane fade" id="customer-notes-panel" role="tabpanel"
                      aria-labelledby="customer-notes-tab">
                     <div id="customer-notes-tab-content" class="w-full">
@@ -609,6 +630,7 @@
 <script src="<?= asset_url('assets/js/http/user_files_http_client.js') ?>"></script>
 <script src="<?= asset_url('assets/js/components/user_forms.js') ?>"></script>
 <script src="<?= asset_url('assets/js/components/user_files.js') ?>"></script>
+<script src="<?= asset_url('assets/js/components/activity_timeline.js') ?>"></script>
 <script src="<?= asset_url('assets/js/pages/customers.js') ?>"></script>
 
 <?php end_section('scripts'); ?>

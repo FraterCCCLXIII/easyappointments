@@ -80,6 +80,7 @@ class Calendar extends EA_Controller
         $this->load->model('roles_model');
 
         $this->load->library('accounts');
+        $this->load->library('activity_audit');
         $this->load->library('google_sync');
         $this->load->library('notifications');
         $this->load->library('synchronization');
@@ -309,6 +310,9 @@ class Calendar extends EA_Controller
             }
 
             $appointment = $this->appointments_model->find($appointment['id']);
+            $changes = $appointment_before
+                ? $this->activity_audit->build_field_changes($appointment_before, $appointment, ['update_datetime'])
+                : ['created' => true];
 
             if ($appointment_before) {
                 $this->appointment_payments_service->maybe_charge_remaining_on_completed($appointment_before, $appointment);
@@ -343,6 +347,18 @@ class Calendar extends EA_Controller
             );
 
             $this->webhooks_client->trigger(WEBHOOK_APPOINTMENT_SAVE, $appointment);
+
+            $this->activity_audit->log(
+                $appointment_before ? 'calendar.appointment.updated' : 'calendar.appointment.created',
+                'appointment',
+                (string) ($appointment['id'] ?? ''),
+                [
+                    'appointment_id' => (int) ($appointment['id'] ?? 0),
+                    'customer_id' => (int) ($appointment['id_users_customer'] ?? 0),
+                    'provider_id' => (int) ($appointment['id_users_provider'] ?? 0),
+                    'changes' => $changes,
+                ],
+            );
 
             json_response([
                 'success' => true,
@@ -426,6 +442,13 @@ class Calendar extends EA_Controller
             $this->synchronization->sync_appointment_deleted($appointment, $provider);
 
             $this->webhooks_client->trigger(WEBHOOK_APPOINTMENT_DELETE, $appointment);
+
+            $this->activity_audit->log('calendar.appointment.deleted', 'appointment', (string) $appointment_id, [
+                'appointment_id' => (int) $appointment_id,
+                'customer_id' => (int) ($appointment['id_users_customer'] ?? 0),
+                'provider_id' => (int) ($appointment['id_users_provider'] ?? 0),
+                'cancellation_reason' => $cancellation_reason,
+            ]);
 
             json_response([
                 'success' => true,

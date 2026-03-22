@@ -67,6 +67,7 @@ class Customers extends EA_Controller
         $this->load->model('services_model');
 
         $this->load->library('accounts');
+        $this->load->library('activity_audit');
         $this->load->library('audit_log');
         $this->load->library('permissions');
         $this->load->library('timezones');
@@ -449,6 +450,10 @@ class Customers extends EA_Controller
             $alert_id = $this->customer_alerts_model->save($alert_payload);
             $alert_response = $this->customer_alerts_model->find_with_author($alert_id);
 
+            $this->activity_audit->log('customer.alert.created', 'customer_alert', (string) $alert_id, [
+                'customer_id' => (int) $customer_id,
+            ]);
+
             json_response($alert_response);
         } catch (Throwable $e) {
             json_exception($e);
@@ -486,6 +491,10 @@ class Customers extends EA_Controller
 
             $note_id = $this->customer_notes_model->save($note_payload);
             $note_response = $this->customer_notes_model->find_with_author($note_id);
+
+            $this->activity_audit->log('customer.note.created', 'customer_note', (string) $note_id, [
+                'customer_id' => (int) $customer_id,
+            ]);
 
             json_response($note_response);
         } catch (Throwable $e) {
@@ -534,6 +543,10 @@ class Customers extends EA_Controller
             $this->customer_alerts_model->save($alert_payload);
             $alert_response = $this->customer_alerts_model->find_with_author($alert_id);
 
+            $this->activity_audit->log('customer.alert.updated', 'customer_alert', (string) $alert_id, [
+                'customer_id' => (int) ($existing_alert['id_users_customer'] ?? 0),
+            ]);
+
             json_response($alert_response);
         } catch (Throwable $e) {
             json_exception($e);
@@ -578,6 +591,10 @@ class Customers extends EA_Controller
             $this->customer_notes_model->save($note_payload);
             $note_response = $this->customer_notes_model->find_with_author($note_id);
 
+            $this->activity_audit->log('customer.note.updated', 'customer_note', (string) $note_id, [
+                'customer_id' => (int) ($existing_note['id_users_customer'] ?? 0),
+            ]);
+
             json_response($note_response);
         } catch (Throwable $e) {
             json_exception($e);
@@ -609,6 +626,10 @@ class Customers extends EA_Controller
 
             $this->customer_alerts_model->delete($alert_id);
 
+            $this->activity_audit->log('customer.alert.deleted', 'customer_alert', (string) $alert_id, [
+                'customer_id' => (int) ($existing_alert['id_users_customer'] ?? 0),
+            ]);
+
             json_response(['deleted' => true]);
         } catch (Throwable $e) {
             json_exception($e);
@@ -639,6 +660,10 @@ class Customers extends EA_Controller
             }
 
             $this->customer_notes_model->delete($note_id);
+
+            $this->activity_audit->log('customer.note.deleted', 'customer_note', (string) $note_id, [
+                'customer_id' => (int) ($existing_note['id_users_customer'] ?? 0),
+            ]);
 
             json_response(['deleted' => true]);
         } catch (Throwable $e) {

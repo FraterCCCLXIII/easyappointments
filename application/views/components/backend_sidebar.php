@@ -101,6 +101,18 @@ $dropdown_menu_class = 'backend-sidebar-dropdown dropdown-menu absolute z-50 mt-
                     </a>
                 </li>
 
+                <?php $hidden = can('view', PRIV_SYSTEM_SETTINGS) ? '' : 'hidden'; ?>
+                <?php $active = $active_menu == 'logs'; ?>
+                <li class="<?= $hidden ?>">
+                    <a href="<?= site_url('logs') ?>"
+                       class="<?= $active ? $nav_link_active : $nav_link_inactive ?>"
+                       aria-label="Logs"
+                       data-tippy-content="Logs">
+                        <i class="backend-sidebar-icon" data-lucide="scroll-text"></i>
+                        <span class="backend-sidebar-label">Logs</span>
+                    </a>
+                </li>
+
                 <?php $hidden = can('view', PRIV_SERVICES) ? '' : 'hidden'; ?>
                 <?php $active = $active_menu == PRIV_SERVICES; ?>
                 <li class="dropdown relative <?= $hidden ?>">

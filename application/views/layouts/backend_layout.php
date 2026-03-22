@@ -65,6 +65,7 @@
             PRIV_WEBHOOKS,
             PRIV_BLOCKED_PERIODS,
             'billing',
+            'logs',
         ], true);
         ?>
         <?php if (vars('active_menu') !== PRIV_SYSTEM_SETTINGS && !$hide_page_title): ?>

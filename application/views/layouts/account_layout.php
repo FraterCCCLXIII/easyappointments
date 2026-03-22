@@ -20,6 +20,8 @@
     <link rel="stylesheet" type="text/css" href="<?= asset_url('assets/css/components/scrollbars.css') ?>">
     <link rel="stylesheet" type="text/css" href="<?= asset_url('assets/css/layouts/account_layout.css') ?>">
 
+    <?php component('company_color_style', ['company_color' => setting('company_color')]); ?>
+
     <?php slot('styles'); ?>
 </head>
 <body>

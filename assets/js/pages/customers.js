@@ -50,7 +50,9 @@ App.Pages.Customers = (function () {
     const $customerAppointmentNotes = $('#customer-appointment-notes');
     const $customerAppointmentSaveNotes = $('#customer-appointment-save-notes');
     const $customerAppointmentNotesList = $('#customer-appointment-notes-list');
+    const $customerAppointmentActivityList = $('#customer-appointment-activity-list');
     const $billingHistoryBody = $('#billing-history-body');
+    const $customerActivityList = $('#customer-activity-list');
     const $customerNoteText = $('#customer-note-text');
     const $customerNotesList = $('#customer-notes-list');
     const $customerVisitNotesList = $('#customer-visit-notes-list');
@@ -350,6 +352,15 @@ App.Pages.Customers = (function () {
             }
 
             setAlertInputsEnabled(true);
+        });
+
+        $customers.on('shown.bs.tab', '#customer-activity-tab', () => {
+            const customerId = Number($id.val());
+            if (!customerId) {
+                return;
+            }
+
+            loadCustomerActivity(customerId);
         });
 
         $customers.on('input', '#customer-note-text', (event) => {
@@ -856,6 +867,8 @@ App.Pages.Customers = (function () {
         setAlertInputsEnabled(false);
         $customerAlertsList.empty();
         $customerVisitNotesList.empty();
+        $customerActivityList.empty();
+        $customerAppointmentActivityList.empty();
         showAppointmentList();
 
         updateCustomerSummaryFromInputs();
@@ -914,6 +927,8 @@ App.Pages.Customers = (function () {
         setAlertInputsEnabled(true);
         $customerAlertsList.empty();
         $customerVisitNotesList.empty();
+        $customerActivityList.empty();
+        $customerAppointmentActivityList.empty();
         showAppointmentList();
 
         $customerAppointments.data('customerInfo', {
@@ -1083,6 +1098,7 @@ App.Pages.Customers = (function () {
         loadCustomerNotes(customer.id);
         loadCustomerAlerts(customer.id);
         loadCustomerVisitNotes(customer.id);
+        loadCustomerActivity(customer.id);
     }
 
     function loadCustomerNotes(customerId) {
@@ -1246,8 +1262,10 @@ App.Pages.Customers = (function () {
         $customerAppointmentNotes.val('').prop('disabled', false);
         $customerAppointmentSaveNotes.prop('disabled', false);
         $customerAppointmentNotesList.empty();
+        $customerAppointmentActivityList.empty();
 
         loadAppointmentNotes(appointmentId);
+        loadAppointmentActivity(appointmentId);
 
         $customerAppointmentsList.addClass('d-none');
         $customerAppointmentDetails.removeClass('d-none');
@@ -1487,6 +1505,48 @@ App.Pages.Customers = (function () {
             })
             .fail(() => {
                 renderAppointmentNotes([]);
+            });
+    }
+
+    function loadCustomerActivity(customerId) {
+        if (!customerId) {
+            App.Components.ActivityTimeline.render($customerActivityList, []);
+            return;
+        }
+
+        App.Utils.Http.request('POST', 'logs/events', {
+            customer_id: customerId,
+            limit: 100,
+            offset: 0,
+        })
+            .then((response) => {
+                App.Components.ActivityTimeline.render($customerActivityList, response.items || []);
+            })
+            .catch(() => {
+                App.Components.ActivityTimeline.render($customerActivityList, []);
+            });
+    }
+
+    function loadAppointmentActivity(appointmentId) {
+        if (!$customerAppointmentActivityList.length) {
+            return;
+        }
+
+        if (!appointmentId) {
+            App.Components.ActivityTimeline.render($customerAppointmentActivityList, []);
+            return;
+        }
+
+        App.Utils.Http.request('POST', 'logs/events', {
+            appointment_id: appointmentId,
+            limit: 100,
+            offset: 0,
+        })
+            .then((response) => {
+                App.Components.ActivityTimeline.render($customerAppointmentActivityList, response.items || []);
+            })
+            .catch(() => {
+                App.Components.ActivityTimeline.render($customerAppointmentActivityList, []);
             });
     }
 

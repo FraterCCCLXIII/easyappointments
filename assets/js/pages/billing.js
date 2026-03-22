@@ -11,6 +11,10 @@
 
 App.Pages.Billing = (function () {
     const $billingPage = $('#billing-page');
+    const $appointmentsView = $('#billing-appointments-view');
+    const $transactionsView = $('#billing-transactions-view');
+    const $timeline = $('#billing-activity-timeline');
+    const $timelineMeta = $('#billing-activity-meta');
     const RETRY_DEBUG_PREFIX = '[Billing][RetryFinalCharge]';
 
     function notify(message) {
@@ -324,9 +328,29 @@ App.Pages.Billing = (function () {
     }
 
     function addEventListeners() {
+        $billingPage.on('click', '#billing-view-appointments', () => {
+            $appointmentsView.removeClass('d-none');
+            $transactionsView.addClass('d-none');
+            $('#billing-view-appointments').removeClass('btn-outline-primary').addClass('btn-primary');
+            $('#billing-view-transactions').removeClass('btn-primary').addClass('btn-outline-primary');
+        });
+
+        $billingPage.on('click', '#billing-view-transactions', () => {
+            $transactionsView.removeClass('d-none');
+            $appointmentsView.addClass('d-none');
+            $('#billing-view-transactions').removeClass('btn-outline-primary').addClass('btn-primary');
+            $('#billing-view-appointments').removeClass('btn-primary').addClass('btn-outline-primary');
+        });
+
         $billingPage.on('click', '.js-save-billing-status', async (event) => {
             const $row = $(event.currentTarget).closest('tr');
             await saveBillingStatus($row);
+        });
+
+        $billingPage.on('click', '.js-view-appointment-activity', async (event) => {
+            const $row = $(event.currentTarget).closest('tr');
+            const appointmentId = Number($row.data('appointment-id'));
+            await loadAppointmentActivity(appointmentId);
         });
 
         $billingPage.on('click', '.js-open-payment-link', async (event) => {
@@ -457,7 +481,32 @@ App.Pages.Billing = (function () {
         $billingPage.find('tbody tr[data-appointment-id]').each((index, row) => {
             refreshPaymentDisplay($(row));
         });
+        App.Components.ActivityTimeline.render($timeline, []);
         addEventListeners();
+    }
+
+    async function loadAppointmentActivity(appointmentId) {
+        if (!appointmentId) {
+            return;
+        }
+
+        $timelineMeta.text(`Loading activity for appointment #${appointmentId}...`);
+        try {
+            const response = await App.Utils.Http.request('POST', 'logs/events', {
+                appointment_id: appointmentId,
+                limit: 100,
+                offset: 0,
+            });
+            const items = response.items || [];
+            App.Components.ActivityTimeline.render($timeline, items);
+            $timelineMeta.text(
+                items.length
+                    ? `Showing ${items.length} entries for appointment #${appointmentId}.`
+                    : `No activity found for appointment #${appointmentId}.`,
+            );
+        } catch (error) {
+            $timelineMeta.text(`Could not load activity for appointment #${appointmentId}.`);
+        }
     }
 
     return {

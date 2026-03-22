@@ -48,6 +48,7 @@ class Customer_account extends EA_Controller
         $this->load->model('appointments_model');
         $this->load->model('form_assignments_model');
         $this->load->model('forms_model');
+        $this->load->library('activity_audit');
         $this->load->library('timezones');
         $this->load->library('stripe_gateway');
         $this->load->library('email_messages');
@@ -131,10 +132,12 @@ class Customer_account extends EA_Controller
 
             $updated = array_merge($customer, $input);
             $updated['id'] = $customer['id'];
+            $before = $customer;
 
             $this->customers_model->only($updated, array_merge($this->allowed_customer_fields, ['id', 'email']));
 
             $this->customers_model->save($updated);
+            $after = $this->customers_model->find((int) $customer['id']);
 
             $custom_fields = request('custom_fields', []);
             if (is_array($custom_fields)) {
@@ -143,6 +146,11 @@ class Customer_account extends EA_Controller
                     $custom_fields
                 );
             }
+
+            $this->activity_audit->log('customer.profile.updated', 'customer', (string) $customer['id'], [
+                'customer_id' => (int) $customer['id'],
+                'changes' => $this->activity_audit->build_field_changes($before, $after, ['update_datetime']),
+            ]);
 
             session([
                 'customer_flash' => [
@@ -281,6 +289,10 @@ class Customer_account extends EA_Controller
                 'customer_email_change_pending' => null,
             ]);
 
+            $this->activity_audit->log('customer.email.updated', 'customer', (string) $customer['id'], [
+                'customer_id' => (int) $customer['id'],
+            ]);
+
             json_response(['success' => true]);
         } catch (RuntimeException $e) {
             $remaining = $this->customer_otp_model->get_lockout_remaining_seconds((string) session('customer_email_change_pending'));
@@ -400,6 +412,10 @@ class Customer_account extends EA_Controller
 
             session([
                 'customer_password_change_hash' => null,
+            ]);
+
+            $this->activity_audit->log('customer.password.updated', 'customer', (string) $customer['id'], [
+                'customer_id' => (int) $customer['id'],
             ]);
 
             json_response(['success' => true]);
